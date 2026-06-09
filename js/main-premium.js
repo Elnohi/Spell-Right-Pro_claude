@@ -1277,7 +1277,21 @@ async function speakWord(word) {
     // School and OET stay at the standard rate (typed input — speed less critical).
     utter.rate = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
     utter.pitch = 1;
-    
+
+    // Explicitly pick a real available voice so Edge/Chrome don't silently fail
+    // when no voice is installed for the requested lang (e.g. en-GB missing).
+    const voices = speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      const langPrefix = accent.split('-')[0];
+      const match =
+        voices.find(v => v.lang === accent) ||
+        voices.find(v => v.lang.startsWith(langPrefix)) ||
+        voices.find(v => v.lang.startsWith('en')) ||
+        voices[0];
+      utter.voice = match;
+      utter.lang = match.lang;
+    }
+
     // Cancel previous speech; wait a tick so cancel's 'end' fires
     // before we attach our new utterance's onend handler
     speechSynthesis.cancel();
@@ -1579,6 +1593,7 @@ function initializeSpeechSynthesis() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Starting Firebase initialization...');
     initializeFirebase();
+    initializeSpeechSynthesis(); // pre-load voices so first speakWord() call has them
     // NOTE: createCustomWordsUI, initializeCustomWords, initializeRealTimeValidation
     // are called from initializePremiumFeatures() only — NOT here — to avoid duplicates.
     console.log('SpellRightPro Premium initialized');
