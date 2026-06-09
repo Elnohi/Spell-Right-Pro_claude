@@ -25,7 +25,10 @@ let incorrectWords = [];
 let flaggedWords = new Set();
 
 // --- Custom Words Management ---
-let customLists = JSON.parse(localStorage.getItem('premiumCustomLists') || '{}');
+let customLists = (() => {
+  try { return JSON.parse(localStorage.getItem('premiumCustomLists') || '{}'); }
+  catch(e) { return {}; }
+})();
 let currentCustomList = null;
 
 // ── Premium Bee adaptive difficulty (Bee mode only) ────────────────────────
@@ -1077,13 +1080,18 @@ function deleteCustomList(listName) {
 }
 
 function saveCustomLists() {
-  localStorage.setItem('premiumCustomLists', JSON.stringify(customLists));
+  try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); }
+  catch(e) { console.warn('localStorage blocked — custom list saved in memory only'); }
 }
 
 function loadCustomLists() {
-  const saved = localStorage.getItem('premiumCustomLists');
-  if (saved) {
-    customLists = JSON.parse(saved);
+  try {
+    const saved = localStorage.getItem('premiumCustomLists');
+    if (saved) {
+      customLists = JSON.parse(saved);
+    }
+  } catch(e) {
+    console.warn('localStorage blocked — using in-memory custom lists');
   }
 }
 
@@ -1262,7 +1270,7 @@ async function loadOETWords() {
 }
 
 // Text-to-speech with proper error handling
-async function speakWord(word) {
+function speakWord(word) {
   if (!window.speechSynthesis) {
     showFeedback("Text-to-speech not supported in this browser", "error");
     return;
@@ -1292,10 +1300,9 @@ async function speakWord(word) {
       utter.lang = match.lang;
     }
 
-    // Cancel previous speech; wait a tick so cancel's 'end' fires
-    // before we attach our new utterance's onend handler
+    // Cancel any ongoing speech synchronously (no await) to stay within
+    // Edge's user-gesture trust window — async gaps break autoplay policy.
     speechSynthesis.cancel();
-    await new Promise(r => setTimeout(r, 80));
     
     utter.onerror = (event) => {
       console.error('Speech synthesis error:', event);
@@ -1348,10 +1355,8 @@ function nextWord() {
     const beeRT = document.getElementById('beeRecognizedText');
     if (beeRT) beeRT.style.display = 'none';
     
-    // Speak the word with a slight delay
-    setTimeout(() => {
-        speakWord(word);
-    }, 500);
+    // Speak immediately — delay breaks Edge's user-gesture trust chain for speech synthesis
+    speakWord(word);
 }
 
 // ENHANCED CHECKANSWER FUNCTION WITH REAL-TIME MARKING
@@ -1593,7 +1598,7 @@ function initializeSpeechSynthesis() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Starting Firebase initialization...');
     initializeFirebase();
-    initializeSpeechSynthesis(); // pre-load voices so first speakWord() call has them
+    initializeSpeechSynthesis(); // pre-load voices before first speakWord() call
     // NOTE: createCustomWordsUI, initializeCustomWords, initializeRealTimeValidation
     // are called from initializePremiumFeatures() only — NOT here — to avoid duplicates.
     console.log('SpellRightPro Premium initialized');
