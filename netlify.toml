@@ -1,32 +1,133 @@
-# netlify.toml — SpellRightPro deploy config
+# netlify.toml - Root configuration for Netlify deployment
 
-[[plugins]]
-  package = "./netlify/plugins/inject-sw-version"
+[build]
+  publish = "."
+  command = "node inject-version.js"
 
-# sw.js: never cache — browser must always fetch fresh so it can detect updates
+# Environment settings
+[build.environment]
+  NODE_VERSION = "20"
+
+# Redirects for SPA routing
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/premium"
+  to = "/premium.html"
+  status = 200
+
+[[redirects]]
+  from = "/pricing"
+  to = "/pricing.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+
+[[redirects]]
+  from = "/refund"
+  to = "/refund-policy.html"
+  status = 200
+
+[[redirects]]
+  from = "/security"
+  to = "/security.html"
+  status = 200
+
+[[redirects]]
+  from = "/offline"
+  to = "/offline.html"
+  status = 200
+
+# Fallback for any unmatched routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
+
+# Headers for security and caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Service worker - no caching
 [[headers]]
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
 
-# HTML pages: always revalidate so users get new deploys immediately
-[[headers]]
-  for = "/*.html"
-  [headers.values]
-    Cache-Control = "no-cache"
-
-# JS/CSS/images: cache aggressively (sw.js version bump will bust these)
-[[headers]]
-  for = "/js/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
+# CSS files - long cache
 [[headers]]
   for = "/css/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# JS files - long cache except config files
+[[headers]]
+  for = "/js/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Config files - shorter cache
+[[headers]]
+  for = "/js/config.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/js/firebase-config.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Images - long cache
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# HTML files - no cache
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Function configuration (if using Netlify Functions)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Split testing configuration (optional)
+[[split_test]]
+  enabled = false
+
+# Build hooks for preview deployments
+[context.production]
+  environment = { NODE_ENV = "production" }
+
+[context.deploy-preview]
+  environment = { NODE_ENV = "preview" }
+
+[context.branch-deploy]
+  environment = { NODE_ENV = "development" }
