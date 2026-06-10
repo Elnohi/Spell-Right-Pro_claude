@@ -525,7 +525,8 @@ function loadPremiumPack(packName) {
     description: pack.description
   };
   
-  localStorage.setItem('premiumCustomLists', JSON.stringify(window.customLists));
+  try { localStorage.setItem('premiumCustomLists', JSON.stringify(window.customLists)); }
+  catch(e) { console.warn('localStorage blocked — pack saved in memory only'); }
   
   // Load the pack
   if (typeof window.loadCustomList === 'function') {
@@ -1087,9 +1088,7 @@ function saveCustomLists() {
 function loadCustomLists() {
   try {
     const saved = localStorage.getItem('premiumCustomLists');
-    if (saved) {
-      customLists = JSON.parse(saved);
-    }
+    if (saved) customLists = JSON.parse(saved);
   } catch(e) {
     console.warn('localStorage blocked — using in-memory custom lists');
   }
@@ -1270,24 +1269,24 @@ async function loadOETWords() {
 }
 
 // Text-to-speech with proper error handling
+// NOTE: Must remain synchronous (no async/await) so Edge keeps the user-gesture
+// trust chain intact — async gaps cause synthesis-failed errors.
 function speakWord(word) {
   if (!window.speechSynthesis) {
     showFeedback("Text-to-speech not supported in this browser", "error");
     return;
   }
-  
+
   try {
     const utter = new SpeechSynthesisUtterance(word);
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect?.value || 'en-GB';
     utter.lang = accent;
-    // Adaptive rate for Bee mode (gentle for beginners, faster as user advances).
-    // School and OET stay at the standard rate (typed input — speed less critical).
     utter.rate = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
     utter.pitch = 1;
 
-    // Explicitly pick a real available voice so Edge/Chrome don't silently fail
-    // when no voice is installed for the requested lang (e.g. en-GB missing).
+    // Pick a real installed voice — Edge fails silently if utter.lang has no
+    // matching voice. Fall back from exact match → lang prefix → any English.
     const voices = speechSynthesis.getVoices();
     if (voices.length > 0) {
       const langPrefix = accent.split('-')[0];
@@ -1296,21 +1295,23 @@ function speakWord(word) {
         voices.find(v => v.lang.startsWith(langPrefix)) ||
         voices.find(v => v.lang.startsWith('en')) ||
         voices[0];
-      utter.voice = match;
-      utter.lang = match.lang;
+      if (match) {
+        utter.voice = match;
+        utter.lang  = match.lang;
+      }
     }
 
-    // Cancel any ongoing speech synchronously (no await) to stay within
-    // Edge's user-gesture trust window — async gaps break autoplay policy.
+    // Cancel synchronously — no await, no setTimeout — to stay within
+    // Edge's user-gesture autoplay window.
     speechSynthesis.cancel();
-    
+
     utter.onerror = (event) => {
       console.error('Speech synthesis error:', event);
       showFeedback("Error speaking word", "error");
     };
-    
+
     speechSynthesis.speak(utter);
-    showFeedback("Speaking...", "info");
+    showFeedback("Listen carefully...", "info");
   } catch (error) {
     console.error("Speech error:", error);
     showFeedback("Could not speak word", "error");
@@ -1355,7 +1356,7 @@ function nextWord() {
     const beeRT = document.getElementById('beeRecognizedText');
     if (beeRT) beeRT.style.display = 'none';
     
-    // Speak immediately — delay breaks Edge's user-gesture trust chain for speech synthesis
+    // Speak immediately — delay breaks Edge's user-gesture trust chain
     speakWord(word);
 }
 
