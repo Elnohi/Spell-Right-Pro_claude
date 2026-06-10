@@ -1,5 +1,6 @@
 // sw.js — Optimized caching strategy for SpellRightPro
-const VERSION = '2026-04-04';
+// VERSION is injected automatically at deploy time by netlify/plugins/inject-sw-version
+const VERSION = '__SW_VERSION__';
 const STATIC_CACHE = `static-${VERSION}`;
 const HTML_CACHE = `html-${VERSION}`;
 

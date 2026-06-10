@@ -1029,7 +1029,7 @@ const firebaseConfig = {
         };
         
         speechSynthesis.speak(utterance);
-        updateFeedback(`Word spoken: "${word}"`);
+        updateFeedback('Listen carefully and type the word...');
         
       } catch (error) {
         console.error('Speech error:', error);
@@ -1085,9 +1085,7 @@ const firebaseConfig = {
       
       if (state.currentIndex < state.words.length) {
         updateProgress();
-        setTimeout(() => {
-          speakCurrentWord();
-        }, 1000);
+        speakCurrentWord();
       } else {
         setTimeout(endSession, 1500);
       }
