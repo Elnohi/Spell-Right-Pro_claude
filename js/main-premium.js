@@ -1947,4 +1947,3 @@ async function loadListsFromFirestore() {
     console.warn('Firestore list load failed:', e.message);
   }
 }
-
