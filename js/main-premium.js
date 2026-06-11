@@ -199,6 +199,8 @@ function setupAuthListener() {
                 if (!window._premiumFeaturesInitialized) {
                     initializePremiumFeatures();
                 }
+                // Load lists from Firestore now that user is confirmed
+                setTimeout(() => loadListsFromFirestore(), 1500);
             } else {
                 showOverlay();
                 showNonPremiumMessage();
@@ -743,11 +745,11 @@ function initializeRealTimeValidation() {
                 this.style.fontWeight = 'normal';
                 this.style.textDecoration = 'line-through';
             } else {
-                this.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                this.style.color = 'white';
-                this.style.fontWeight = 'normal';
-                this.style.textDecoration = 'none';
+                this.style.borderColor = '';
+                this.style.backgroundColor = '';
+                this.style.color = '';
+                this.style.fontWeight = '';
+                this.style.textDecoration = '';
             }
         });
         
@@ -1048,9 +1050,7 @@ function loadCustomList(listName) {
   showFeedback(`Loaded "${listName}" with ${currentList.length} words`, 'success');
   
   if (currentMode) {
-    setTimeout(() => {
-      startTraining(currentMode);
-    }, 1000);
+    startTraining(currentMode);
   }
 }
 
@@ -1344,12 +1344,12 @@ function nextWord() {
     // Reset input styling
     if (inputElement) {
         inputElement.value = "";
-        inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-        inputElement.style.color = 'white';
-        inputElement.style.fontWeight = 'normal';
-        inputElement.style.textDecoration = 'none';
-        inputElement.style.boxShadow = 'none';
+        inputElement.style.borderColor = '';
+        inputElement.style.backgroundColor = '';
+        inputElement.style.color = '';
+        inputElement.style.fontWeight = '';
+        inputElement.style.textDecoration = '';
+        inputElement.style.boxShadow = '';
     }
     
     // Reset handwriting canvas between words
@@ -1435,7 +1435,7 @@ function checkAnswer() {
     
     currentIndex++;
     
-    // Auto-advance with delay
+    // Auto-advance with delay (1.2s — enough to read feedback, not feel broken)
     setTimeout(() => {
         // Reset input styling for next word
         if (inputElement) {
@@ -1457,7 +1457,7 @@ function checkAnswer() {
         } else {
             showSummary();
         }
-    }, 2000);
+    }, 1200);
 }
 
 // Summary function
@@ -1578,10 +1578,11 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener('click', showSummary);
   });
   
-  // Input field enter key support
+  // Input field enter key support — keydown is more reliable than keypress on mobile/Edge
   document.querySelectorAll('.answer-input').forEach(input => {
-    input.addEventListener('keypress', (e) => {
+    input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
+        e.preventDefault(); // prevent newline in textarea
         checkAnswer();
       }
     });
@@ -1903,14 +1904,15 @@ function hwReset(moduleMode) {
 // FIRESTORE CUSTOM LIST SYNC — cross-device persistence
 // =======================================================
 
+// =======================================================
+// FIRESTORE CUSTOM LIST SYNC — cross-device persistence
+// Uses the existing db instance from firebaseUtils
+// =======================================================
+
 async function syncListsToFirestore() {
   try {
-    const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-    const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-    const user = getAuth().currentUser;
-    if (!user) return;
-    const db = getFirestore();
-    await setDoc(doc(db, 'userLists', user.uid), {
+    if (!db || !currentUser) return;
+    await db.collection('userLists').doc(currentUser.uid).set({
       lists: customLists,
       updatedAt: new Date().toISOString()
     }, { merge: true });
@@ -1921,16 +1923,20 @@ async function syncListsToFirestore() {
 }
 
 async function loadListsFromFirestore() {
+  // If user not authenticated yet, wait up to 5s for auth to settle
+  if (!db || !currentUser) {
+    const waited = (loadListsFromFirestore._waited || 0);
+    if (waited < 5) {
+      loadListsFromFirestore._waited = waited + 1;
+      setTimeout(loadListsFromFirestore, 1000);
+    }
+    return;
+  }
+  loadListsFromFirestore._waited = 0;
   try {
-    const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-    const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-    const user = getAuth().currentUser;
-    if (!user) return;
-    const db = getFirestore();
-    const snap = await getDoc(doc(db, 'userLists', user.uid));
-    if (!snap.exists()) return;
+    const snap = await db.collection('userLists').doc(currentUser.uid).get();
+    if (!snap.exists) return;
     const remote = snap.data().lists || {};
-    // Merge: remote wins for any list that doesn't exist locally
     let changed = false;
     for (const [name, data] of Object.entries(remote)) {
       if (!customLists[name]) {
