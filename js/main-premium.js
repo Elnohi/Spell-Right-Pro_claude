@@ -1303,14 +1303,16 @@ function speakWord(word) {
       if (match) { utter.voice = match; utter.lang = match.lang; }
     }
 
-    // Cancel synchronously — no await — to stay within Edge's gesture window.
-    speechSynthesis.cancel();
-
+    // Attach error handler first, then cancel + speak synchronously.
+    // onerror must be set before speak() to catch synthesis-failed events.
     utter.onerror = (event) => {
+      // Ignore 'canceled' — that's our own speechSynthesis.cancel() call
+      if (event.error === 'canceled' || event.error === 'interrupted') return;
       console.error('Speech synthesis error:', event);
       showFeedback("Error speaking word", "error");
     };
 
+    speechSynthesis.cancel();
     speechSynthesis.speak(utter);
     showFeedback("Listen carefully...", "info");
   } catch (error) {
