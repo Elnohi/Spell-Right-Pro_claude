@@ -66,13 +66,12 @@
       --page-bg: #ede8fa;
     }
     body.dark-mode {
-      --surface: #1e0d38; --surface2: #2a1248;
-      --border: rgba(255,255,255,0.10);
-      --text: #f0e8ff;    --muted: #9d8fc0;
-      --page-bg: #0d0520;
+      /* Lighter surfaces so inputs are visible against dark page background */
+      --surface: #2d1654; --surface2: #3d1f6e;
+      --border: rgba(255,255,255,0.15);
+      --text: #f0e8ff;    --muted: #b09ad0;
+      --page-bg: #130828;
     }
-
-    /* Trainer page — override the gradient from styles.css */
     body {
       background: var(--page-bg) !important;
       color: var(--text) !important;
@@ -330,63 +329,6 @@
       .mode-tabs { flex-direction:column; }
     }
 
-
-    /* ── Handwriting Canvas ── */
-    .input-mode-toggle {
-      display: flex; gap: 8px; margin-bottom: 10px; align-items: center;
-    }
-    .input-mode-toggle label {
-      font-size: 0.78rem; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .05em;
-    }
-    .mode-toggle-btn {
-      display: flex; gap: 0; border-radius: 10px; overflow: hidden;
-      border: 1.5px solid var(--border);
-    }
-    .mode-toggle-btn button {
-      padding: 7px 14px; font-size: 0.82rem; font-weight: 600;
-      font-family: 'DM Sans', sans-serif; cursor: pointer;
-      background: var(--surface2); color: var(--muted);
-      border: none; transition: all .2s;
-    }
-    .mode-toggle-btn button.active {
-      background: var(--brand); color: #fff;
-    }
-    .hw-canvas-wrap {
-      display: none; flex-direction: column; align-items: center; gap: 10px;
-    }
-    .hw-canvas-wrap.visible { display: flex; }
-    .hw-canvas {
-      width: 100%; max-width: 600px; height: 160px;
-      background: var(--surface2); border-radius: 12px;
-      border: 2px dashed var(--border); cursor: crosshair;
-      touch-action: none;
-    }
-    body.dark-mode .hw-canvas {
-      background: rgba(255,255,255,0.05);
-      border-color: rgba(255,255,255,0.15);
-    }
-    .hw-controls {
-      display: flex; gap: 8px; align-items: center; width: 100%;
-      max-width: 600px;
-    }
-    .hw-recognized {
-      flex: 1; font-size: 1.1rem; font-weight: 700; font-family: 'DM Mono', monospace;
-      color: var(--text); padding: 8px 12px; background: var(--surface);
-      border: 1.5px solid var(--border); border-radius: 10px;
-      min-height: 38px; text-align: center; letter-spacing: .05em;
-    }
-    .hw-clear-btn {
-      padding: 8px 14px; font-size: 0.82rem; font-weight: 600;
-      background: rgba(255,69,96,.08); color: var(--fail);
-      border: 1.5px solid rgba(255,69,96,.25); border-radius: 10px;
-      cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s;
-    }
-    .hw-clear-btn:hover { background: rgba(255,69,96,.15); }
-    .hw-status {
-      font-size: 0.75rem; color: var(--muted); text-align: center;
-      min-height: 18px;
-    }
     /* ── Voice bars animation ── */
     @keyframes voicePulse {
       from { height:6px; }
@@ -929,19 +871,8 @@
 
         <!-- Answer zone -->
         <div class="answer-zone">
-          <span class="answer-zone-label" id="schoolZoneLabel">✏️ Type your spelling here</span>
-          <div class="input-mode-toggle">
-            <label>Input:</label>
-            <div class="mode-toggle-btn">
-              <button class="active" id="schoolModeKeyboard" onclick="setInputMode('school','keyboard')">
-                <i class="fa fa-keyboard"></i> Keyboard
-              </button>
-              <button id="schoolModeHandwriting" onclick="setInputMode('school','handwriting')">
-                ✍️ Handwrite
-              </button>
-            </div>
-          </div>
-          <div class="input-group" id="schoolKeyboardWrap">
+          <span class="answer-zone-label">✏️ Type your spelling here</span>
+          <div class="input-group">
             <textarea
               id="schoolInput"
               class="answer-input"
@@ -951,19 +882,9 @@
               rows="2"
             ></textarea>
           </div>
-          <p class="real-time-hint" id="schoolKeyboardHint">
+          <p class="real-time-hint">
             Real-time feedback — green = correct, red = wrong
           </p>
-          <div class="hw-canvas-wrap" id="schoolHwWrap">
-            <canvas class="hw-canvas" id="schoolHwCanvas"></canvas>
-            <div class="hw-controls">
-              <div class="hw-recognized" id="schoolHwText">—</div>
-              <button class="hw-clear-btn" onclick="hwClear('school')">
-                <i class="fa fa-eraser"></i> Clear
-              </button>
-            </div>
-            <div class="hw-status" id="schoolHwStatus">Write your word on the canvas above</div>
-          </div>
         </div>
 
         <!-- Controls -->
@@ -1058,19 +979,8 @@
 
         <!-- Answer zone -->
         <div class="answer-zone">
-          <span class="answer-zone-label" id="oetZoneLabel">✏️ Type your spelling here</span>
-          <div class="input-mode-toggle">
-            <label>Input:</label>
-            <div class="mode-toggle-btn">
-              <button class="active" id="oetModeKeyboard" onclick="setInputMode('oet','keyboard')">
-                <i class="fa fa-keyboard"></i> Keyboard
-              </button>
-              <button id="oetModeHandwriting" onclick="setInputMode('oet','handwriting')">
-                ✍️ Handwrite
-              </button>
-            </div>
-          </div>
-          <div class="input-group" id="oetKeyboardWrap">
+          <span class="answer-zone-label">✏️ Type your spelling here</span>
+          <div class="input-group">
             <textarea
               id="oetInput"
               class="answer-input"
@@ -1080,19 +990,9 @@
               rows="2"
             ></textarea>
           </div>
-          <p class="real-time-hint" id="oetKeyboardHint">
+          <p class="real-time-hint">
             Real-time feedback — green = correct, red = wrong
           </p>
-          <div class="hw-canvas-wrap" id="oetHwWrap">
-            <canvas class="hw-canvas" id="oetHwCanvas"></canvas>
-            <div class="hw-controls">
-              <div class="hw-recognized" id="oetHwText">—</div>
-              <button class="hw-clear-btn" onclick="hwClear('oet')">
-                <i class="fa fa-eraser"></i> Clear
-              </button>
-            </div>
-            <div class="hw-status" id="oetHwStatus">Write your word on the canvas above</div>
-          </div>
         </div>
 
         <!-- Controls -->
