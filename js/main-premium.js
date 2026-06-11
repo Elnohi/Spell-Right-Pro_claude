@@ -766,12 +766,12 @@ function initializeRealTimeValidation() {
 function clearRealTimeFeedback() {
     const inputElement = document.getElementById(`${currentMode}Input`);
     if (inputElement) {
-        inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-        inputElement.style.color = 'white';
-        inputElement.style.fontWeight = 'normal';
-        inputElement.style.textDecoration = 'none';
-        inputElement.style.boxShadow = 'none';
+        inputElement.style.borderColor = '';
+        inputElement.style.backgroundColor = '';
+        inputElement.style.color = '';
+        inputElement.style.fontWeight = '';
+        inputElement.style.textDecoration = '';
+        inputElement.style.boxShadow = '';
     }
 }
 
@@ -1081,7 +1081,8 @@ function deleteCustomList(listName) {
 
 function saveCustomLists() {
   try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); }
-  catch(e) { console.warn('localStorage blocked — custom list saved in memory only'); }
+  catch(e) { console.warn('localStorage blocked — list saved in memory only'); }
+  syncListsToFirestore();
 }
 
 function loadCustomLists() {
@@ -1089,8 +1090,9 @@ function loadCustomLists() {
     const saved = localStorage.getItem('premiumCustomLists');
     if (saved) customLists = JSON.parse(saved);
   } catch(e) {
-    console.warn('localStorage blocked — using in-memory custom lists');
+    console.warn('localStorage blocked — using in-memory lists');
   }
+  loadListsFromFirestore();
 }
 
 // =======================================================
@@ -1437,11 +1439,11 @@ function checkAnswer() {
     setTimeout(() => {
         // Reset input styling for next word
         if (inputElement) {
-            inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            inputElement.style.color = 'white';
-            inputElement.style.fontWeight = 'normal';
-            inputElement.style.textDecoration = 'none';
+            inputElement.style.borderColor = '';
+            inputElement.style.backgroundColor = '';
+            inputElement.style.color = '';
+            inputElement.style.fontWeight = '';
+            inputElement.style.textDecoration = '';
             inputElement.value = "";
         }
         
@@ -1896,3 +1898,53 @@ function hwReset(moduleMode) {
     hwClear(moduleMode);
   }
 }
+
+// =======================================================
+// FIRESTORE CUSTOM LIST SYNC — cross-device persistence
+// =======================================================
+
+async function syncListsToFirestore() {
+  try {
+    const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+    const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const user = getAuth().currentUser;
+    if (!user) return;
+    const db = getFirestore();
+    await setDoc(doc(db, 'userLists', user.uid), {
+      lists: customLists,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    console.log('✅ Lists synced to Firestore');
+  } catch (e) {
+    console.warn('Firestore list sync failed:', e.message);
+  }
+}
+
+async function loadListsFromFirestore() {
+  try {
+    const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+    const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const user = getAuth().currentUser;
+    if (!user) return;
+    const db = getFirestore();
+    const snap = await getDoc(doc(db, 'userLists', user.uid));
+    if (!snap.exists()) return;
+    const remote = snap.data().lists || {};
+    // Merge: remote wins for any list that doesn't exist locally
+    let changed = false;
+    for (const [name, data] of Object.entries(remote)) {
+      if (!customLists[name]) {
+        customLists[name] = data;
+        changed = true;
+      }
+    }
+    if (changed) {
+      try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
+      updateCustomListsDisplay();
+      console.log('✅ Lists merged from Firestore');
+    }
+  } catch (e) {
+    console.warn('Firestore list load failed:', e.message);
+  }
+}
+
