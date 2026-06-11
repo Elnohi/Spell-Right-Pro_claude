@@ -55,6 +55,13 @@
   to = "/offline.html"
   status = 200
 
+# API route — proxy /api/ocr to the Netlify function
+[[redirects]]
+  from = "/api/ocr"
+  to = "/.netlify/functions/ocr"
+  status = 200
+  force = true
+
 # Fallback for any unmatched routes
 [[redirects]]
   from = "/*"
@@ -70,7 +77,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Permissions-Policy = "camera=(), geolocation=()"
 
 # Service worker - no caching
 [[headers]]
