@@ -25,10 +25,7 @@ let incorrectWords = [];
 let flaggedWords = new Set();
 
 // --- Custom Words Management ---
-let customLists = (() => {
-  try { return JSON.parse(localStorage.getItem('premiumCustomLists') || '{}'); }
-  catch(e) { return {}; }
-})();
+let customLists = JSON.parse(localStorage.getItem('premiumCustomLists') || '{}');
 let currentCustomList = null;
 
 // ── Premium Bee adaptive difficulty (Bee mode only) ────────────────────────
@@ -525,8 +522,7 @@ function loadPremiumPack(packName) {
     description: pack.description
   };
   
-  try { localStorage.setItem('premiumCustomLists', JSON.stringify(window.customLists)); }
-  catch(e) { console.warn('localStorage blocked — pack saved in memory only'); }
+  localStorage.setItem('premiumCustomLists', JSON.stringify(window.customLists));
   
   // Load the pack
   if (typeof window.loadCustomList === 'function') {
@@ -1081,16 +1077,13 @@ function deleteCustomList(listName) {
 }
 
 function saveCustomLists() {
-  try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); }
-  catch(e) { console.warn('localStorage blocked — custom list saved in memory only'); }
+  localStorage.setItem('premiumCustomLists', JSON.stringify(customLists));
 }
 
 function loadCustomLists() {
-  try {
-    const saved = localStorage.getItem('premiumCustomLists');
-    if (saved) customLists = JSON.parse(saved);
-  } catch(e) {
-    console.warn('localStorage blocked — using in-memory custom lists');
+  const saved = localStorage.getItem('premiumCustomLists');
+  if (saved) {
+    customLists = JSON.parse(saved);
   }
 }
 
@@ -1269,49 +1262,34 @@ async function loadOETWords() {
 }
 
 // Text-to-speech with proper error handling
-// NOTE: Must remain synchronous (no async/await) so Edge keeps the user-gesture
-// trust chain intact — async gaps cause synthesis-failed errors.
-function speakWord(word) {
+async function speakWord(word) {
   if (!window.speechSynthesis) {
     showFeedback("Text-to-speech not supported in this browser", "error");
     return;
   }
-
+  
   try {
     const utter = new SpeechSynthesisUtterance(word);
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect?.value || 'en-GB';
     utter.lang = accent;
+    // Adaptive rate for Bee mode (gentle for beginners, faster as user advances).
+    // School and OET stay at the standard rate (typed input — speed less critical).
     utter.rate = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
     utter.pitch = 1;
-
-    // Pick a real installed voice — Edge fails silently if utter.lang has no
-    // matching voice. Fall back from exact match → lang prefix → any English.
-    const voices = speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      const langPrefix = accent.split('-')[0];
-      const match =
-        voices.find(v => v.lang === accent) ||
-        voices.find(v => v.lang.startsWith(langPrefix)) ||
-        voices.find(v => v.lang.startsWith('en')) ||
-        voices[0];
-      if (match) {
-        utter.voice = match;
-        utter.lang  = match.lang;
-      }
-    }
-
-    // Cancel synchronously — no await, no setTimeout — to stay within
-    // Edge's user-gesture autoplay window.
+    
+    // Cancel previous speech; wait a tick so cancel's 'end' fires
+    // before we attach our new utterance's onend handler
     speechSynthesis.cancel();
-
+    await new Promise(r => setTimeout(r, 80));
+    
     utter.onerror = (event) => {
       console.error('Speech synthesis error:', event);
       showFeedback("Error speaking word", "error");
     };
-
+    
     speechSynthesis.speak(utter);
-    showFeedback("Listen carefully...", "info");
+    showFeedback("Speaking...", "info");
   } catch (error) {
     console.error("Speech error:", error);
     showFeedback("Could not speak word", "error");
@@ -1351,13 +1329,20 @@ function nextWord() {
         inputElement.style.boxShadow = 'none';
     }
     
+    // Reset handwriting canvas between words
+    if ((currentMode === "school" || currentMode === "oet") && typeof hwReset === "function") {
+        hwReset(currentMode);
+    }
+
     // Clear any previous voice recognition UI (only if bee elements exist)
     if (typeof updateBeeVoiceUI === 'function') updateBeeVoiceUI(false);
     const beeRT = document.getElementById('beeRecognizedText');
     if (beeRT) beeRT.style.display = 'none';
     
-    // Speak immediately — delay breaks Edge's user-gesture trust chain
-    speakWord(word);
+    // Speak the word with a slight delay
+    setTimeout(() => {
+        speakWord(word);
+    }, 500);
 }
 
 // ENHANCED CHECKANSWER FUNCTION WITH REAL-TIME MARKING
@@ -1370,6 +1355,9 @@ function checkAnswer() {
     if (currentMode === "bee") {
         startVoiceRecognition();
         return;
+    } else if ((currentMode === "school" || currentMode === "oet") &&
+               hwState[currentMode] && hwState[currentMode].mode === "handwriting") {
+        userAnswer = hwGetAnswer(currentMode);
     } else {
         const inputElement = document.getElementById(`${currentMode}Input`);
         userAnswer = inputElement ? inputElement.value.trim() : "";
@@ -1599,7 +1587,6 @@ function initializeSpeechSynthesis() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Starting Firebase initialization...');
     initializeFirebase();
-    initializeSpeechSynthesis(); // pre-load voices before first speakWord() call
     // NOTE: createCustomWordsUI, initializeCustomWords, initializeRealTimeValidation
     // are called from initializePremiumFeatures() only — NOT here — to avoid duplicates.
     console.log('SpellRightPro Premium initialized');
@@ -1705,3 +1692,208 @@ function simulatePremiumAccess() {
     };
   }
 })();
+
+// =======================================================
+// HANDWRITING INPUT ENGINE
+// Supports: Web Handwriting Recognition API (Chrome/Android)
+//           Cloud Vision OCR fallback (all other devices)
+// Modes: school, oet
+// =======================================================
+
+const hwState = {
+  school: { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null },
+  oet:    { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null }
+};
+
+// ── Toggle between keyboard and handwriting ──────────────────
+function setInputMode(moduleMode, inputMode) {
+  const s = hwState[moduleMode];
+  s.mode = inputMode;
+
+  const keyboardWrap = document.getElementById(`${moduleMode}KeyboardWrap`);
+  const keyboardHint = document.getElementById(`${moduleMode}KeyboardHint`);
+  const hwWrap       = document.getElementById(`${moduleMode}HwWrap`);
+  const kbBtn        = document.getElementById(`${moduleMode}ModeKeyboard`);
+  const hwBtn        = document.getElementById(`${moduleMode}ModeHandwriting`);
+  const label        = document.getElementById(`${moduleMode}ZoneLabel`);
+
+  if (inputMode === 'handwriting') {
+    keyboardWrap.style.display = 'none';
+    keyboardHint.style.display = 'none';
+    hwWrap.classList.add('visible');
+    kbBtn.classList.remove('active');
+    hwBtn.classList.add('active');
+    if (label) label.textContent = '✍️ Write your spelling here';
+    hwInitCanvas(moduleMode);
+  } else {
+    keyboardWrap.style.display = '';
+    keyboardHint.style.display = '';
+    hwWrap.classList.remove('visible');
+    kbBtn.classList.add('active');
+    hwBtn.classList.remove('active');
+    if (label) label.textContent = '✏️ Type your spelling here';
+  }
+}
+
+// ── Canvas initializer ────────────────────────────────────────
+function hwInitCanvas(moduleMode) {
+  const canvas = document.getElementById(`${moduleMode}HwCanvas`);
+  if (!canvas || canvas.dataset.hwInit) return;
+  canvas.dataset.hwInit = '1';
+
+  // Size canvas to its CSS display size
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width  = rect.width  * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  };
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Pointer events — accept pen + touch + mouse
+  canvas.addEventListener('pointerdown', e => hwPointerDown(e, moduleMode));
+  canvas.addEventListener('pointermove', e => hwPointerMove(e, moduleMode));
+  canvas.addEventListener('pointerup',   e => hwPointerUp(e, moduleMode));
+  canvas.addEventListener('pointerout',  e => hwPointerUp(e, moduleMode));
+  canvas.style.touchAction = 'none';
+}
+
+function hwGetPos(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function hwPointerDown(e, moduleMode) {
+  e.preventDefault();
+  const s = hwState[moduleMode];
+  if (e.pointerType === 'mouse' && e.buttons !== 1) return;
+  s.drawing = true;
+  const canvas = document.getElementById(`${moduleMode}HwCanvas`);
+  const pos = hwGetPos(e, canvas);
+  s.strokes.push([pos]);
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+}
+
+function hwPointerMove(e, moduleMode) {
+  e.preventDefault();
+  const s = hwState[moduleMode];
+  if (!s.drawing) return;
+  const canvas = document.getElementById(`${moduleMode}HwCanvas`);
+  const pos = hwGetPos(e, canvas);
+  s.strokes[s.strokes.length - 1].push(pos);
+  const ctx = canvas.getContext('2d');
+  ctx.lineWidth   = e.pointerType === 'pen' ? Math.max(1.5, e.pressure * 4) : 2.5;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+  ctx.strokeStyle = getComputedStyle(document.documentElement)
+                      .getPropertyValue('--text').trim() || '#1a0533';
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+}
+
+function hwPointerUp(e, moduleMode) {
+  const s = hwState[moduleMode];
+  if (!s.drawing) return;
+  s.drawing = false;
+  s.lastStrokeTime = Date.now();
+
+  // Debounce: recognize 800ms after last stroke
+  clearTimeout(s.recognizeTimer);
+  s.recognizeTimer = setTimeout(() => hwRecognize(moduleMode), 800);
+}
+
+function hwClear(moduleMode) {
+  const s = hwState[moduleMode];
+  s.strokes = [];
+  clearTimeout(s.recognizeTimer);
+  const canvas = document.getElementById(`${moduleMode}HwCanvas`);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById(`${moduleMode}HwText`).textContent   = '—';
+  document.getElementById(`${moduleMode}HwStatus`).textContent = 'Write your word on the canvas above';
+}
+
+// ── Recognition — Web API first, Cloud Vision fallback ────────
+async function hwRecognize(moduleMode) {
+  const s = hwState[moduleMode];
+  if (!s.strokes.length) return;
+
+  const statusEl = document.getElementById(`${moduleMode}HwStatus`);
+  const textEl   = document.getElementById(`${moduleMode}HwText`);
+  statusEl.textContent = 'Recognizing…';
+
+  // ── Path 1: Web Handwriting Recognition API (Chrome/Android) ──
+  if ('createHandwritingRecognizer' in navigator) {
+    try {
+      const recognizer = await navigator.createHandwritingRecognizer({ languages: ['en'] });
+      const prediction  = recognizer.startDrawing({});
+      for (const stroke of s.strokes) {
+        const hwStroke = prediction.addStroke(new HandwritingStroke());
+        for (const pt of stroke) {
+          hwStroke.addPoint({ x: pt.x, y: pt.y, t: Date.now() });
+        }
+      }
+      const results = await prediction.getPrediction();
+      recognizer.finish();
+      if (results && results.length > 0) {
+        const word = results[0].text.trim();
+        textEl.textContent   = word;
+        statusEl.textContent = '✅ Recognized — tap Submit to check';
+        return;
+      }
+    } catch (err) {
+      console.warn('Web Handwriting API failed, falling back to OCR:', err);
+    }
+  }
+
+  // ── Path 2: Cloud Vision OCR via existing /api/ocr Netlify function ──
+  try {
+    const canvas  = document.getElementById(`${moduleMode}HwCanvas`);
+    const dataUrl = canvas.toDataURL('image/png');
+    const base64  = dataUrl.split(',')[1];
+
+    const response = await fetch('/api/ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64, type: 'handwriting' })
+    });
+
+    if (!response.ok) throw new Error(`OCR HTTP ${response.status}`);
+    const data = await response.json();
+
+    // Extract text — handles both Cloud Vision response shapes
+    const raw = data.text || data.fullTextAnnotation?.text ||
+                data.textAnnotations?.[0]?.description || '';
+    const word = raw.replace(/\s+/g, ' ').trim().split('\n')[0].trim();
+
+    if (word) {
+      textEl.textContent   = word;
+      statusEl.textContent = '✅ Recognized — tap Submit to check';
+    } else {
+      statusEl.textContent = '⚠️ Could not read — please write more clearly or use keyboard';
+    }
+  } catch (err) {
+    console.error('OCR fallback failed:', err);
+    statusEl.textContent = '⚠️ Recognition failed — try keyboard mode';
+  }
+}
+
+// ── Get current answer (called by checkAnswer + nextWord) ─────
+function hwGetAnswer(moduleMode) {
+  const textEl = document.getElementById(`${moduleMode}HwText`);
+  const val = textEl ? textEl.textContent.trim() : '';
+  return val === '—' ? '' : val;
+}
+
+// ── Reset canvas between words ────────────────────────────────
+function hwReset(moduleMode) {
+  if (hwState[moduleMode].mode === 'handwriting') {
+    hwClear(moduleMode);
+  }
+}
