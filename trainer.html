@@ -58,19 +58,18 @@
       --brand: #7b2ff7; --accent: #f72585;
       --ok: #00c57a;    --fail: #ff4560;
       --warn: #ffb800;
-      --surface: #ffffff; --surface2: #f4f0fc;
-      --border: rgba(123,47,247,0.15);
-      --text: #1a0533;   --muted: #7b6f8a;
+      --surface: #ffffff; --surface2: #f0ebff;
+      --border: rgba(123,47,247,0.2);
+      --text: #1a0533;   --muted: #5a4a72;
       --radius: 16px;
       --shadow: 0 8px 32px rgba(100,30,200,0.12);
-      --page-bg: #ede8fa;
+      --page-bg: #e8e0f8;
     }
     body.dark-mode {
-      /* Lighter surfaces so inputs are visible against dark page background */
-      --surface: #2d1654; --surface2: #3d1f6e;
-      --border: rgba(255,255,255,0.15);
-      --text: #f0e8ff;    --muted: #b09ad0;
-      --page-bg: #130828;
+      --surface: #2d1a4e; --surface2: #3d2468;
+      --border: rgba(200,160,255,0.2);
+      --text: #f0e8ff;    --muted: #c0a8e8;
+      --page-bg: #0f0520;
     }
     body {
       background: var(--page-bg) !important;
@@ -329,6 +328,21 @@
       .mode-tabs { flex-direction:column; }
     }
 
+
+    /* ── Handwriting Canvas ── */
+    .input-mode-toggle { display:flex; gap:8px; margin-bottom:10px; align-items:center; }
+    .input-mode-toggle label { font-size:.78rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+    .mode-toggle-btn { display:flex; border-radius:10px; overflow:hidden; border:1.5px solid var(--border); }
+    .mode-toggle-btn button { padding:7px 14px; font-size:.82rem; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; background:var(--surface2); color:var(--muted); border:none; transition:all .2s; }
+    .mode-toggle-btn button.active { background:var(--brand); color:#fff; }
+    .hw-canvas-wrap { display:none; flex-direction:column; align-items:center; gap:10px; }
+    .hw-canvas-wrap.visible { display:flex; }
+    .hw-canvas { width:100%; max-width:600px; height:160px; background:var(--surface); border-radius:12px; border:2px dashed var(--border); cursor:crosshair; touch-action:none; }
+    .hw-controls { display:flex; gap:8px; align-items:center; width:100%; max-width:600px; }
+    .hw-recognized { flex:1; font-size:1.1rem; font-weight:700; color:var(--text); padding:8px 12px; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; min-height:38px; text-align:center; }
+    .hw-clear-btn { padding:8px 14px; font-size:.82rem; font-weight:600; background:rgba(255,69,96,.08); color:var(--fail); border:1.5px solid rgba(255,69,96,.3); border-radius:10px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; }
+    .hw-clear-btn:hover { background:rgba(255,69,96,.18); }
+    .hw-status { font-size:.75rem; color:var(--muted); text-align:center; min-height:18px; }
     /* ── Voice bars animation ── */
     @keyframes voicePulse {
       from { height:6px; }
@@ -515,12 +529,16 @@
     .list-actions { display:flex; gap:6px; }
     .btn-small {
       padding:5px 10px; border-radius:8px; font-size:0.75rem;
-      border:1px solid var(--border); background:var(--surface);
-      color:var(--brand); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s;
+      border:1.5px solid rgba(123,47,247,0.4); background:rgba(123,47,247,0.08);
+      color:#5b1ec4; cursor:pointer; font-family:'DM Sans',sans-serif;
+      font-weight:600; transition:all .15s;
     }
-    .btn-small:hover { background:rgba(123,47,247,.1); }
-    .btn-small.btn-danger { color:var(--fail); border-color:rgba(255,69,96,.25); }
-    .btn-small.btn-danger:hover { background:rgba(255,69,96,.08); }
+    .btn-small:hover { background:rgba(123,47,247,0.18); }
+    .btn-small.btn-danger { color:#c0001a; border-color:rgba(255,69,96,.4); background:rgba(255,69,96,.06); }
+    .btn-small.btn-danger:hover { background:rgba(255,69,96,.15); }
+    body.dark-mode .btn-small { color:#c49fff; border-color:rgba(180,120,255,0.4); background:rgba(123,47,247,0.15); }
+    body.dark-mode .btn-small:hover { background:rgba(123,47,247,0.3); }
+    body.dark-mode .btn-small.btn-danger { color:#ff8096; border-color:rgba(255,69,96,.4); background:rgba(255,69,96,.1); }
     /* Mobile tweaks */
     @media (max-width:520px) {
       .word-source-row { gap:8px; }
@@ -871,20 +889,26 @@
 
         <!-- Answer zone -->
         <div class="answer-zone">
-          <span class="answer-zone-label">✏️ Type your spelling here</span>
-          <div class="input-group">
-            <textarea
-              id="schoolInput"
-              class="answer-input"
-              placeholder="type it…"
-              autocomplete="off" autocorrect="off"
-              autocapitalize="off" spellcheck="false"
-              rows="2"
-            ></textarea>
+          <span class="answer-zone-label" id="schoolZoneLabel">✏️ Type your spelling here</span>
+          <div class="input-mode-toggle">
+            <label>Input:</label>
+            <div class="mode-toggle-btn">
+              <button class="active" id="schoolModeKeyboard" onclick="setInputMode('school','keyboard')"><i class="fa fa-keyboard"></i> Keyboard</button>
+              <button id="schoolModeHandwriting" onclick="setInputMode('school','handwriting')">✍️ Handwrite</button>
+            </div>
           </div>
-          <p class="real-time-hint">
-            Real-time feedback — green = correct, red = wrong
-          </p>
+          <div class="input-group" id="schoolKeyboardWrap">
+            <textarea id="schoolInput" class="answer-input" placeholder="type it…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" rows="2"></textarea>
+          </div>
+          <p class="real-time-hint" id="schoolKeyboardHint">Real-time feedback — green = correct, red = wrong</p>
+          <div class="hw-canvas-wrap" id="schoolHwWrap">
+            <canvas class="hw-canvas" id="schoolHwCanvas"></canvas>
+            <div class="hw-controls">
+              <div class="hw-recognized" id="schoolHwText">—</div>
+              <button class="hw-clear-btn" onclick="hwClear('school')"><i class="fa fa-eraser"></i> Clear</button>
+            </div>
+            <div class="hw-status" id="schoolHwStatus">Write your word on the canvas above</div>
+          </div>
         </div>
 
         <!-- Controls -->
@@ -979,20 +1003,26 @@
 
         <!-- Answer zone -->
         <div class="answer-zone">
-          <span class="answer-zone-label">✏️ Type your spelling here</span>
-          <div class="input-group">
-            <textarea
-              id="oetInput"
-              class="answer-input"
-              placeholder="type it…"
-              autocomplete="off" autocorrect="off"
-              autocapitalize="off" spellcheck="false"
-              rows="2"
-            ></textarea>
+          <span class="answer-zone-label" id="oetZoneLabel">✏️ Type your spelling here</span>
+          <div class="input-mode-toggle">
+            <label>Input:</label>
+            <div class="mode-toggle-btn">
+              <button class="active" id="oetModeKeyboard" onclick="setInputMode('oet','keyboard')"><i class="fa fa-keyboard"></i> Keyboard</button>
+              <button id="oetModeHandwriting" onclick="setInputMode('oet','handwriting')">✍️ Handwrite</button>
+            </div>
           </div>
-          <p class="real-time-hint">
-            Real-time feedback — green = correct, red = wrong
-          </p>
+          <div class="input-group" id="oetKeyboardWrap">
+            <textarea id="oetInput" class="answer-input" placeholder="type it…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" rows="2"></textarea>
+          </div>
+          <p class="real-time-hint" id="oetKeyboardHint">Real-time feedback — green = correct, red = wrong</p>
+          <div class="hw-canvas-wrap" id="oetHwWrap">
+            <canvas class="hw-canvas" id="oetHwCanvas"></canvas>
+            <div class="hw-controls">
+              <div class="hw-recognized" id="oetHwText">—</div>
+              <button class="hw-clear-btn" onclick="hwClear('oet')"><i class="fa fa-eraser"></i> Clear</button>
+            </div>
+            <div class="hw-status" id="oetHwStatus">Write your word on the canvas above</div>
+          </div>
         </div>
 
         <!-- Controls -->

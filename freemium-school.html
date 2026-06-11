@@ -1078,8 +1078,13 @@ const firebaseConfig = {
         updateFeedback(`❌ Incorrect. You wrote "${answer}", correct is "${word}"`);
       }
       
-      // Auto-clear and advance
-      if (elements.answer) elements.answer.value = '';
+      // Auto-clear and advance — also reset live-marking colours
+      if (elements.answer) {
+        elements.answer.value = '';
+        elements.answer.style.borderColor = '';
+        elements.answer.style.backgroundColor = '';
+        elements.answer.style.color = '';
+      }
       
       state.currentIndex++;
       
@@ -1432,6 +1437,31 @@ const firebaseConfig = {
           if (e.key === 'Enter') {
             e.preventDefault();
             checkAnswer();
+          }
+        });
+
+        // Live marking — colour the input as user types
+        elements.answer.addEventListener('input', () => {
+          if (!state.isActive || state.currentIndex >= state.words.length) return;
+          const correctWord = state.words[state.currentIndex].toLowerCase().trim();
+          const userInput   = elements.answer.value.trim().toLowerCase();
+          const el = elements.answer;
+          if (!userInput) {
+            el.style.borderColor = '';
+            el.style.backgroundColor = '';
+            el.style.color = '';
+          } else if (userInput === correctWord) {
+            el.style.borderColor = '#00c57a';
+            el.style.backgroundColor = 'rgba(0,197,122,0.08)';
+            el.style.color = '#007a4d';
+          } else if (correctWord.startsWith(userInput)) {
+            el.style.borderColor = '#ffb800';
+            el.style.backgroundColor = 'rgba(255,184,0,0.07)';
+            el.style.color = '';
+          } else {
+            el.style.borderColor = '#ff4560';
+            el.style.backgroundColor = 'rgba(255,69,96,0.07)';
+            el.style.color = '#c0001a';
           }
         });
       }
