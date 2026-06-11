@@ -63,11 +63,24 @@
       --text: #1a0533;   --muted: #7b6f8a;
       --radius: 16px;
       --shadow: 0 8px 32px rgba(100,30,200,0.12);
+      --page-bg: #ede8fa;
     }
     body.dark-mode {
-      --surface: #160829; --surface2: #1f0d3a;
+      --surface: #1e0d38; --surface2: #2a1248;
       --border: rgba(255,255,255,0.10);
       --text: #f0e8ff;    --muted: #9d8fc0;
+      --page-bg: #0d0520;
+    }
+
+    /* Trainer page — override the gradient from styles.css */
+    body {
+      background: var(--page-bg) !important;
+      color: var(--text) !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -917,8 +930,6 @@
         <!-- Answer zone -->
         <div class="answer-zone">
           <span class="answer-zone-label" id="schoolZoneLabel">✏️ Type your spelling here</span>
-
-          <!-- Input mode toggle -->
           <div class="input-mode-toggle">
             <label>Input:</label>
             <div class="mode-toggle-btn">
@@ -930,8 +941,6 @@
               </button>
             </div>
           </div>
-
-          <!-- Keyboard input -->
           <div class="input-group" id="schoolKeyboardWrap">
             <textarea
               id="schoolInput"
@@ -945,8 +954,6 @@
           <p class="real-time-hint" id="schoolKeyboardHint">
             Real-time feedback — green = correct, red = wrong
           </p>
-
-          <!-- Handwriting input -->
           <div class="hw-canvas-wrap" id="schoolHwWrap">
             <canvas class="hw-canvas" id="schoolHwCanvas"></canvas>
             <div class="hw-controls">
@@ -1052,8 +1059,6 @@
         <!-- Answer zone -->
         <div class="answer-zone">
           <span class="answer-zone-label" id="oetZoneLabel">✏️ Type your spelling here</span>
-
-          <!-- Input mode toggle -->
           <div class="input-mode-toggle">
             <label>Input:</label>
             <div class="mode-toggle-btn">
@@ -1065,8 +1070,6 @@
               </button>
             </div>
           </div>
-
-          <!-- Keyboard input -->
           <div class="input-group" id="oetKeyboardWrap">
             <textarea
               id="oetInput"
@@ -1080,8 +1083,6 @@
           <p class="real-time-hint" id="oetKeyboardHint">
             Real-time feedback — green = correct, red = wrong
           </p>
-
-          <!-- Handwriting input -->
           <div class="hw-canvas-wrap" id="oetHwWrap">
             <canvas class="hw-canvas" id="oetHwCanvas"></canvas>
             <div class="hw-controls">
