@@ -1972,13 +1972,14 @@ function waitForFirestoreAndLoadLists() {
       })
       .catch(e => {
         if (e.code === 'unavailable' || (e.message && e.message.includes('no-app'))) {
+          // Expected during startup — retry silently
           setTimeout(waitForFirestoreAndLoadLists, 600);
         } else {
           console.warn('Firestore list load failed:', e.message);
         }
       });
   } catch(e) {
-    // Synchronous no-app error — Firestore not initialised yet
+    // Synchronous no-app error — Firestore not initialised yet, retry silently
     setTimeout(waitForFirestoreAndLoadLists, 600);
   }
 }
@@ -1999,6 +2000,6 @@ async function syncListsToFirestore() {
   }
 }
 
-async function loadListsFromFirestore() {
+function loadListsFromFirestore() {
   waitForFirestoreAndLoadLists();
 }
