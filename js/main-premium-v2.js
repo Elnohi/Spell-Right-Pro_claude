@@ -1190,7 +1190,6 @@ document.querySelectorAll(".start-btn").forEach(btn => {
     // Unlock audio context on user gesture before any async work
     const unlock = new SpeechSynthesisUtterance('');
     unlock.volume = 0;
-    speechSynthesis.cancel();
     speechSynthesis.speak(unlock);
     startTraining(mode);
   });
@@ -1330,7 +1329,11 @@ function speakWord(word) {
 
     utter.onstart = () => { speakWord._retries = 0; };
 
-    speechSynthesis.cancel();
+    // Do NOT call cancel() before speak() — on Edge this causes synthesis-failed
+    // when voices are still loading. Only cancel if already speaking.
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
     speechSynthesis.speak(utter);
     showFeedback("Listen carefully...", "info");
   } catch (error) {
