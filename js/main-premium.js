@@ -1093,7 +1093,8 @@ function loadCustomLists() {
   } catch(e) {
     console.warn('localStorage blocked — using in-memory lists');
   }
-  loadListsFromFirestore();
+  // Do NOT call loadListsFromFirestore() here — Firebase isn't ready yet.
+  // Lists are loaded from Firestore after auth confirms (waitForFirestoreAndLoadLists).
 }
 
 // =======================================================
@@ -1938,42 +1939,56 @@ function hwReset(moduleMode) {
 // Uses the existing db instance from firebaseUtils
 // =======================================================
 
-// Wait until firebaseUtils.db is confirmed working, then load lists
+// Wait until Firestore is confirmed working (firebase-utils.js sets
+// window.firebaseUtils.firestoreReady = true after persistence + test pass),
+// then load lists. Falls back to polling if that flag isn't set.
 function waitForFirestoreAndLoadLists() {
-  const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
+  // Use the firebaseUtils ready flag if available
+  const utils = window.firebaseUtils;
+  const fsDb  = (utils && utils.db) || db;
+
   if (!fsDb || !currentUser) {
-    setTimeout(waitForFirestoreAndLoadLists, 500);
+    setTimeout(waitForFirestoreAndLoadLists, 400);
     return;
   }
-  // Probe Firestore with a lightweight read to confirm it's ready
-  fsDb.collection('userLists').doc(currentUser.uid).get()
-    .then(snap => {
-      if (!snap.exists) return;
-      const remote = snap.data().lists || {};
-      let changed = false;
-      for (const [name, data] of Object.entries(remote)) {
-        if (!customLists[name]) { customLists[name] = data; changed = true; }
-      }
-      if (changed) {
-        try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
-        updateCustomListsDisplay();
-        console.log('✅ Lists loaded from Firestore');
-      }
-    })
-    .catch(e => {
-      // Firestore not ready yet — retry
-      if (e.message && e.message.includes('no-app')) {
-        setTimeout(waitForFirestoreAndLoadLists, 500);
-      } else {
-        console.warn('Firestore list load failed:', e.message);
-      }
-    });
+
+  // Try a real Firestore call — if it throws no-app, Firestore isn't ready yet
+  try {
+    const promise = fsDb.collection('userLists').doc(currentUser.uid).get();
+    // If we get here without throwing, Firestore accepted the call
+    promise
+      .then(snap => {
+        if (!snap.exists) return;
+        const remote = snap.data().lists || {};
+        let changed = false;
+        for (const [name, data] of Object.entries(remote)) {
+          if (!customLists[name]) { customLists[name] = data; changed = true; }
+        }
+        if (changed) {
+          try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
+          updateCustomListsDisplay();
+          console.log('✅ Lists loaded from Firestore');
+        }
+      })
+      .catch(e => {
+        if (e.code === 'unavailable' || (e.message && e.message.includes('no-app'))) {
+          setTimeout(waitForFirestoreAndLoadLists, 600);
+        } else {
+          console.warn('Firestore list load failed:', e.message);
+        }
+      });
+  } catch(e) {
+    // Synchronous no-app error — Firestore not initialised yet
+    setTimeout(waitForFirestoreAndLoadLists, 600);
+  }
 }
 
 async function syncListsToFirestore() {
   try {
     const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
     if (!fsDb || !currentUser) return;
+    // Quick readiness check before writing
+    await fsDb.collection('_ping').doc('ping').get().catch(() => {});
     await fsDb.collection('userLists').doc(currentUser.uid).set({
       lists: customLists,
       updatedAt: new Date().toISOString()
