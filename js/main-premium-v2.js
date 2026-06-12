@@ -1187,6 +1187,11 @@ function resetTraining() {
 document.querySelectorAll(".start-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const mode = btn.dataset.mode;
+    // Unlock audio context on user gesture before any async work
+    const unlock = new SpeechSynthesisUtterance('');
+    unlock.volume = 0;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(unlock);
     startTraining(mode);
   });
 });
@@ -1285,58 +1290,51 @@ function speakWord(word) {
     return;
   }
 
-  // If voices are still loading, wait up to 2s for them to stabilize
-  if (window._voicesReady === false) {
-    const waited = (speakWord._voiceWait || 0);
-    if (waited < 12) {
-      speakWord._voiceWait = waited + 1;
-      setTimeout(() => speakWord(word), 250);
-      return;
-    }
-  }
-  speakWord._voiceWait = 0;
-
   try {
-    const utter = new SpeechSynthesisUtterance(word);
+    const voices = speechSynthesis.getVoices();
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect?.value || 'en-GB';
-    utter.lang = accent;
+
+    // Pick best available voice
+    const langPrefix = accent.split('-')[0];
+    const match = voices.length > 0 ? (
+      voices.find(v => v.lang === accent) ||
+      voices.find(v => v.lang.startsWith(langPrefix)) ||
+      voices.find(v => v.lang.startsWith('en')) ||
+      voices[0]
+    ) : null;
+
+    const utter = new SpeechSynthesisUtterance(word);
+    utter.lang = match ? match.lang : accent;
+    if (match) utter.voice = match;
     utter.rate = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
     utter.pitch = 1;
 
-    const voices = speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      const langPrefix = accent.split('-')[0];
-      const match =
-        voices.find(v => v.lang === accent) ||
-        voices.find(v => v.lang.startsWith(langPrefix)) ||
-        voices.find(v => v.lang.startsWith('en')) ||
-        voices[0];
-      if (match) { utter.voice = match; utter.lang = match.lang; }
-    }
-
     utter.onerror = (event) => {
       if (event.error === 'canceled' || event.error === 'interrupted') return;
-      // synthesis-failed means voices were reloading — retry after they stabilize
       if (event.error === 'synthesis-failed') {
-        console.warn('synthesis-failed — will retry when voices stable');
-        // Reset voice wait counter and retry after 1500ms
-        // (long enough for onvoiceschanged to fire and 2s timer to start)
-        speakWord._voiceWait = 0;
-        window._voicesReady = false; // force re-wait for stability
-        setTimeout(() => speakWord(word), 1500);
+        // Voices reloaded mid-speak — wait for stable then retry once
+        const retries = (speakWord._retries || 0);
+        if (retries < 3) {
+          speakWord._retries = retries + 1;
+          console.warn(`synthesis-failed (attempt ${retries+1}) — retrying in 2s`);
+          setTimeout(() => speakWord(word), 2000);
+        } else {
+          speakWord._retries = 0;
+          console.warn('synthesis-failed after 3 retries — giving up');
+        }
         return;
       }
       console.error('Speech synthesis error:', event);
-      showFeedback("Error speaking word", "error");
     };
+
+    utter.onstart = () => { speakWord._retries = 0; };
 
     speechSynthesis.cancel();
     speechSynthesis.speak(utter);
     showFeedback("Listen carefully...", "info");
   } catch (error) {
     console.error("Speech error:", error);
-    showFeedback("Could not speak word", "error");
   }
 }
 
