@@ -1895,7 +1895,7 @@ async function hwRecognize(moduleMode) {
   try {
     const canvas  = document.getElementById(`${moduleMode}HwCanvas`);
     const base64  = canvas.toDataURL('image/png').split(',')[1];
-    const response = await fetch('/api/ocr', {
+    const response = await fetch('/.netlify/functions/ocr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: base64, type: 'handwriting' })
