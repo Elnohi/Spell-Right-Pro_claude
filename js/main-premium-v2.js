@@ -1288,7 +1288,7 @@ function speakWord(word) {
   // If voices are still loading, wait up to 2s for them to stabilize
   if (window._voicesReady === false) {
     const waited = (speakWord._voiceWait || 0);
-    if (waited < 8) {
+    if (waited < 12) {
       speakWord._voiceWait = waited + 1;
       setTimeout(() => speakWord(word), 250);
       return;
@@ -1320,10 +1320,11 @@ function speakWord(word) {
       // synthesis-failed means voices were reloading — retry after they stabilize
       if (event.error === 'synthesis-failed') {
         console.warn('synthesis-failed — will retry when voices stable');
-        setTimeout(() => {
-          speakWord._voiceWait = 0;
-          speakWord(word);
-        }, 700);
+        // Reset voice wait counter and retry after 1500ms
+        // (long enough for onvoiceschanged to fire and 2s timer to start)
+        speakWord._voiceWait = 0;
+        window._voicesReady = false; // force re-wait for stability
+        setTimeout(() => speakWord(word), 1500);
         return;
       }
       console.error('Speech synthesis error:', event);
@@ -1619,13 +1620,14 @@ function initializeSpeechSynthesis() {
     window.speechSynthesis.onvoiceschanged = function() {
       const v = speechSynthesis.getVoices();
       console.log("Voices loaded:", v.length);
-      // Mark voices as ready 600ms after the last reload
+      // Mark voices as ready 2000ms after the last reload
+      // Edge reloads voices multiple times — 2s ensures they're truly done
       clearTimeout(voiceStableTimer);
       window._voicesReady = false;
       voiceStableTimer = setTimeout(() => {
         window._voicesReady = true;
         console.log("✅ Voices stable:", v.length);
-      }, 600);
+      }, 2000);
     };
   }
   
