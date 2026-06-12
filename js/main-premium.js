@@ -199,8 +199,9 @@ function setupAuthListener() {
                 if (!window._premiumFeaturesInitialized) {
                     initializePremiumFeatures();
                 }
-                // Load lists from Firestore now that user is confirmed
-                setTimeout(() => loadListsFromFirestore(), 1500);
+                // Load lists after Firestore is confirmed ready
+                // Wait for firebaseUtils.testConnection to complete (fires at firebase-utils.js:125)
+                waitForFirestoreAndLoadLists();
             } else {
                 showOverlay();
                 showNonPremiumMessage();
@@ -1282,6 +1283,17 @@ function speakWord(word) {
     return;
   }
 
+  // If voices are still loading, wait up to 2s for them to stabilize
+  if (window._voicesReady === false) {
+    const waited = (speakWord._voiceWait || 0);
+    if (waited < 8) {
+      speakWord._voiceWait = waited + 1;
+      setTimeout(() => speakWord(word), 250);
+      return;
+    }
+  }
+  speakWord._voiceWait = 0;
+
   try {
     const utter = new SpeechSynthesisUtterance(word);
     const accentSelect = document.getElementById(`${currentMode}Accent`);
@@ -1290,8 +1302,6 @@ function speakWord(word) {
     utter.rate = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
     utter.pitch = 1;
 
-    // Explicitly pick a real installed voice — Edge fails silently if utter.lang
-    // has no matching voice.
     const voices = speechSynthesis.getVoices();
     if (voices.length > 0) {
       const langPrefix = accent.split('-')[0];
@@ -1303,11 +1313,17 @@ function speakWord(word) {
       if (match) { utter.voice = match; utter.lang = match.lang; }
     }
 
-    // Attach error handler first, then cancel + speak synchronously.
-    // onerror must be set before speak() to catch synthesis-failed events.
     utter.onerror = (event) => {
-      // Ignore 'canceled' — that's our own speechSynthesis.cancel() call
       if (event.error === 'canceled' || event.error === 'interrupted') return;
+      // synthesis-failed means voices were reloading — retry after they stabilize
+      if (event.error === 'synthesis-failed') {
+        console.warn('synthesis-failed — will retry when voices stable');
+        setTimeout(() => {
+          speakWord._voiceWait = 0;
+          speakWord(word);
+        }, 700);
+        return;
+      }
       console.error('Speech synthesis error:', event);
       showFeedback("Error speaking word", "error");
     };
@@ -1595,8 +1611,19 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeSpeechSynthesis() {
   if ('speechSynthesis' in window) {
     speechSynthesis.getVoices();
+    // Voices reload multiple times on Edge — track when they're stable
+    window._voicesReady = false;
+    let voiceStableTimer = null;
     window.speechSynthesis.onvoiceschanged = function() {
-      console.log("Voices loaded:", speechSynthesis.getVoices().length);
+      const v = speechSynthesis.getVoices();
+      console.log("Voices loaded:", v.length);
+      // Mark voices as ready 600ms after the last reload
+      clearTimeout(voiceStableTimer);
+      window._voicesReady = false;
+      voiceStableTimer = setTimeout(() => {
+        window._voicesReady = true;
+        console.log("✅ Voices stable:", v.length);
+      }, 600);
     };
   }
   
@@ -1911,10 +1938,43 @@ function hwReset(moduleMode) {
 // Uses the existing db instance from firebaseUtils
 // =======================================================
 
+// Wait until firebaseUtils.db is confirmed working, then load lists
+function waitForFirestoreAndLoadLists() {
+  const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
+  if (!fsDb || !currentUser) {
+    setTimeout(waitForFirestoreAndLoadLists, 500);
+    return;
+  }
+  // Probe Firestore with a lightweight read to confirm it's ready
+  fsDb.collection('userLists').doc(currentUser.uid).get()
+    .then(snap => {
+      if (!snap.exists) return;
+      const remote = snap.data().lists || {};
+      let changed = false;
+      for (const [name, data] of Object.entries(remote)) {
+        if (!customLists[name]) { customLists[name] = data; changed = true; }
+      }
+      if (changed) {
+        try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
+        updateCustomListsDisplay();
+        console.log('✅ Lists loaded from Firestore');
+      }
+    })
+    .catch(e => {
+      // Firestore not ready yet — retry
+      if (e.message && e.message.includes('no-app')) {
+        setTimeout(waitForFirestoreAndLoadLists, 500);
+      } else {
+        console.warn('Firestore list load failed:', e.message);
+      }
+    });
+}
+
 async function syncListsToFirestore() {
   try {
-    if (!db || !currentUser) return;
-    await db.collection('userLists').doc(currentUser.uid).set({
+    const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
+    if (!fsDb || !currentUser) return;
+    await fsDb.collection('userLists').doc(currentUser.uid).set({
       lists: customLists,
       updatedAt: new Date().toISOString()
     }, { merge: true });
@@ -1925,33 +1985,5 @@ async function syncListsToFirestore() {
 }
 
 async function loadListsFromFirestore() {
-  // If user not authenticated yet, wait up to 5s for auth to settle
-  if (!db || !currentUser) {
-    const waited = (loadListsFromFirestore._waited || 0);
-    if (waited < 5) {
-      loadListsFromFirestore._waited = waited + 1;
-      setTimeout(loadListsFromFirestore, 1000);
-    }
-    return;
-  }
-  loadListsFromFirestore._waited = 0;
-  try {
-    const snap = await db.collection('userLists').doc(currentUser.uid).get();
-    if (!snap.exists) return;
-    const remote = snap.data().lists || {};
-    let changed = false;
-    for (const [name, data] of Object.entries(remote)) {
-      if (!customLists[name]) {
-        customLists[name] = data;
-        changed = true;
-      }
-    }
-    if (changed) {
-      try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
-      updateCustomListsDisplay();
-      console.log('✅ Lists merged from Firestore');
-    }
-  } catch (e) {
-    console.warn('Firestore list load failed:', e.message);
-  }
+  waitForFirestoreAndLoadLists();
 }
