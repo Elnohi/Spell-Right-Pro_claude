@@ -92,6 +92,12 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# main-premium.js updates frequently — no-cache so users always get latest
+[[headers]]
+  for = "/js/main-premium.js"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
 # JS files - long cache except config files
 [[headers]]
   for = "/js/*.js"
