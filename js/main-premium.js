@@ -199,9 +199,10 @@ function setupAuthListener() {
                 if (!window._premiumFeaturesInitialized) {
                     initializePremiumFeatures();
                 }
-                // Load lists after Firestore is confirmed ready
-                // Wait for firebaseUtils.testConnection to complete (fires at firebase-utils.js:125)
-                waitForFirestoreAndLoadLists();
+                // Wait 3s before first Firestore attempt — connection test
+                // (firebase-utils.js:125) completes within ~2s of auth confirming.
+                // After that, waitForFirestoreAndLoadLists retries every 600ms if needed.
+                setTimeout(waitForFirestoreAndLoadLists, 3000);
             } else {
                 showOverlay();
                 showNonPremiumMessage();
