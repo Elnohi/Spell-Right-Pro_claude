@@ -55,20 +55,33 @@
   to = "/offline.html"
   status = 200
 
-# Fallback for any unmatched routes
+# Pass-through for Digital Asset Links — must NOT be redirected
+[[redirects]]
+  from = "/.well-known/assetlinks.json"
+  to = "/.well-known/assetlinks.json"
+  status = 200
+  force = false
+
+# Pass-through for manifest.json
+[[redirects]]
+  from = "/manifest.json"
+  to = "/manifest.json"
+  status = 200
+  force = false
+
+# Fallback for any unmatched routes — no force so static files served directly
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = true
 
-# Serve assetlinks.json with correct content type for TWA verification
+# Serve assetlinks.json with correct content type — no redirect, no cache
 [[headers]]
   for = "/.well-known/assetlinks.json"
   [headers.values]
     Content-Type = "application/json"
     Access-Control-Allow-Origin = "*"
-    Cache-Control = "no-cache"
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
 # Headers for security and caching
 [[headers]]
