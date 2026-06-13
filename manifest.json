@@ -1,15 +1,41 @@
 {
-  "name": "SpellRightPro",
-  "short_name": "SRP",
-  "start_url": ".",
+  "name": "SpellRightPro — Spelling Trainer",
+  "short_name": "SpellRightPro",
+  "description": "Practice spelling for OET, school, and Spelling Bee. 1,511 medical words, real-time feedback, and custom word lists.",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#7b2ff7",
   "theme_color": "#7b2ff7",
+  "lang": "en",
+  "categories": ["education", "medical"],
   "icons": [
     {
-      "src": "assets/logo.png",
+      "src": "/assets/logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/assets/screenshot-narrow.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
     }
   ]
 }
