@@ -121,7 +121,7 @@
     .brand img { height:42px; border-radius:10px; }
     .brand h1 { font-size:1.1rem; font-weight:700; color:var(--brand); margin:0; }
     .brand small { font-size:0.7rem; color:var(--muted); display:block; }
-    .nav-right { display:flex; gap:8px; align-items:center; }
+    .nav-right { display:flex; gap:6px; align-items:center; flex-wrap:nowrap; overflow:hidden; }
     .nav-btn {
       background:var(--surface2); color:var(--brand);
       border:1px solid var(--border); border-radius:10px;
@@ -339,10 +339,11 @@
       header { border-radius:0; padding:8px 12px; position:sticky; top:0; z-index:100; }
       header .brand h1 { font-size:0.95rem; }
       header .brand img { height:30px; }
-      .nav-btn { padding:7px 9px; font-size:0; gap:0; }
-      .nav-btn i { font-size:14px; margin:0; }
-      #btnLogout { font-size:0; padding:7px 10px; }
-      #btnLogout i { font-size:14px; margin:0; }
+      .nav-right { gap:4px; }
+      .nav-btn { padding:8px 10px; font-size:0 !important; gap:0; min-width:36px; justify-content:center; }
+      .nav-btn i { font-size:15px; margin:0; }
+      #btnLogout { font-size:0 !important; padding:8px 10px; }
+      #btnLogout i { font-size:15px; margin:0; }
 
       /* Main content */
       main { padding: 0 !important; }
@@ -782,8 +783,8 @@
     <button class="nav-btn" onclick="window.location.href='/'">
       <i class="fa fa-home"></i> Home
     </button>
-    <button class="nav-btn" onclick="window.location.href='/blog'"><i class="fa fa-book-open"></i> Blog</button>
-        <button class="nav-btn" id="toggleDark">
+    <button class="nav-btn" onclick="window.location.href='/blog'" title="Blog"><i class="fa fa-book-open"></i></button>
+    <button class="nav-btn" id="toggleDark">
       <i class="fa fa-moon"></i>
     </button>
     <button class="nav-btn" id="btnLogout">
