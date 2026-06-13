@@ -55,11 +55,20 @@
   to = "/offline.html"
   status = 200
 
-# Fallback for any unmatched routes — no force so real files (manifest.json, sw.js etc) are served directly
+# Fallback for any unmatched routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = true
+
+# Serve assetlinks.json with correct content type for TWA verification
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "no-cache"
 
 # Headers for security and caching
 [[headers]]
