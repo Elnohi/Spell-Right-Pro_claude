@@ -93,6 +93,8 @@
       /* Header nav: icon-only */
       .nav-actions { gap: 6px; }
       #navGuest a { font-size: 0.75rem; padding: 7px 10px; }
+      .blog-nav-link span { display: none; }
+      .blog-nav-link { padding: 7px 10px !important; }
       #navUser { gap: 6px; }
       #navAccountBtn { font-size: 0.75rem; padding: 7px 10px; }
       #navSignOut { font-size: 0; padding: 7px 10px; }
@@ -140,7 +142,9 @@
       </div>
     </a>
     <div class="nav-actions">
-      <a href="/blog" style="padding:7px 14px;border-radius:8px;text-decoration:none;font-size:0.85rem;font-weight:600;color:#6b7280;" onmouseover="this.style.color='#7b2ff7'" onmouseout="this.style.color='#6b7280'"><i class="fa fa-book-open"></i> Blog</a>
+      <a href="/blog" class="btn-icon blog-nav-link" title="Blog &amp; Resources" style="text-decoration:none;display:flex;align-items:center;gap:6px;font-size:0.82rem;font-weight:600;color:#7b2ff7;">
+        <i class="fa fa-book-open"></i><span> Blog</span>
+      </a>
       <button id="darkModeToggle" class="btn-icon" title="Toggle dark mode"><i class="fa fa-moon"></i></button>
 
       <!-- Guest state (default — hidden when logged in) -->
@@ -221,6 +225,21 @@
 
       <div class="info-box" style="margin-top:16px">
         <p>Freemium: one custom list per day. <a href="/premium.html">Upgrade</a> for unlimited lists and advanced stats.</p>
+      </div>
+
+      <!-- Blog Resources link -->
+      <div style="text-align:center; margin-top:16px;">
+        <a href="/blog" style="
+          display:inline-flex;align-items:center;gap:8px;
+          background:rgba(123,47,247,0.08);border:1.5px solid rgba(123,47,247,0.2);
+          color:#7b2ff7;text-decoration:none;
+          padding:10px 20px;border-radius:10px;
+          font-size:0.88rem;font-weight:600;font-family:inherit;
+          transition:background 0.2s;
+        " onmouseover="this.style.background='rgba(123,47,247,0.15)'"
+           onmouseout="this.style.background='rgba(123,47,247,0.08)'">
+          <i class="fa fa-book-open"></i> Free OET preparation guides &amp; resources
+        </a>
       </div>
     </section>
 
