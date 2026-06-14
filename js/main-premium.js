@@ -504,19 +504,7 @@ function initializePremiumFeatures() {
   initializeCustomWords();
   initializeRealTimeValidation();
 
-  // Use event delegation on document — works regardless of when elements render
-  // (Direct getElementById listeners were failing because elements may not be
-  //  fully interactive when initializePremiumFeatures runs)
-  document.addEventListener('click', function(e) {
-    const t = e.target.closest('button');
-    if (!t) return;
-    switch (t.id) {
-      case 'btnListOET':      selectWordList('oet');      break;
-      case 'btnListSchool':   selectWordList('school');   break;
-      case 'oetModePractice': selectOetMode('practice');  break;
-      case 'oetModeTest':     selectOetMode('test');      break;
-    }
-  });
+  // Word list and OET mode buttons use inline onclick — injected by createCustomWordsUI
   
   // ===== NEW: INITIALIZE PREMIUM PILLARS =====
   
@@ -872,7 +860,44 @@ function createCustomWordsUI() {
     const mode = area.id.replace('-area', '');
     const cfg  = modeConfigs[mode] || { count: 'built-in words', hint: 'Word list is ready' };
 
-    const customHTML = `
+    // For practice mode: inject word list selector + OET mode panel using onclick
+    const practiceWordListHTML = mode === 'practice' ? `
+      <div class="setup-card" style="margin-bottom:12px;">
+        <h4><i class="fa fa-list-alt"></i> Word List</h4>
+        <div class="word-list-selector">
+          <button class="word-list-btn active" id="btnListOET"
+                  onclick="selectWordList('oet')">
+            <i class="fa fa-stethoscope"></i>
+            <strong>OET Medical</strong>
+            <small>1,511 medical words</small>
+          </button>
+          <button class="word-list-btn" id="btnListSchool"
+                  onclick="selectWordList('school')">
+            <i class="fa fa-graduation-cap"></i>
+            <strong>School</strong>
+            <small>307 curriculum words</small>
+          </button>
+        </div>
+        <div id="oetModePanel" style="margin-top:12px;">
+          <div class="oet-mode-row">
+            <button class="oet-mode-btn active" id="oetModePractice"
+                    onclick="selectOetMode('practice')">
+              <i class="fa fa-book-open"></i>
+              <strong>Full List</strong>
+              <small>All 1,511 words</small>
+            </button>
+            <button class="oet-mode-btn" id="oetModeTest"
+                    onclick="selectOetMode('test')">
+              <i class="fa fa-clock"></i>
+              <strong>Exam Simulation</strong>
+              <small>Random 24 words</small>
+            </button>
+          </div>
+        </div>
+      </div>
+    ` : '';
+
+    const customHTML = practiceWordListHTML + `
       <!-- ── Word source selector ─────────────────────────────────────── -->
       <div class="word-source-row" style="margin-bottom:14px;">
         <button class="source-btn active" id="btnUseApp-${mode}"
