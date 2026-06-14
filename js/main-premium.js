@@ -94,6 +94,7 @@ let customLists = (() => {
   catch(e) { return {}; }
 })();
 let currentCustomList = null;
+let selectedWordList = 'oet'; // 'oet' or 'school' — set by word list selector
 
 // ── Premium Bee adaptive difficulty (Bee mode only) ────────────────────────
 // Mirrors the freemium Bee progression: starts gentle, speeds up only after
@@ -452,30 +453,29 @@ document.getElementById('toggleDark')?.addEventListener('click', () => {
 // page appears blank after authentication. The mode-tab buttons then
 // allow switching between school / oet / bee.
 function activateDefaultMode() {
-  // Pick the first trainer-area (school) by default
-  var defaultArea = document.getElementById('school-area');
+  // Pick the practice-area by default
+  var defaultArea = document.getElementById('practice-area');
   if (!defaultArea) {
-    // Fallback: first trainer area in the DOM
     defaultArea = document.querySelector('.trainer-area');
   }
   if (defaultArea) {
     defaultArea.style.display = 'block';
     defaultArea.classList.add('active');
-    defaultArea.classList.remove('training-active'); // Show setup phase
+    defaultArea.classList.remove('training-active');
     console.log('✅ Default trainer area activated:', defaultArea.id);
   }
 
   // Mark the corresponding mode button as active in tab bar
-  var defaultBtn = document.querySelector('.mode-btn[data-mode="school"]') ||
+  var defaultBtn = document.querySelector('.mode-btn[data-mode="practice"]') ||
                    document.querySelector('.mode-btn');
   if (defaultBtn) {
     document.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active'); });
     defaultBtn.classList.add('active');
-    window.currentMode = defaultBtn.dataset.mode || 'school';
+    window.currentMode = defaultBtn.dataset.mode || 'practice';
   }
 
   // Sync bottom tab bar (mobile)
-  var defaultTabLink = document.querySelector('.trainer-tab-bar a[data-mode="school"]');
+  var defaultTabLink = document.getElementById('tab-practice');
   if (defaultTabLink) {
     document.querySelectorAll('.trainer-tab-bar a').forEach(function(a){ a.classList.remove('active'); });
     defaultTabLink.classList.add('active');
@@ -847,9 +847,8 @@ function clearRealTimeFeedback() {
 
 function createCustomWordsUI() {
   const modeConfigs = {
-    school: { count: '1,200+ school words',   hint: 'Built-in school word list is ready' },
-    oet:    { count: '1,511 OET medical words', hint: 'Full OET medical word list is ready' },
-    bee:    { count: '500+ bee words',          hint: 'Built-in Spelling Bee word list is ready' }
+    practice: { count: 'OET or School words', hint: 'Select a word list above, then press Start.' },
+    bee:      { count: '500+ bee words',       hint: 'Built-in Spelling Bee word list is ready' }
   };
 
   document.querySelectorAll('.trainer-area').forEach(area => {
@@ -1208,6 +1207,27 @@ function selectOetMode(mode) {
   }
 }
 
+// Word list selector — OET or School
+function selectWordList(list) {
+  selectedWordList = list;
+  const oetBtn    = document.getElementById('btnListOET');
+  const schoolBtn = document.getElementById('btnListSchool');
+  const oetPanel  = document.getElementById('oetModePanel');
+  const startBtn  = document.getElementById('practiceStartBtn');
+
+  if (list === 'oet') {
+    if (oetBtn)    oetBtn.classList.add('active');
+    if (schoolBtn) schoolBtn.classList.remove('active');
+    if (oetPanel)  oetPanel.style.display = '';
+    if (startBtn)  startBtn.innerHTML = '<i class="fa fa-play"></i> Start OET Medical Practice';
+  } else {
+    if (schoolBtn) schoolBtn.classList.add('active');
+    if (oetBtn)    oetBtn.classList.remove('active');
+    if (oetPanel)  oetPanel.style.display = 'none';
+    if (startBtn)  startBtn.innerHTML = '<i class="fa fa-play"></i> Start School Practice';
+  }
+}
+
 // Mode selection
 document.querySelectorAll(".mode-btn").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -1288,9 +1308,59 @@ function startTraining(mode) {
     currentList = customLists[currentCustomList].words;
     showFeedback(`Using "${currentCustomList}" — ${currentList.length} words`, 'info');
     nextWord();
-  } else if (mode === 'oet') {
-    loadOETWords(); // handles nextWord() internally
-    return;
+  } else if (mode === 'practice') {
+    if (selectedWordList === 'school') {
+      // School word list
+      const SCHOOL_WORDS = [
+        'about', 'above', 'across', 'after', 'again', 'against', 'almost', 'alone',
+        'along', 'already', 'also', 'although', 'always', 'among', 'another', 'answer',
+        'appear', 'around', 'arrive', 'article', 'because', 'become', 'before', 'begin',
+        'behind', 'believe', 'below', 'between', 'beyond', 'brother', 'building', 'business',
+        'capital', 'century', 'certain', 'children', 'circle', 'city', 'class', 'clear',
+        'color', 'common', 'complete', 'consider', 'contain', 'country', 'course', 'cover',
+        'create', 'current', 'decide', 'describe', 'develop', 'different', 'difficult',
+        'direct', 'discover', 'distance', 'divide', 'during', 'early', 'earth', 'east',
+        'effect', 'eight', 'either', 'element', 'energy', 'enough', 'enter', 'entire',
+        'equal', 'especially', 'evening', 'event', 'every', 'example', 'except', 'exercise',
+        'expect', 'experience', 'experiment', 'explain', 'express', 'family', 'father',
+        'figure', 'final', 'follow', 'forest', 'forget', 'form', 'forward', 'friend',
+        'garden', 'general', 'government', 'great', 'ground', 'group', 'grow', 'happen',
+        'heavy', 'height', 'history', 'however', 'hundred', 'idea', 'important', 'improve',
+        'include', 'increase', 'inside', 'instead', 'interest', 'invent', 'island', 'just',
+        'knowledge', 'language', 'large', 'later', 'learn', 'length', 'letter', 'level',
+        'light', 'listen', 'little', 'machine', 'material', 'matter', 'maybe', 'measure',
+        'member', 'method', 'middle', 'minute', 'moment', 'mother', 'mountain', 'music',
+        'nation', 'natural', 'necessary', 'never', 'notice', 'number', 'object', 'observe',
+        'ocean', 'often', 'order', 'original', 'other', 'outside', 'paper', 'paragraph',
+        'parent', 'particular', 'pattern', 'people', 'perhaps', 'period', 'person',
+        'picture', 'piece', 'place', 'planet', 'plant', 'point', 'possible', 'pound',
+        'power', 'practice', 'prepare', 'present', 'president', 'problem', 'process',
+        'produce', 'product', 'program', 'project', 'property', 'protect', 'prove',
+        'provide', 'question', 'quick', 'quiet', 'quite', 'radio', 'raise', 'reach',
+        'ready', 'reason', 'receive', 'record', 'region', 'remember', 'repeat', 'report',
+        'represent', 'require', 'result', 'return', 'right', 'river', 'round', 'science',
+        'second', 'section', 'segment', 'separate', 'serve', 'several', 'shape', 'should',
+        'similar', 'simple', 'since', 'single', 'sister', 'situation', 'social', 'society',
+        'solve', 'sound', 'source', 'south', 'space', 'special', 'specific', 'speech',
+        'spell', 'spring', 'square', 'standard', 'station', 'still', 'stone', 'story',
+        'straight', 'strange', 'street', 'strong', 'structure', 'student', 'study',
+        'subject', 'success', 'sudden', 'suggest', 'summer', 'supply', 'support', 'sure',
+        'surface', 'surprise', 'system', 'table', 'teacher', 'technology', 'television',
+        'temperature', 'therefore', 'thing', 'thought', 'through', 'together', 'tonight',
+        'total', 'toward', 'travel', 'trouble', 'true', 'under', 'understand', 'unit',
+        'until', 'usually', 'value', 'various', 'village', 'visit', 'voice', 'wait',
+        'watch', 'water', 'weather', 'weight', 'welcome', 'west', 'whether', 'while',
+        'whole', 'window', 'winter', 'within', 'without', 'woman', 'wonder', 'world',
+        'write', 'wrong', 'young'
+      ];
+      currentList = [...SCHOOL_WORDS].sort(() => Math.random() - 0.5);
+      showFeedback('School practice started — ' + currentList.length + ' words', 'info');
+      nextWord();
+    } else {
+      // OET Medical — loadOETWords handles nextWord() internally
+      loadOETWords();
+      return;
+    }
   } else if (mode === 'bee') {
     // Use full OET_WORDS if available, otherwise built-in bee list
     if (typeof window.OET_WORDS !== 'undefined') {
@@ -1302,59 +1372,10 @@ function startTraining(mode) {
                      'committee','conscientious','millennium','perseverance','questionnaire'];
     }
     showFeedback('Spelling Bee started — ' + currentList.length + ' words', 'info');
-    // Initialize the adaptive-difficulty badge — starts at Beginner pace
     updateBeeBadge();
-    nextWord();
-  } else {
-    // school — use built-in school word list
-    const SCHOOL_WORDS = [
-      'about', 'above', 'across', 'after', 'again', 'against', 'almost', 'alone',
-      'along', 'already', 'also', 'although', 'always', 'among', 'another', 'answer',
-      'appear', 'around', 'arrive', 'article', 'because', 'become', 'before', 'begin',
-      'behind', 'believe', 'below', 'between', 'beyond', 'brother', 'building', 'business',
-      'capital', 'century', 'certain', 'children', 'circle', 'city', 'class', 'clear',
-      'color', 'common', 'complete', 'consider', 'contain', 'country', 'course', 'cover',
-      'create', 'current', 'decide', 'describe', 'develop', 'different', 'difficult',
-      'direct', 'discover', 'distance', 'divide', 'during', 'early', 'earth', 'east',
-      'effect', 'eight', 'either', 'element', 'energy', 'enough', 'enter', 'entire',
-      'equal', 'especially', 'evening', 'event', 'every', 'example', 'except', 'exercise',
-      'expect', 'experience', 'experiment', 'explain', 'express', 'family', 'father',
-      'figure', 'final', 'follow', 'forest', 'forget', 'form', 'forward', 'friend',
-      'garden', 'general', 'government', 'great', 'ground', 'group', 'grow', 'happen',
-      'heavy', 'height', 'history', 'however', 'hundred', 'idea', 'important', 'improve',
-      'include', 'increase', 'inside', 'instead', 'interest', 'invent', 'island', 'just',
-      'knowledge', 'language', 'large', 'later', 'learn', 'length', 'letter', 'level',
-      'light', 'listen', 'little', 'machine', 'material', 'matter', 'maybe', 'measure',
-      'member', 'method', 'middle', 'minute', 'moment', 'mother', 'mountain', 'music',
-      'nation', 'natural', 'necessary', 'never', 'notice', 'number', 'object', 'observe',
-      'ocean', 'often', 'order', 'original', 'other', 'outside', 'paper', 'paragraph',
-      'parent', 'particular', 'pattern', 'people', 'perhaps', 'period', 'person',
-      'picture', 'piece', 'place', 'planet', 'plant', 'point', 'possible', 'pound',
-      'power', 'practice', 'prepare', 'present', 'president', 'problem', 'process',
-      'produce', 'product', 'program', 'project', 'property', 'protect', 'prove',
-      'provide', 'question', 'quick', 'quiet', 'quite', 'radio', 'raise', 'reach',
-      'ready', 'reason', 'receive', 'record', 'region', 'remember', 'repeat', 'report',
-      'represent', 'require', 'result', 'return', 'right', 'river', 'round', 'science',
-      'second', 'section', 'segment', 'separate', 'serve', 'several', 'shape', 'should',
-      'similar', 'simple', 'since', 'single', 'sister', 'situation', 'social', 'society',
-      'solve', 'sound', 'source', 'south', 'space', 'special', 'specific', 'speech',
-      'spell', 'spring', 'square', 'standard', 'station', 'still', 'stone', 'story',
-      'straight', 'strange', 'street', 'strong', 'structure', 'student', 'study',
-      'subject', 'success', 'sudden', 'suggest', 'summer', 'supply', 'support', 'sure',
-      'surface', 'surprise', 'system', 'table', 'teacher', 'technology', 'television',
-      'temperature', 'therefore', 'thing', 'thought', 'through', 'together', 'tonight',
-      'total', 'toward', 'travel', 'trouble', 'true', 'under', 'understand', 'unit',
-      'until', 'usually', 'value', 'various', 'village', 'visit', 'voice', 'wait',
-      'watch', 'water', 'weather', 'weight', 'welcome', 'west', 'whether', 'while',
-      'whole', 'window', 'winter', 'within', 'without', 'woman', 'wonder', 'world',
-      'write', 'wrong', 'young'
-    ];
-    currentList = [...SCHOOL_WORDS].sort(() => Math.random() - 0.5);
-    showFeedback('School practice started — ' + currentList.length + ' words', 'info');
     nextWord();
   }
 }
-
 // Back to setup — hide training phase, show setup phase
 function backToSetup(mode) {
   const area = document.getElementById(mode + '-area');
@@ -1503,7 +1524,7 @@ function nextWord() {
     }
     
     // Reset handwriting canvas between words
-    if ((currentMode === "school" || currentMode === "oet") && typeof hwReset === "function") {
+    if ((currentMode === "practice" || currentMode === "oet") && typeof hwReset === "function") {
         hwReset(currentMode);
     }
 
@@ -1529,7 +1550,7 @@ function checkAnswer() {
     if (currentMode === "bee") {
         startVoiceRecognition();
         return;
-    } else if ((currentMode === "school" || currentMode === "oet") &&
+    } else if ((currentMode === "practice" || currentMode === "oet") &&
                hwState[currentMode] && hwState[currentMode].mode === "handwriting") {
         userAnswer = hwGetAnswer(currentMode);
     } else {
@@ -1888,8 +1909,8 @@ function simulatePremiumAccess() {
 // =======================================================
 
 const hwState = {
-  school: { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null },
-  oet:    { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null }
+  practice: { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null },
+  oet:      { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null }
 };
 
 function setInputMode(moduleMode, inputMode) {
