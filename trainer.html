@@ -848,42 +848,10 @@
       <!-- ════ SETUP PHASE ════ -->
       <div class="setup-phase">
 
-        <!-- Word list selector -->
-        <div class="setup-card">
-          <h4><i class="fa fa-list-alt"></i> Word List</h4>
-          <div class="word-list-selector">
-            <button class="word-list-btn active" id="btnListOET">
-              <i class="fa fa-stethoscope"></i>
-              <strong>OET Medical</strong>
-              <small>1,511 medical words</small>
-            </button>
-            <button class="word-list-btn" id="btnListSchool">
-              <i class="fa fa-graduation-cap"></i>
-              <strong>School</strong>
-              <small>307 curriculum words</small>
-            </button>
-          </div>
-          <!-- OET sub-mode: full list vs exam simulation -->
-          <div id="oetModePanel" style="margin-top:12px;">
-            <div class="oet-mode-row">
-              <button class="oet-mode-btn active" id="oetModePractice">
-                <i class="fa fa-book-open"></i>
-                <strong>Full List</strong>
-                <small>All 1,511 words</small>
-              </button>
-              <button class="oet-mode-btn" id="oetModeTest">
-                <i class="fa fa-clock"></i>
-                <strong>Exam Simulation</strong>
-                <small>Random 24 words</small>
-              </button>
-            </div>
-          </div>
-          <!-- Hidden radio for backward compat with loadOETWords() -->
-          <input type="radio" name="examType" id="examTypePractice" value="practice" checked style="display:none;" />
-          <input type="radio" name="examType" id="examTypeTest"     value="test"     style="display:none;" />
-        </div>
-
-        <!-- Word source selector — injected by createCustomWordsUI() -->
+        <!-- Word list selector + OET mode — injected by createCustomWordsUI() -->
+        <!-- Hidden radio for loadOETWords() backward compat -->
+        <input type="radio" name="examType" id="examTypePractice" value="practice" checked style="display:none;" />
+        <input type="radio" name="examType" id="examTypeTest"     value="test"     style="display:none;" />
 
         <!-- Accent -->
         <div class="setup-card">
