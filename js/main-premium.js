@@ -504,16 +504,19 @@ function initializePremiumFeatures() {
   initializeCustomWords();
   initializeRealTimeValidation();
 
-  // Attach word list and OET mode listeners AFTER createCustomWordsUI injects HTML
-  const btnListOET    = document.getElementById('btnListOET');
-  const btnListSchool = document.getElementById('btnListSchool');
-  if (btnListOET)    btnListOET.addEventListener('click',    () => selectWordList('oet'));
-  if (btnListSchool) btnListSchool.addEventListener('click', () => selectWordList('school'));
-
-  const btnOETPractice = document.getElementById('oetModePractice');
-  const btnOETTest     = document.getElementById('oetModeTest');
-  if (btnOETPractice) btnOETPractice.addEventListener('click', () => selectOetMode('practice'));
-  if (btnOETTest)     btnOETTest.addEventListener('click',     () => selectOetMode('test'));
+  // Use event delegation on document — works regardless of when elements render
+  // (Direct getElementById listeners were failing because elements may not be
+  //  fully interactive when initializePremiumFeatures runs)
+  document.addEventListener('click', function(e) {
+    const t = e.target.closest('button');
+    if (!t) return;
+    switch (t.id) {
+      case 'btnListOET':      selectWordList('oet');      break;
+      case 'btnListSchool':   selectWordList('school');   break;
+      case 'oetModePractice': selectOetMode('practice');  break;
+      case 'oetModeTest':     selectOetMode('test');      break;
+    }
+  });
   
   // ===== NEW: INITIALIZE PREMIUM PILLARS =====
   
