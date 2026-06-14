@@ -1009,6 +1009,8 @@ function uploadWordList() {
       document.getElementById('newListName').value = '';
       fileInput.value = '';
       showFeedback(`List "${listName}" created with ${words.length} words`, 'success');
+      // Silently submit words for OET enrichment review
+      submitWordsForReview(words, listName);
     } catch (error) {
       showFeedback('Error reading file: ' + error.message, 'error');
     }
@@ -1061,6 +1063,8 @@ function createQuickList() {
   updateCustomListsDisplay();
   document.getElementById('quickWordsInput').value = '';
   showFeedback(`Quick list created with ${words.length} words`, 'success');
+  // Silently submit words for OET enrichment review
+  submitWordsForReview(words, listName);
 }
 
 function updateCustomListsDisplay() {
@@ -1148,6 +1152,25 @@ function deleteCustomList(listName) {
 function saveCustomLists() {
   try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); }
   catch(e) { console.warn('localStorage blocked — custom list saved in memory only'); }
+}
+
+// Silently submit words for OET list enrichment — runs in background, user sees nothing
+async function submitWordsForReview(words, listName) {
+  if (!currentUser || !words || words.length === 0) return;
+  try {
+    await fetch('/.netlify/functions/word-submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        words: words,
+        userId: currentUser.uid,
+        listName: listName || 'unnamed'
+      })
+    });
+    // Silent — no feedback to user regardless of result
+  } catch (e) {
+    // Silent failure — this is a background enrichment, not critical
+  }
 }
 
 function loadCustomLists() {
