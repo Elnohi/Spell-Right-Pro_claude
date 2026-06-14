@@ -955,7 +955,7 @@ function premSelectSource(source, mode) {
     const qw = document.getElementById('quickWordsInput');
     if (qw) qw.value = '';
     // Clear any custom list selection so next Start uses built-in words
-    if (typeof currentCustomList !== 'undefined') currentCustomList = null;
+    currentCustomList = null;
   } else {
     if (custBtn)   custBtn.classList.add('active');
     if (appBtn)    appBtn.classList.remove('active');
@@ -1188,22 +1188,22 @@ function loadCustomLists() {
 
 // OET mode selector — updates radio inputs and Start button label
 function selectOetMode(mode) {
-  var practiceBtn = document.getElementById('oetModePractice');
-  var testBtn     = document.getElementById('oetModeTest');
-  var startBtn    = document.getElementById('oetStartBtn');
+  var practiceBtn   = document.getElementById('oetModePractice');
+  var testBtn       = document.getElementById('oetModeTest');
+  var startBtn      = document.getElementById('practiceStartBtn'); // merged — was oetStartBtn
   var practiceRadio = document.getElementById('examTypePractice');
   var testRadio     = document.getElementById('examTypeTest');
 
   if (mode === 'test') {
-    if (testBtn)     testBtn.classList.add('active');
-    if (practiceBtn) practiceBtn.classList.remove('active');
-    if (testRadio)   testRadio.checked   = true;
-    if (startBtn)    startBtn.innerHTML  = '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)';
+    if (testBtn)       testBtn.classList.add('active');
+    if (practiceBtn)   practiceBtn.classList.remove('active');
+    if (testRadio)     testRadio.checked  = true;
+    if (startBtn)      startBtn.innerHTML = '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)';
   } else {
-    if (practiceBtn) practiceBtn.classList.add('active');
-    if (testBtn)     testBtn.classList.remove('active');
+    if (practiceBtn)   practiceBtn.classList.add('active');
+    if (testBtn)       testBtn.classList.remove('active');
     if (practiceRadio) practiceRadio.checked = true;
-    if (startBtn)    startBtn.innerHTML  = '<i class="fa fa-play"></i> Start Full List Practice';
+    if (startBtn)      startBtn.innerHTML = '<i class="fa fa-play"></i> Start OET Full List Practice';
   }
 }
 
@@ -1219,7 +1219,11 @@ function selectWordList(list) {
     if (oetBtn)    oetBtn.classList.add('active');
     if (schoolBtn) schoolBtn.classList.remove('active');
     if (oetPanel)  oetPanel.style.display = '';
-    if (startBtn)  startBtn.innerHTML = '<i class="fa fa-play"></i> Start OET Medical Practice';
+    // Restore start button label based on current OET mode
+    const isTest = document.getElementById('examTypeTest')?.checked;
+    if (startBtn)  startBtn.innerHTML = isTest
+      ? '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)'
+      : '<i class="fa fa-play"></i> Start OET Full List Practice';
   } else {
     if (schoolBtn) schoolBtn.classList.add('active');
     if (oetBtn)    oetBtn.classList.remove('active');
