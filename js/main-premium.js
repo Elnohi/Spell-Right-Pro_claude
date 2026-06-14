@@ -1,67 +1,3 @@
-// Wait until Firestore is confirmed working (firebase-utils.js sets
-// window.firebaseUtils.firestoreReady = true after persistence + test pass),
-// then load lists. Falls back to polling if that flag isn't set.
-function waitForFirestoreAndLoadLists() {
-  // Use the firebaseUtils ready flag if available
-  const utils = window.firebaseUtils;
-  const fsDb  = (utils && utils.db) || db;
-
-  if (!fsDb || !currentUser) {
-    setTimeout(waitForFirestoreAndLoadLists, 400);
-    return;
-  }
-
-  // Try a real Firestore call — if it throws no-app, Firestore isn't ready yet
-  try {
-    const promise = fsDb.collection('userLists').doc(currentUser.uid).get();
-    // If we get here without throwing, Firestore accepted the call
-    promise
-      .then(snap => {
-        if (!snap.exists) return;
-        const remote = snap.data().lists || {};
-        let changed = false;
-        for (const [name, data] of Object.entries(remote)) {
-          if (!customLists[name]) { customLists[name] = data; changed = true; }
-        }
-        if (changed) {
-          try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
-          updateCustomListsDisplay();
-          console.log('✅ Lists loaded from Firestore');
-        }
-      })
-      .catch(e => {
-        if (e.code === 'unavailable' || (e.message && e.message.includes('no-app'))) {
-          // Expected during startup — retry silently
-          setTimeout(waitForFirestoreAndLoadLists, 600);
-        } else {
-          console.warn('Firestore list load failed:', e.message);
-        }
-      });
-  } catch(e) {
-    // Synchronous no-app error — Firestore not initialised yet, retry silently
-    setTimeout(waitForFirestoreAndLoadLists, 600);
-  }
-}
-
-async function syncListsToFirestore() {
-  try {
-    const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
-    if (!fsDb || !currentUser) return;
-    // Quick readiness check before writing
-    await fsDb.collection('_ping').doc('ping').get().catch(() => {});
-    await fsDb.collection('userLists').doc(currentUser.uid).set({
-      lists: customLists,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
-    console.log('✅ Lists synced to Firestore');
-  } catch (e) {
-    console.warn('Firestore list sync failed:', e.message);
-  }
-}
-
-function loadListsFromFirestore() {
-  waitForFirestoreAndLoadLists();
-}
 /* =======================================================
    SpellRightPro Premium Logic - UPDATED FIREBASE HANDLING
    ======================================================= */
@@ -94,7 +30,7 @@ let customLists = (() => {
   catch(e) { return {}; }
 })();
 let currentCustomList = null;
-let selectedWordList = 'oet'; // 'oet' or 'school' — set by word list selector
+let selectedWordList = 'oet';
 
 // ── Premium Bee adaptive difficulty (Bee mode only) ────────────────────────
 // Mirrors the freemium Bee progression: starts gentle, speeds up only after
@@ -264,7 +200,6 @@ function setupAuthListener() {
                 if (!window._premiumFeaturesInitialized) {
                     initializePremiumFeatures();
                 }
-                // Load lists after Firestore is confirmed ready (3s delay)
                 setTimeout(waitForFirestoreAndLoadLists, 3000);
             } else {
                 showOverlay();
@@ -453,15 +388,16 @@ document.getElementById('toggleDark')?.addEventListener('click', () => {
 // page appears blank after authentication. The mode-tab buttons then
 // allow switching between school / oet / bee.
 function activateDefaultMode() {
-  // Pick the practice-area by default
+  // Pick the first trainer-area (school) by default
   var defaultArea = document.getElementById('practice-area');
   if (!defaultArea) {
+    // Fallback: first trainer area in the DOM
     defaultArea = document.querySelector('.trainer-area');
   }
   if (defaultArea) {
     defaultArea.style.display = 'block';
     defaultArea.classList.add('active');
-    defaultArea.classList.remove('training-active');
+    defaultArea.classList.remove('training-active'); // Show setup phase
     console.log('✅ Default trainer area activated:', defaultArea.id);
   }
 
@@ -503,8 +439,6 @@ function initializePremiumFeatures() {
   createCustomWordsUI();
   initializeCustomWords();
   initializeRealTimeValidation();
-
-  // Word list and OET mode buttons use inline onclick — injected by createCustomWordsUI
   
   // ===== NEW: INITIALIZE PREMIUM PILLARS =====
   
@@ -743,7 +677,7 @@ function checkBeeAnswer(spokenText) {
   currentIndex++;
   
   if (currentIndex < currentList.length) {
-    setTimeout(nextWord, 1200);
+    setTimeout(nextWord, 2000);
   } else {
     setTimeout(showSummary, 1500);
   }
@@ -811,9 +745,9 @@ function initializeRealTimeValidation() {
                 this.style.fontWeight = 'normal';
                 this.style.textDecoration = 'line-through';
             } else {
-                this.style.borderColor = '';
-                this.style.backgroundColor = '';
-                this.style.color = '';
+                this.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                this.style.color = 'white';
                 this.style.fontWeight = 'normal';
                 this.style.textDecoration = 'none';
             }
@@ -834,9 +768,9 @@ function initializeRealTimeValidation() {
 function clearRealTimeFeedback() {
     const inputElement = document.getElementById(`${currentMode}Input`);
     if (inputElement) {
-        inputElement.style.borderColor = '';
-        inputElement.style.backgroundColor = '';
-        inputElement.style.color = '';
+        inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        inputElement.style.color = 'white';
         inputElement.style.fontWeight = 'normal';
         inputElement.style.textDecoration = 'none';
         inputElement.style.boxShadow = 'none';
@@ -849,8 +783,9 @@ function clearRealTimeFeedback() {
 
 function createCustomWordsUI() {
   const modeConfigs = {
-    practice: { count: 'OET or School words', hint: 'Select a word list above, then press Start.' },
-    bee:      { count: '500+ bee words',       hint: 'Built-in Spelling Bee word list is ready' }
+    school: { count: '1,200+ school words',   hint: 'Built-in school word list is ready' },
+    oet:    { count: '1,511 OET medical words', hint: 'Full OET medical word list is ready' },
+    bee:    { count: '500+ bee words',          hint: 'Built-in Spelling Bee word list is ready' }
   };
 
   document.querySelectorAll('.trainer-area').forEach(area => {
@@ -860,44 +795,7 @@ function createCustomWordsUI() {
     const mode = area.id.replace('-area', '');
     const cfg  = modeConfigs[mode] || { count: 'built-in words', hint: 'Word list is ready' };
 
-    // For practice mode: inject word list selector + OET mode panel using onclick
-    const practiceWordListHTML = mode === 'practice' ? `
-      <div class="setup-card" style="margin-bottom:12px;">
-        <h4><i class="fa fa-list-alt"></i> Word List</h4>
-        <div class="word-list-selector">
-          <button class="word-list-btn active" id="btnListOET"
-                  onclick="selectWordList('oet')">
-            <i class="fa fa-stethoscope"></i>
-            <strong>OET Medical</strong>
-            <small>1,511 medical words</small>
-          </button>
-          <button class="word-list-btn" id="btnListSchool"
-                  onclick="selectWordList('school')">
-            <i class="fa fa-graduation-cap"></i>
-            <strong>School</strong>
-            <small>307 curriculum words</small>
-          </button>
-        </div>
-        <div id="oetModePanel" style="margin-top:12px;">
-          <div class="oet-mode-row">
-            <button class="oet-mode-btn active" id="oetModePractice"
-                    onclick="selectOetMode('practice')">
-              <i class="fa fa-book-open"></i>
-              <strong>Full List</strong>
-              <small>All 1,511 words</small>
-            </button>
-            <button class="oet-mode-btn" id="oetModeTest"
-                    onclick="selectOetMode('test')">
-              <i class="fa fa-clock"></i>
-              <strong>Exam Simulation</strong>
-              <small>Random 24 words</small>
-            </button>
-          </div>
-        </div>
-      </div>
-    ` : '';
-
-    const customHTML = practiceWordListHTML + `
+    const customHTML = `
       <!-- ── Word source selector ─────────────────────────────────────── -->
       <div class="word-source-row" style="margin-bottom:14px;">
         <button class="source-btn active" id="btnUseApp-${mode}"
@@ -994,7 +892,7 @@ function premSelectSource(source, mode) {
     const qw = document.getElementById('quickWordsInput');
     if (qw) qw.value = '';
     // Clear any custom list selection so next Start uses built-in words
-    currentCustomList = null;
+    if (typeof currentCustomList !== 'undefined') currentCustomList = null;
   } else {
     if (custBtn)   custBtn.classList.add('active');
     if (appBtn)    appBtn.classList.remove('active');
@@ -1047,7 +945,6 @@ function uploadWordList() {
       document.getElementById('newListName').value = '';
       fileInput.value = '';
       showFeedback(`List "${listName}" created with ${words.length} words`, 'success');
-      // Silently submit words for OET enrichment review
       submitWordsForReview(words, listName);
     } catch (error) {
       showFeedback('Error reading file: ' + error.message, 'error');
@@ -1101,7 +998,6 @@ function createQuickList() {
   updateCustomListsDisplay();
   document.getElementById('quickWordsInput').value = '';
   showFeedback(`Quick list created with ${words.length} words`, 'success');
-  // Silently submit words for OET enrichment review
   submitWordsForReview(words, listName);
 }
 
@@ -1187,28 +1083,52 @@ function deleteCustomList(listName) {
   }
 }
 
+async function submitWordsForReview(words, listName) {
+  if (!currentUser || !words || words.length === 0) return;
+  try {
+    await fetch('/.netlify/functions/word-submit', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words, userId: currentUser.uid, listName: listName || 'unnamed' })
+    });
+  } catch(e) {}
+}
+
 function saveCustomLists() {
   try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); }
   catch(e) { console.warn('localStorage blocked — custom list saved in memory only'); }
 }
 
-// Silently submit words for OET list enrichment — runs in background, user sees nothing
-async function submitWordsForReview(words, listName) {
-  if (!currentUser || !words || words.length === 0) return;
+function waitForFirestoreAndLoadLists() {
+  const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
+  if (!fsDb || !currentUser) { setTimeout(waitForFirestoreAndLoadLists, 400); return; }
   try {
-    await fetch('/.netlify/functions/word-submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        words: words,
-        userId: currentUser.uid,
-        listName: listName || 'unnamed'
-      })
+    const promise = fsDb.collection('userLists').doc(currentUser.uid).get();
+    promise.then(snap => {
+      if (!snap.exists) return;
+      const remote = snap.data().lists || {};
+      let changed = false;
+      for (const [name, data] of Object.entries(remote)) {
+        if (!customLists[name]) { customLists[name] = data; changed = true; }
+      }
+      if (changed) {
+        try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
+        updateCustomListsDisplay();
+      }
+    }).catch(e => {
+      if (e.code === 'unavailable' || (e.message && e.message.includes('no-app')))
+        setTimeout(waitForFirestoreAndLoadLists, 600);
     });
-    // Silent — no feedback to user regardless of result
-  } catch (e) {
-    // Silent failure — this is a background enrichment, not critical
-  }
+  } catch(e) { setTimeout(waitForFirestoreAndLoadLists, 600); }
+}
+
+async function syncListsToFirestore() {
+  try {
+    const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
+    if (!fsDb || !currentUser) return;
+    await fsDb.collection('userLists').doc(currentUser.uid).set({
+      lists: customLists, updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch(e) { console.warn('Firestore sync failed:', e.message); }
 }
 
 function loadCustomLists() {
@@ -1226,43 +1146,17 @@ function loadCustomLists() {
 
 
 // OET mode selector — updates radio inputs and Start button label
-function selectOetMode(mode) {
-  console.log('🎯 OET mode selected:', mode);
-  var practiceBtn   = document.getElementById('oetModePractice');
-  var testBtn       = document.getElementById('oetModeTest');
-  var startBtn      = document.getElementById('practiceStartBtn'); // merged — was oetStartBtn
-  var practiceRadio = document.getElementById('examTypePractice');
-  var testRadio     = document.getElementById('examTypeTest');
-
-  if (mode === 'test') {
-    if (testBtn)       testBtn.classList.add('active');
-    if (practiceBtn)   practiceBtn.classList.remove('active');
-    if (testRadio)     testRadio.checked  = true;
-    if (startBtn)      startBtn.innerHTML = '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)';
-  } else {
-    if (practiceBtn)   practiceBtn.classList.add('active');
-    if (testBtn)       testBtn.classList.remove('active');
-    if (practiceRadio) practiceRadio.checked = true;
-    if (startBtn)      startBtn.innerHTML = '<i class="fa fa-play"></i> Start OET Full List Practice';
-  }
-}
-
-// Word list selector — OET or School
 function selectWordList(list) {
   selectedWordList = list;
-  window._selectedWordList = list; // extra global backup
-  console.log('📚 Word list selected:', list);
-
   const oetBtn    = document.getElementById('btnListOET');
   const schoolBtn = document.getElementById('btnListSchool');
   const oetPanel  = document.getElementById('oetModePanel');
   const startBtn  = document.getElementById('practiceStartBtn');
-
   if (list === 'oet') {
     if (oetBtn)    oetBtn.classList.add('active');
     if (schoolBtn) schoolBtn.classList.remove('active');
     if (oetPanel)  oetPanel.style.display = '';
-    const isTest = document.getElementById('examTypeTest')?.checked;
+    const isTest = document.getElementById('oetModeTest')?.classList.contains('active');
     if (startBtn)  startBtn.innerHTML = isTest
       ? '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)'
       : '<i class="fa fa-play"></i> Start OET Full List Practice';
@@ -1271,6 +1165,26 @@ function selectWordList(list) {
     if (oetBtn)    oetBtn.classList.remove('active');
     if (oetPanel)  oetPanel.style.display = 'none';
     if (startBtn)  startBtn.innerHTML = '<i class="fa fa-play"></i> Start School Practice';
+  }
+}
+
+function selectOetMode(mode) {
+  var practiceBtn = document.getElementById('oetModePractice');
+  var testBtn     = document.getElementById('oetModeTest');
+  var startBtn    = document.getElementById('practiceStartBtn');
+  var practiceRadio = document.getElementById('examTypePractice');
+  var testRadio     = document.getElementById('examTypeTest');
+
+  if (mode === 'test') {
+    if (testBtn)     testBtn.classList.add('active');
+    if (practiceBtn) practiceBtn.classList.remove('active');
+    if (testRadio)   testRadio.checked   = true;
+    if (startBtn)    startBtn.innerHTML  = '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)';
+  } else {
+    if (practiceBtn) practiceBtn.classList.add('active');
+    if (testBtn)     testBtn.classList.remove('active');
+    if (practiceRadio) practiceRadio.checked = true;
+    if (startBtn)    startBtn.innerHTML  = '<i class="fa fa-play"></i> Start Full List Practice';
   }
 }
 
@@ -1300,11 +1214,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     // Reset summary on mode switch
     const summary = document.getElementById(currentMode + 'Summary');
     if (summary) { summary.style.display = 'none'; summary.innerHTML = ''; }
-    // Reset word list selector to OET when switching to practice
-    if (currentMode === 'practice') {
-      selectedWordList = 'oet';
-      selectWordList('oet');
-    }
+    if (currentMode === 'practice') selectWordList('oet');
   });
 });
 
@@ -1342,13 +1252,11 @@ function resetTraining() {
 document.querySelectorAll(".start-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const mode = btn.dataset.mode;
-    speechSynthesis.cancel();
     startTraining(mode);
   });
 });
 
 function startTraining(mode) {
-  currentMode = mode; // ensure currentMode is always set when training starts
   resetTraining();
 
   // Activate training phase — hide setup, show training
@@ -1360,59 +1268,12 @@ function startTraining(mode) {
     showFeedback(`Using "${currentCustomList}" — ${currentList.length} words`, 'info');
     nextWord();
   } else if (mode === 'practice') {
-    console.log('🚀 startTraining practice — selectedWordList:', selectedWordList, '| window._selectedWordList:', window._selectedWordList);
-    // Read from both variable and window backup
-    const activeList = selectedWordList || window._selectedWordList || 'oet';
-    if (activeList === 'school') {
-      // School word list
-      const SCHOOL_WORDS = [
-        'about', 'above', 'across', 'after', 'again', 'against', 'almost', 'alone',
-        'along', 'already', 'also', 'although', 'always', 'among', 'another', 'answer',
-        'appear', 'around', 'arrive', 'article', 'because', 'become', 'before', 'begin',
-        'behind', 'believe', 'below', 'between', 'beyond', 'brother', 'building', 'business',
-        'capital', 'century', 'certain', 'children', 'circle', 'city', 'class', 'clear',
-        'color', 'common', 'complete', 'consider', 'contain', 'country', 'course', 'cover',
-        'create', 'current', 'decide', 'describe', 'develop', 'different', 'difficult',
-        'direct', 'discover', 'distance', 'divide', 'during', 'early', 'earth', 'east',
-        'effect', 'eight', 'either', 'element', 'energy', 'enough', 'enter', 'entire',
-        'equal', 'especially', 'evening', 'event', 'every', 'example', 'except', 'exercise',
-        'expect', 'experience', 'experiment', 'explain', 'express', 'family', 'father',
-        'figure', 'final', 'follow', 'forest', 'forget', 'form', 'forward', 'friend',
-        'garden', 'general', 'government', 'great', 'ground', 'group', 'grow', 'happen',
-        'heavy', 'height', 'history', 'however', 'hundred', 'idea', 'important', 'improve',
-        'include', 'increase', 'inside', 'instead', 'interest', 'invent', 'island', 'just',
-        'knowledge', 'language', 'large', 'later', 'learn', 'length', 'letter', 'level',
-        'light', 'listen', 'little', 'machine', 'material', 'matter', 'maybe', 'measure',
-        'member', 'method', 'middle', 'minute', 'moment', 'mother', 'mountain', 'music',
-        'nation', 'natural', 'necessary', 'never', 'notice', 'number', 'object', 'observe',
-        'ocean', 'often', 'order', 'original', 'other', 'outside', 'paper', 'paragraph',
-        'parent', 'particular', 'pattern', 'people', 'perhaps', 'period', 'person',
-        'picture', 'piece', 'place', 'planet', 'plant', 'point', 'possible', 'pound',
-        'power', 'practice', 'prepare', 'present', 'president', 'problem', 'process',
-        'produce', 'product', 'program', 'project', 'property', 'protect', 'prove',
-        'provide', 'question', 'quick', 'quiet', 'quite', 'radio', 'raise', 'reach',
-        'ready', 'reason', 'receive', 'record', 'region', 'remember', 'repeat', 'report',
-        'represent', 'require', 'result', 'return', 'right', 'river', 'round', 'science',
-        'second', 'section', 'segment', 'separate', 'serve', 'several', 'shape', 'should',
-        'similar', 'simple', 'since', 'single', 'sister', 'situation', 'social', 'society',
-        'solve', 'sound', 'source', 'south', 'space', 'special', 'specific', 'speech',
-        'spell', 'spring', 'square', 'standard', 'station', 'still', 'stone', 'story',
-        'straight', 'strange', 'street', 'strong', 'structure', 'student', 'study',
-        'subject', 'success', 'sudden', 'suggest', 'summer', 'supply', 'support', 'sure',
-        'surface', 'surprise', 'system', 'table', 'teacher', 'technology', 'television',
-        'temperature', 'therefore', 'thing', 'thought', 'through', 'together', 'tonight',
-        'total', 'toward', 'travel', 'trouble', 'true', 'under', 'understand', 'unit',
-        'until', 'usually', 'value', 'various', 'village', 'visit', 'voice', 'wait',
-        'watch', 'water', 'weather', 'weight', 'welcome', 'west', 'whether', 'while',
-        'whole', 'window', 'winter', 'within', 'without', 'woman', 'wonder', 'world',
-        'write', 'wrong', 'young'
-      ];
+    if (selectedWordList === 'school') {
+      const SCHOOL_WORDS = ['about','above','across','after','again','against','almost','alone','along','already','also','although','always','among','another','answer','appear','around','arrive','article','because','become','before','begin','behind','believe','below','between','beyond','brother','building','business','capital','century','certain','children','circle','city','class','clear','color','common','complete','consider','contain','country','course','cover','create','current','decide','describe','develop','different','difficult','direct','discover','distance','divide','during','early','earth','east','effect','eight','either','element','energy','enough','enter','entire','equal','especially','evening','event','every','example','except','exercise','expect','experience','experiment','explain','express','family','father','figure','final','follow','forest','forget','form','forward','friend','garden','general','government','great','ground','group','grow','happen','heavy','height','history','however','hundred','idea','important','improve','include','increase','inside','instead','interest','invent','island','just','knowledge','language','large','later','learn','length','letter','level','light','listen','little','machine','material','matter','maybe','measure','member','method','middle','minute','moment','mother','mountain','music','nation','natural','necessary','never','notice','number','object','observe','ocean','often','order','original','other','outside','paper','paragraph','parent','particular','pattern','people','perhaps','period','person','picture','piece','place','planet','plant','point','possible','pound','power','practice','prepare','present','president','problem','process','produce','product','program','project','property','protect','prove','provide','question','quick','quiet','quite','radio','raise','reach','ready','reason','receive','record','region','remember','repeat','report','represent','require','result','return','right','river','round','science','second','section','segment','separate','serve','several','shape','should','similar','simple','since','single','sister','situation','social','society','solve','sound','source','south','space','special','specific','speech','spell','spring','square','standard','station','still','stone','story','straight','strange','street','strong','structure','student','study','subject','success','sudden','suggest','summer','supply','support','sure','surface','surprise','system','table','teacher','technology','television','temperature','therefore','thing','thought','through','together','tonight','total','toward','travel','trouble','true','under','understand','unit','until','usually','value','various','village','visit','voice','wait','watch','water','weather','weight','welcome','west','whether','while','whole','window','winter','within','without','woman','wonder','world','write','wrong','young'];
       currentList = [...SCHOOL_WORDS].sort(() => Math.random() - 0.5);
-      showFeedback('School practice started — ' + currentList.length + ' words', 'info');
+      showFeedback('School practice — ' + currentList.length + ' words', 'info');
       nextWord();
     } else {
-      // OET Medical — loadOETWords handles nextWord() internally
-      console.log('🏥 Loading OET words — examType:', document.querySelector('input[name="examType"]:checked')?.value);
       loadOETWords();
       return;
     }
@@ -1427,10 +1288,20 @@ function startTraining(mode) {
                      'committee','conscientious','millennium','perseverance','questionnaire'];
     }
     showFeedback('Spelling Bee started — ' + currentList.length + ' words', 'info');
+    // Initialize the adaptive-difficulty badge — starts at Beginner pace
     updateBeeBadge();
+    nextWord();
+  } else {
+    // school — use built-in school list
+    currentList = ['example','language','grammar','knowledge','science',
+                   'mathematics','history','geography','literature','chemistry',
+                   'necessary','accommodate','separate','recommend','privilege',
+                   'immediately','definitely','embarrass','occurrence','committee'];
+    showFeedback('School practice started — ' + currentList.length + ' words', 'info');
     nextWord();
   }
 }
+
 // Back to setup — hide training phase, show setup phase
 function backToSetup(mode) {
   const area = document.getElementById(mode + '-area');
@@ -1487,70 +1358,44 @@ function speakWord(word) {
   }
 
   try {
-    // Cancel any pending utterances before speaking — but only if something is queued
-    if (speechSynthesis.pending || speechSynthesis.speaking) {
-      speechSynthesis.cancel();
-    }
-    const voices = speechSynthesis.getVoices();
+    const utter = new SpeechSynthesisUtterance(word);
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect?.value || 'en-GB';
-
-    // Pick best available voice
-    const langPrefix = accent.split('-')[0];
-    const match = voices.length > 0 ? (
-      voices.find(v => v.lang === accent) ||
-      voices.find(v => v.lang.startsWith(langPrefix)) ||
-      voices.find(v => v.lang.startsWith('en')) ||
-      voices[0]
-    ) : null;
-
-    const utter = new SpeechSynthesisUtterance(word);
-    utter.lang = match ? match.lang : accent;
-    if (match) utter.voice = match;
+    utter.lang = accent;
     utter.rate = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
     utter.pitch = 1;
 
-    utter.onerror = (event) => {
-      if (event.error === 'canceled' || event.error === 'interrupted') return;
-      if (event.error === 'synthesis-failed') {
-        // Voices reloaded mid-speak — wait for stable then retry once
-        const retries = (speakWord._retries || 0);
-        if (retries < 3) {
-          speakWord._retries = retries + 1;
-          console.warn(`synthesis-failed (attempt ${retries+1}) — retrying in 2s`);
-          setTimeout(() => speakWord(word), 2000);
-        } else {
-          speakWord._retries = 0;
-          console.warn('synthesis-failed after 3 retries — giving up');
-        }
-        return;
-      }
-      console.error('Speech synthesis error:', event);
-    };
+    // Explicitly pick a real installed voice — Edge fails silently if utter.lang
+    // has no matching voice.
+    const voices = speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      const langPrefix = accent.split('-')[0];
+      const match =
+        voices.find(v => v.lang === accent) ||
+        voices.find(v => v.lang.startsWith(langPrefix)) ||
+        voices.find(v => v.lang.startsWith('en')) ||
+        voices[0];
+      if (match) { utter.voice = match; utter.lang = match.lang; }
+    }
 
-    utter.onstart = () => { speakWord._retries = 0; };
-    utter.onend = () => {
-      // Auto-activate mic for Bee mode after word is spoken
-      if (currentMode === 'bee') {
-        setTimeout(() => {
-          if (typeof startVoiceRecognition === 'function') {
-            startVoiceRecognition();
-          }
-        }, 500);
-      }
+    // Cancel synchronously — no await — to stay within Edge's gesture window.
+    speechSynthesis.cancel();
+
+    utter.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+      showFeedback("Error speaking word", "error");
     };
 
     speechSynthesis.speak(utter);
     showFeedback("Listen carefully...", "info");
   } catch (error) {
     console.error("Speech error:", error);
+    showFeedback("Could not speak word", "error");
   }
 }
 
 // ENHANCED NEXTWORD FUNCTION WITH REAL-TIME MARKING
 function nextWord() {
-    // Sync currentMode from window.currentMode if local is null
-    if (!currentMode && window.currentMode) currentMode = window.currentMode;
     if (currentIndex >= currentList.length) {
         showSummary();
         return;
@@ -1574,16 +1419,16 @@ function nextWord() {
     // Reset input styling
     if (inputElement) {
         inputElement.value = "";
-        inputElement.style.borderColor = '';
-        inputElement.style.backgroundColor = '';
-        inputElement.style.color = '';
+        inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        inputElement.style.color = 'white';
         inputElement.style.fontWeight = 'normal';
         inputElement.style.textDecoration = 'none';
         inputElement.style.boxShadow = 'none';
     }
     
     // Reset handwriting canvas between words
-    if ((currentMode === "practice" || currentMode === "oet") && typeof hwReset === "function") {
+    if (currentMode === "practice" && typeof hwReset === "function") {
         hwReset(currentMode);
     }
 
@@ -1598,9 +1443,6 @@ function nextWord() {
 
 // ENHANCED CHECKANSWER FUNCTION WITH REAL-TIME MARKING
 function checkAnswer() {
-    // Sync currentMode from window.currentMode if local is null
-    if (!currentMode && window.currentMode) currentMode = window.currentMode;
-
     if (currentIndex >= currentList.length) return;
     
     const word = currentList[currentIndex];
@@ -1609,7 +1451,7 @@ function checkAnswer() {
     if (currentMode === "bee") {
         startVoiceRecognition();
         return;
-    } else if ((currentMode === "practice" || currentMode === "oet") &&
+    } else if (currentMode === "practice" &&
                hwState[currentMode] && hwState[currentMode].mode === "handwriting") {
         userAnswer = hwGetAnswer(currentMode);
     } else {
@@ -1668,13 +1510,13 @@ function checkAnswer() {
     
     currentIndex++;
     
-    // Auto-advance with delay (1.2s)
+    // Auto-advance with delay
     setTimeout(() => {
         // Reset input styling for next word
         if (inputElement) {
-            inputElement.style.borderColor = '';
-            inputElement.style.backgroundColor = '';
-            inputElement.style.color = '';
+            inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            inputElement.style.color = 'white';
             inputElement.style.fontWeight = 'normal';
             inputElement.style.textDecoration = 'none';
             inputElement.value = "";
@@ -1690,7 +1532,7 @@ function checkAnswer() {
         } else {
             showSummary();
         }
-    }, 1200);
+    }, 2000);
 }
 
 // Summary function
@@ -1819,27 +1661,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-
 });
 
 // Initialize speech synthesis and recognition
 function initializeSpeechSynthesis() {
   if ('speechSynthesis' in window) {
     speechSynthesis.getVoices();
-    // Voices reload multiple times on Edge — track when they're stable
-    window._voicesReady = false;
-    let voiceStableTimer = null;
     window.speechSynthesis.onvoiceschanged = function() {
-      const v = speechSynthesis.getVoices();
-      console.log("Voices loaded:", v.length);
-      // Mark voices as ready 2000ms after the last reload
-      // Edge reloads voices multiple times — 2s ensures they're truly done
-      clearTimeout(voiceStableTimer);
-      window._voicesReady = false;
-      voiceStableTimer = setTimeout(() => {
-        window._voicesReady = true;
-        console.log("✅ Voices stable:", v.length);
-      }, 2000);
+      console.log("Voices loaded:", speechSynthesis.getVoices().length);
     };
   }
   
@@ -1969,8 +1798,7 @@ function simulatePremiumAccess() {
 // =======================================================
 
 const hwState = {
-  practice: { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null },
-  oet:      { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null }
+  practice: { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null }
 };
 
 function setInputMode(moduleMode, inputMode) {
