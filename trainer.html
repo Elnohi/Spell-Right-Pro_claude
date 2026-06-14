@@ -121,7 +121,7 @@
     .brand img { height:42px; border-radius:10px; }
     .brand h1 { font-size:1.1rem; font-weight:700; color:var(--brand); margin:0; }
     .brand small { font-size:0.7rem; color:var(--muted); display:block; }
-    .nav-right { display:flex; gap:4px; align-items:center; flex-wrap:nowrap; overflow:hidden; }
+    .nav-right { display:flex; gap:8px; align-items:center; }
     .nav-btn {
       background:var(--surface2); color:var(--brand);
       border:1px solid var(--border); border-radius:10px;
@@ -339,12 +339,10 @@
       header { border-radius:0; padding:8px 12px; position:sticky; top:0; z-index:100; }
       header .brand h1 { font-size:0.95rem; }
       header .brand img { height:30px; }
-
-      .nav-right { gap:4px; }
-      .nav-btn { padding:8px 10px; font-size:0 !important; gap:0; min-width:36px; justify-content:center; }
-      .nav-btn i { font-size:15px; margin:0; }
-      #btnLogout { font-size:0 !important; padding:8px 10px; }
-      #btnLogout i { font-size:15px; margin:0; }
+      .nav-btn { padding:7px 9px; font-size:0; gap:0; }
+      .nav-btn i { font-size:14px; margin:0; }
+      #btnLogout { font-size:0; padding:7px 10px; }
+      #btnLogout i { font-size:14px; margin:0; }
 
       /* Main content */
       main { padding: 0 !important; }
@@ -519,35 +517,17 @@
     }
 
   
-    /* ── Word list selector ──────────────────────────────────────── */
-    .word-list-selector {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 0;
-    }
+    /* ── Word list selector ── */
+    .word-list-selector { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:0; }
     .word-list-btn {
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 10px;
-      background: var(--surface);
-      cursor: pointer;
-      text-align: center;
-      transition: all .2s;
-      font-family: 'DM Sans', sans-serif;
-      color: var(--text);
+      border:2px solid var(--border); border-radius:14px; padding:14px 10px;
+      background:var(--surface); cursor:pointer; text-align:center;
+      transition:all .2s; font-family:'DM Sans',sans-serif; color:var(--text);
     }
-    .word-list-btn.active {
-      border-color: var(--brand);
-      background: rgba(123,47,247,.1);
-    }
+    .word-list-btn.active { border-color:var(--brand); background:rgba(123,47,247,.1); }
     .word-list-btn i      { font-size:1.25rem; color:var(--brand); display:block; margin-bottom:5px; }
     .word-list-btn strong { font-size:0.82rem; display:block; color:var(--text); }
     .word-list-btn small  { font-size:0.68rem; color:var(--muted); }
-    @media (max-width:520px) {
-      .word-list-selector { gap:8px; }
-      .word-list-btn { padding:12px 8px; border-radius:12px; }
-    }
 
     /* ── Setup / Training phase system ─────────────────────────────────────── */
     .setup-phase   { display: block; }
@@ -815,7 +795,7 @@
       <i class="fa fa-home"></i> Home
     </button>
     <button class="nav-btn" onclick="window.location.href='/blog'" title="Blog"><i class="fa fa-book-open"></i></button>
-        <button class="nav-btn" id="toggleDark">
+    <button class="nav-btn" id="toggleDark">
       <i class="fa fa-moon"></i>
     </button>
     <button class="nav-btn" id="btnLogout">
@@ -848,10 +828,43 @@
       <div class="setup-phase">
         <h3><i class="fa fa-book-open"></i> Spelling Practice</h3>
 
-        <!-- Word list selector + OET mode — injected by createCustomWordsUI() -->
-        <!-- Hidden radio for loadOETWords() backward compat -->
-        <input type="radio" name="examType" id="examTypePractice" value="practice" checked style="display:none;" />
-        <input type="radio" name="examType" id="examTypeTest"     value="test"     style="display:none;" />
+        <!-- Word source selector — injected by createCustomWordsUI() -->
+
+        <!-- Word list: OET Medical or School -->
+        <div class="setup-card">
+          <h4><i class="fa fa-list-alt"></i> Word List</h4>
+          <div class="word-list-selector">
+            <button class="word-list-btn active" id="btnListOET"
+                    onclick="selectWordList('oet')">
+              <i class="fa fa-stethoscope"></i>
+              <strong>OET Medical</strong>
+              <small>1,511 medical words</small>
+            </button>
+            <button class="word-list-btn" id="btnListSchool"
+                    onclick="selectWordList('school')">
+              <i class="fa fa-graduation-cap"></i>
+              <strong>School</strong>
+              <small>307 curriculum words</small>
+            </button>
+          </div>
+          <!-- OET sub-mode (hidden when School selected) -->
+          <div id="oetModePanel" style="margin-top:12px;">
+            <div class="oet-mode-row">
+              <button class="oet-mode-btn active" id="oetModePractice"
+                      onclick="selectOetMode('practice')">
+                <i class="fa fa-book-open"></i>
+                <strong>Full List</strong>
+                <small>All 1,511 words</small>
+              </button>
+              <button class="oet-mode-btn" id="oetModeTest"
+                      onclick="selectOetMode('test')">
+                <i class="fa fa-clock"></i>
+                <strong>Exam Simulation</strong>
+                <small>Random 24 words</small>
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- Accent -->
         <div class="setup-card">
@@ -866,10 +879,15 @@
           </div>
         </div>
 
+        <!-- Hidden radio for loadOETWords() -->
+        <input type="radio" name="examType" id="examTypePractice" value="practice" checked style="display:none;" />
+        <input type="radio" name="examType" id="examTypeTest"     value="test"     style="display:none;" />
+
         <!-- Start button -->
         <button class="btn-start-training start-btn" data-mode="practice" id="practiceStartBtn">
-          <i class="fa fa-play"></i> Start OET Medical Practice
+          <i class="fa fa-play"></i> Start OET Full List Practice
         </button>
+
       </div><!-- /.setup-phase -->
 
       <!-- ════ TRAINING PHASE ════ -->
@@ -877,31 +895,22 @@
         <button class="back-to-setup" onclick="backToSetup('practice')">
           <i class="fa fa-arrow-left"></i> Change settings
         </button>
-        <!-- Progress -->
         <div id="practiceProgress" class="progress-text"></div>
         <div class="progress-track"><div class="progress-fill" id="practiceProgressFill"></div></div>
-        <!-- Feedback -->
         <div id="practiceFeedback" class="feedback-pill">
           Listen carefully and type the word…
         </div>
-        <!-- Answer zone -->
         <div class="answer-zone">
           <span class="answer-zone-label">✏️ Type your spelling here</span>
           <div class="input-group">
-            <textarea
-              id="practiceInput"
-              class="answer-input"
+            <textarea id="practiceInput" class="answer-input"
               placeholder="type it…"
               autocomplete="off" autocorrect="off"
               autocapitalize="off" spellcheck="false"
-              rows="2"
-            ></textarea>
+              rows="2"></textarea>
           </div>
-          <p class="real-time-hint">
-            Real-time feedback — green = correct, red = wrong
-          </p>
+          <p class="real-time-hint">Real-time feedback — green = correct, red = wrong</p>
         </div>
-        <!-- Controls -->
         <div class="btn-grid">
           <button class="btn-submit-answer" id="practiceSubmit">
             <i class="fa fa-check"></i> Submit
@@ -917,7 +926,7 @@
           </button>
         </div>
       </div><!-- /.training-phase -->
-      <!-- Session summary -->
+
       <div id="practiceSummary" class="summary-panel" style="display:none;"></div>
     </div>
     <!-- ── BEE TRAINER ──────────────────────────────────────── -->
@@ -999,7 +1008,7 @@
 
         <!-- Controls -->
         <div class="btn-grid">
-<button class="btn-primary" id="beeListen" style="
+          <button class="btn-primary" id="beeListen" style="
             width:100%; padding:16px; font-size:1.05rem; font-weight:700;
             background:linear-gradient(135deg,#7b2ff7,#f72585);
             color:#fff; border:none; border-radius:12px; cursor:pointer;
@@ -1028,7 +1037,7 @@
     <!-- ── PLACEHOLDER when no mode selected ── -->
     <div id="noModeMsg" style="text-align:center;padding:40px 20px;color:var(--muted);">
       <i class="fa fa-hand-pointer" style="font-size:2.5rem;color:var(--border);display:block;margin-bottom:12px;"></i>
-      <strong>Choose Practice or Spelling Bee above</strong> to begin your premium session.
+      <strong>Choose a practice mode above</strong> to begin your premium session.
     </div>
 
   </div><!-- /.glass-card -->
@@ -1103,7 +1112,7 @@
 
 <nav class="trainer-tab-bar" aria-label="Navigation">
   <a onclick="switchMode('practice')" id="tab-practice"><i class="fa fa-book-open"></i>OET/School</a>
-  <a onclick="switchMode('bee')"      id="tab-bee"><i class="fa fa-deaf"></i>Bee</a>
+  <a onclick="switchMode('bee')"     id="tab-bee"><i class="fa fa-deaf"></i>Bee</a>
   <a href="/" ><i class="fa fa-home"></i>Home</a>
 </nav>
 
