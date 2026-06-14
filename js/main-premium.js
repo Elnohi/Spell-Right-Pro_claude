@@ -1257,6 +1257,7 @@ document.querySelectorAll(".start-btn").forEach(btn => {
 });
 
 function startTraining(mode) {
+  currentMode = mode;
   resetTraining();
 
   // Activate training phase — hide setup, show training
