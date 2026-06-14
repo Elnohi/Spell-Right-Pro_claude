@@ -69,6 +69,12 @@
   status = 200
   force = false
 
+# Admin panel page
+[[redirects]]
+  from = "/word-admin"
+  to = "/word-admin.html"
+  status = 200
+
 # Word submission pipeline
 [[redirects]]
   from = "/api/word-submit"
