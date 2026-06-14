@@ -69,6 +69,20 @@
   status = 200
   force = false
 
+# Word submission pipeline
+[[redirects]]
+  from = "/api/word-submit"
+  to = "/.netlify/functions/word-submit"
+  status = 200
+  force = true
+
+# Admin word approval
+[[redirects]]
+  from = "/api/word-admin"
+  to = "/.netlify/functions/word-admin"
+  status = 200
+  force = true
+
 # Fallback for any unmatched routes
 [[redirects]]
   from = "/*"
