@@ -1254,6 +1254,11 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     // Reset summary on mode switch
     const summary = document.getElementById(currentMode + 'Summary');
     if (summary) { summary.style.display = 'none'; summary.innerHTML = ''; }
+    // Reset word list selector to OET when switching to practice
+    if (currentMode === 'practice') {
+      selectedWordList = 'oet';
+      selectWordList('oet');
+    }
   });
 });
 
@@ -1432,6 +1437,10 @@ function speakWord(word) {
   }
 
   try {
+    // Cancel any pending utterances before speaking — but only if something is queued
+    if (speechSynthesis.pending || speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
     const voices = speechSynthesis.getVoices();
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect?.value || 'en-GB';
@@ -1760,6 +1769,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+  // Word list selector buttons (practice mode)
+  const btnListOET = document.getElementById('btnListOET');
+  const btnListSchool = document.getElementById('btnListSchool');
+  if (btnListOET)    btnListOET.addEventListener('click',    () => selectWordList('oet'));
+  if (btnListSchool) btnListSchool.addEventListener('click', () => selectWordList('school'));
+
+  // OET mode buttons (Full List / Exam Simulation)
+  const btnOETPractice = document.getElementById('oetModePractice');
+  const btnOETTest     = document.getElementById('oetModeTest');
+  if (btnOETPractice) btnOETPractice.addEventListener('click', () => selectOetMode('practice'));
+  if (btnOETTest)     btnOETTest.addEventListener('click',     () => selectOetMode('test'));
 });
 
 // Initialize speech synthesis and recognition
