@@ -1199,6 +1199,7 @@ function loadCustomLists() {
 
 // OET mode selector — updates radio inputs and Start button label
 function selectOetMode(mode) {
+  console.log('🎯 OET mode selected:', mode);
   var practiceBtn   = document.getElementById('oetModePractice');
   var testBtn       = document.getElementById('oetModeTest');
   var startBtn      = document.getElementById('practiceStartBtn'); // merged — was oetStartBtn
@@ -1221,6 +1222,9 @@ function selectOetMode(mode) {
 // Word list selector — OET or School
 function selectWordList(list) {
   selectedWordList = list;
+  window._selectedWordList = list; // extra global backup
+  console.log('📚 Word list selected:', list);
+
   const oetBtn    = document.getElementById('btnListOET');
   const schoolBtn = document.getElementById('btnListSchool');
   const oetPanel  = document.getElementById('oetModePanel');
@@ -1230,7 +1234,6 @@ function selectWordList(list) {
     if (oetBtn)    oetBtn.classList.add('active');
     if (schoolBtn) schoolBtn.classList.remove('active');
     if (oetPanel)  oetPanel.style.display = '';
-    // Restore start button label based on current OET mode
     const isTest = document.getElementById('examTypeTest')?.checked;
     if (startBtn)  startBtn.innerHTML = isTest
       ? '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)'
@@ -1329,7 +1332,10 @@ function startTraining(mode) {
     showFeedback(`Using "${currentCustomList}" — ${currentList.length} words`, 'info');
     nextWord();
   } else if (mode === 'practice') {
-    if (selectedWordList === 'school') {
+    console.log('🚀 startTraining practice — selectedWordList:', selectedWordList, '| window._selectedWordList:', window._selectedWordList);
+    // Read from both variable and window backup
+    const activeList = selectedWordList || window._selectedWordList || 'oet';
+    if (activeList === 'school') {
       // School word list
       const SCHOOL_WORDS = [
         'about', 'above', 'across', 'after', 'again', 'against', 'almost', 'alone',
@@ -1378,6 +1384,7 @@ function startTraining(mode) {
       nextWord();
     } else {
       // OET Medical — loadOETWords handles nextWord() internally
+      console.log('🏥 Loading OET words — examType:', document.querySelector('input[name="examType"]:checked')?.value);
       loadOETWords();
       return;
     }
