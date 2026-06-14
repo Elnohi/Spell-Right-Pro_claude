@@ -339,9 +339,9 @@
       header { border-radius:0; padding:8px 12px; position:sticky; top:0; z-index:100; }
       header .brand h1 { font-size:0.95rem; }
       header .brand img { height:30px; }
-      .nav-btn { padding:7px 9px; font-size:0; gap:0; }
+      .nav-btn { padding:7px 9px; font-size:0 !important; gap:0; }
       .nav-btn i { font-size:14px; margin:0; }
-      #btnLogout { font-size:0; padding:7px 10px; }
+      #btnLogout { font-size:0 !important; padding:7px 10px; }
       #btnLogout i { font-size:14px; margin:0; }
 
       /* Main content */
@@ -1050,6 +1050,49 @@
 <!-- OET word list (loaded on demand by main-premium.js via script tag) -->
 <!-- <script src="/js/oet_word_list.js"></script> -->
 
+<!-- Stub functions so onclick handlers work before main-premium.js loads -->
+<script>
+  var selectedWordList = 'oet';
+  function selectWordList(list) {
+    selectedWordList = list;
+    var oetBtn    = document.getElementById('btnListOET');
+    var schoolBtn = document.getElementById('btnListSchool');
+    var oetPanel  = document.getElementById('oetModePanel');
+    var startBtn  = document.getElementById('practiceStartBtn');
+    if (list === 'oet') {
+      if (oetBtn)    oetBtn.classList.add('active');
+      if (schoolBtn) schoolBtn.classList.remove('active');
+      if (oetPanel)  oetPanel.style.display = '';
+      var isTest = document.getElementById('oetModeTest') && document.getElementById('oetModeTest').classList.contains('active');
+      if (startBtn)  startBtn.innerHTML = isTest
+        ? '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)'
+        : '<i class="fa fa-play"></i> Start OET Full List Practice';
+    } else {
+      if (schoolBtn) schoolBtn.classList.add('active');
+      if (oetBtn)    oetBtn.classList.remove('active');
+      if (oetPanel)  oetPanel.style.display = 'none';
+      if (startBtn)  startBtn.innerHTML = '<i class="fa fa-play"></i> Start School Practice';
+    }
+  }
+  function selectOetMode(mode) {
+    var practiceBtn   = document.getElementById('oetModePractice');
+    var testBtn       = document.getElementById('oetModeTest');
+    var startBtn      = document.getElementById('practiceStartBtn');
+    var practiceRadio = document.getElementById('examTypePractice');
+    var testRadio     = document.getElementById('examTypeTest');
+    if (mode === 'test') {
+      if (testBtn)       testBtn.classList.add('active');
+      if (practiceBtn)   practiceBtn.classList.remove('active');
+      if (testRadio)     testRadio.checked = true;
+      if (startBtn)      startBtn.innerHTML = '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)';
+    } else {
+      if (practiceBtn)   practiceBtn.classList.add('active');
+      if (testBtn)       testBtn.classList.remove('active');
+      if (practiceRadio) practiceRadio.checked = true;
+      if (startBtn)      startBtn.innerHTML = '<i class="fa fa-play"></i> Start OET Full List Practice';
+    }
+  }
+</script>
 <!-- Main premium logic -->
 <script src="/js/main-premium.js"></script>
 
