@@ -1,3 +1,67 @@
+// Wait until Firestore is confirmed working (firebase-utils.js sets
+// window.firebaseUtils.firestoreReady = true after persistence + test pass),
+// then load lists. Falls back to polling if that flag isn't set.
+function waitForFirestoreAndLoadLists() {
+  // Use the firebaseUtils ready flag if available
+  const utils = window.firebaseUtils;
+  const fsDb  = (utils && utils.db) || db;
+
+  if (!fsDb || !currentUser) {
+    setTimeout(waitForFirestoreAndLoadLists, 400);
+    return;
+  }
+
+  // Try a real Firestore call — if it throws no-app, Firestore isn't ready yet
+  try {
+    const promise = fsDb.collection('userLists').doc(currentUser.uid).get();
+    // If we get here without throwing, Firestore accepted the call
+    promise
+      .then(snap => {
+        if (!snap.exists) return;
+        const remote = snap.data().lists || {};
+        let changed = false;
+        for (const [name, data] of Object.entries(remote)) {
+          if (!customLists[name]) { customLists[name] = data; changed = true; }
+        }
+        if (changed) {
+          try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
+          updateCustomListsDisplay();
+          console.log('✅ Lists loaded from Firestore');
+        }
+      })
+      .catch(e => {
+        if (e.code === 'unavailable' || (e.message && e.message.includes('no-app'))) {
+          // Expected during startup — retry silently
+          setTimeout(waitForFirestoreAndLoadLists, 600);
+        } else {
+          console.warn('Firestore list load failed:', e.message);
+        }
+      });
+  } catch(e) {
+    // Synchronous no-app error — Firestore not initialised yet, retry silently
+    setTimeout(waitForFirestoreAndLoadLists, 600);
+  }
+}
+
+async function syncListsToFirestore() {
+  try {
+    const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
+    if (!fsDb || !currentUser) return;
+    // Quick readiness check before writing
+    await fsDb.collection('_ping').doc('ping').get().catch(() => {});
+    await fsDb.collection('userLists').doc(currentUser.uid).set({
+      lists: customLists,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    console.log('✅ Lists synced to Firestore');
+  } catch (e) {
+    console.warn('Firestore list sync failed:', e.message);
+  }
+}
+
+function loadListsFromFirestore() {
+  waitForFirestoreAndLoadLists();
+}
 /* =======================================================
    SpellRightPro Premium Logic - UPDATED FIREBASE HANDLING
    ======================================================= */
@@ -199,9 +263,7 @@ function setupAuthListener() {
                 if (!window._premiumFeaturesInitialized) {
                     initializePremiumFeatures();
                 }
-                // Wait 3s before first Firestore attempt — connection test
-                // (firebase-utils.js:125) completes within ~2s of auth confirming.
-                // After that, waitForFirestoreAndLoadLists retries every 600ms if needed.
+                // Load lists after Firestore is confirmed ready (3s delay)
                 setTimeout(waitForFirestoreAndLoadLists, 3000);
             } else {
                 showOverlay();
@@ -679,7 +741,7 @@ function checkBeeAnswer(spokenText) {
   currentIndex++;
   
   if (currentIndex < currentList.length) {
-    setTimeout(nextWord, 2000);
+    setTimeout(nextWord, 1200);
   } else {
     setTimeout(showSummary, 1500);
   }
@@ -750,8 +812,8 @@ function initializeRealTimeValidation() {
                 this.style.borderColor = '';
                 this.style.backgroundColor = '';
                 this.style.color = '';
-                this.style.fontWeight = '';
-                this.style.textDecoration = '';
+                this.style.fontWeight = 'normal';
+                this.style.textDecoration = 'none';
             }
         });
         
@@ -773,9 +835,9 @@ function clearRealTimeFeedback() {
         inputElement.style.borderColor = '';
         inputElement.style.backgroundColor = '';
         inputElement.style.color = '';
-        inputElement.style.fontWeight = '';
-        inputElement.style.textDecoration = '';
-        inputElement.style.boxShadow = '';
+        inputElement.style.fontWeight = 'normal';
+        inputElement.style.textDecoration = 'none';
+        inputElement.style.boxShadow = 'none';
     }
 }
 
@@ -1052,7 +1114,9 @@ function loadCustomList(listName) {
   showFeedback(`Loaded "${listName}" with ${currentList.length} words`, 'success');
   
   if (currentMode) {
-    startTraining(currentMode);
+    setTimeout(() => {
+      startTraining(currentMode);
+    }, 1000);
   }
 }
 
@@ -1083,8 +1147,7 @@ function deleteCustomList(listName) {
 
 function saveCustomLists() {
   try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); }
-  catch(e) { console.warn('localStorage blocked — list saved in memory only'); }
-  syncListsToFirestore();
+  catch(e) { console.warn('localStorage blocked — custom list saved in memory only'); }
 }
 
 function loadCustomLists() {
@@ -1092,10 +1155,8 @@ function loadCustomLists() {
     const saved = localStorage.getItem('premiumCustomLists');
     if (saved) customLists = JSON.parse(saved);
   } catch(e) {
-    console.warn('localStorage blocked — using in-memory lists');
+    console.warn('localStorage blocked — using in-memory custom lists');
   }
-  // Do NOT call loadListsFromFirestore() here — Firebase isn't ready yet.
-  // Lists are loaded from Firestore after auth confirms (waitForFirestoreAndLoadLists).
 }
 
 // =======================================================
@@ -1187,11 +1248,13 @@ function resetTraining() {
 document.querySelectorAll(".start-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const mode = btn.dataset.mode;
+    speechSynthesis.cancel();
     startTraining(mode);
   });
 });
 
 function startTraining(mode) {
+  currentMode = mode; // ensure currentMode is always set when training starts
   resetTraining();
 
   // Activate training phase — hide setup, show training
@@ -1220,11 +1283,50 @@ function startTraining(mode) {
     updateBeeBadge();
     nextWord();
   } else {
-    // school — use built-in school list
-    currentList = ['example','language','grammar','knowledge','science',
-                   'mathematics','history','geography','literature','chemistry',
-                   'necessary','accommodate','separate','recommend','privilege',
-                   'immediately','definitely','embarrass','occurrence','committee'];
+    // school — use built-in school word list
+    const SCHOOL_WORDS = [
+      'about', 'above', 'across', 'after', 'again', 'against', 'almost', 'alone',
+      'along', 'already', 'also', 'although', 'always', 'among', 'another', 'answer',
+      'appear', 'around', 'arrive', 'article', 'because', 'become', 'before', 'begin',
+      'behind', 'believe', 'below', 'between', 'beyond', 'brother', 'building', 'business',
+      'capital', 'century', 'certain', 'children', 'circle', 'city', 'class', 'clear',
+      'color', 'common', 'complete', 'consider', 'contain', 'country', 'course', 'cover',
+      'create', 'current', 'decide', 'describe', 'develop', 'different', 'difficult',
+      'direct', 'discover', 'distance', 'divide', 'during', 'early', 'earth', 'east',
+      'effect', 'eight', 'either', 'element', 'energy', 'enough', 'enter', 'entire',
+      'equal', 'especially', 'evening', 'event', 'every', 'example', 'except', 'exercise',
+      'expect', 'experience', 'experiment', 'explain', 'express', 'family', 'father',
+      'figure', 'final', 'follow', 'forest', 'forget', 'form', 'forward', 'friend',
+      'garden', 'general', 'government', 'great', 'ground', 'group', 'grow', 'happen',
+      'heavy', 'height', 'history', 'however', 'hundred', 'idea', 'important', 'improve',
+      'include', 'increase', 'inside', 'instead', 'interest', 'invent', 'island', 'just',
+      'knowledge', 'language', 'large', 'later', 'learn', 'length', 'letter', 'level',
+      'light', 'listen', 'little', 'machine', 'material', 'matter', 'maybe', 'measure',
+      'member', 'method', 'middle', 'minute', 'moment', 'mother', 'mountain', 'music',
+      'nation', 'natural', 'necessary', 'never', 'notice', 'number', 'object', 'observe',
+      'ocean', 'often', 'order', 'original', 'other', 'outside', 'paper', 'paragraph',
+      'parent', 'particular', 'pattern', 'people', 'perhaps', 'period', 'person',
+      'picture', 'piece', 'place', 'planet', 'plant', 'point', 'possible', 'pound',
+      'power', 'practice', 'prepare', 'present', 'president', 'problem', 'process',
+      'produce', 'product', 'program', 'project', 'property', 'protect', 'prove',
+      'provide', 'question', 'quick', 'quiet', 'quite', 'radio', 'raise', 'reach',
+      'ready', 'reason', 'receive', 'record', 'region', 'remember', 'repeat', 'report',
+      'represent', 'require', 'result', 'return', 'right', 'river', 'round', 'science',
+      'second', 'section', 'segment', 'separate', 'serve', 'several', 'shape', 'should',
+      'similar', 'simple', 'since', 'single', 'sister', 'situation', 'social', 'society',
+      'solve', 'sound', 'source', 'south', 'space', 'special', 'specific', 'speech',
+      'spell', 'spring', 'square', 'standard', 'station', 'still', 'stone', 'story',
+      'straight', 'strange', 'street', 'strong', 'structure', 'student', 'study',
+      'subject', 'success', 'sudden', 'suggest', 'summer', 'supply', 'support', 'sure',
+      'surface', 'surprise', 'system', 'table', 'teacher', 'technology', 'television',
+      'temperature', 'therefore', 'thing', 'thought', 'through', 'together', 'tonight',
+      'total', 'toward', 'travel', 'trouble', 'true', 'under', 'understand', 'unit',
+      'until', 'usually', 'value', 'various', 'village', 'visit', 'voice', 'wait',
+      'watch', 'water', 'weather', 'weight', 'welcome', 'west', 'whether', 'while',
+      'whole', 'window', 'winter', 'within', 'without', 'woman', 'wonder', 'world',
+      'write', 'wrong', 'young'
+    ];
+    currentList = [...SCHOOL_WORDS].sort(() => Math.random() - 0.5);
     showFeedback('School practice started — ' + currentList.length + ' words', 'info');
     nextWord();
   }
@@ -1285,62 +1387,67 @@ function speakWord(word) {
     return;
   }
 
-  // If voices are still loading, wait up to 2s for them to stabilize
-  if (window._voicesReady === false) {
-    const waited = (speakWord._voiceWait || 0);
-    if (waited < 8) {
-      speakWord._voiceWait = waited + 1;
-      setTimeout(() => speakWord(word), 250);
-      return;
-    }
-  }
-  speakWord._voiceWait = 0;
-
   try {
-    const utter = new SpeechSynthesisUtterance(word);
+    const voices = speechSynthesis.getVoices();
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect?.value || 'en-GB';
-    utter.lang = accent;
+
+    // Pick best available voice
+    const langPrefix = accent.split('-')[0];
+    const match = voices.length > 0 ? (
+      voices.find(v => v.lang === accent) ||
+      voices.find(v => v.lang.startsWith(langPrefix)) ||
+      voices.find(v => v.lang.startsWith('en')) ||
+      voices[0]
+    ) : null;
+
+    const utter = new SpeechSynthesisUtterance(word);
+    utter.lang = match ? match.lang : accent;
+    if (match) utter.voice = match;
     utter.rate = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
     utter.pitch = 1;
 
-    const voices = speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      const langPrefix = accent.split('-')[0];
-      const match =
-        voices.find(v => v.lang === accent) ||
-        voices.find(v => v.lang.startsWith(langPrefix)) ||
-        voices.find(v => v.lang.startsWith('en')) ||
-        voices[0];
-      if (match) { utter.voice = match; utter.lang = match.lang; }
-    }
-
     utter.onerror = (event) => {
       if (event.error === 'canceled' || event.error === 'interrupted') return;
-      // synthesis-failed means voices were reloading — retry after they stabilize
       if (event.error === 'synthesis-failed') {
-        console.warn('synthesis-failed — will retry when voices stable');
-        setTimeout(() => {
-          speakWord._voiceWait = 0;
-          speakWord(word);
-        }, 700);
+        // Voices reloaded mid-speak — wait for stable then retry once
+        const retries = (speakWord._retries || 0);
+        if (retries < 3) {
+          speakWord._retries = retries + 1;
+          console.warn(`synthesis-failed (attempt ${retries+1}) — retrying in 2s`);
+          setTimeout(() => speakWord(word), 2000);
+        } else {
+          speakWord._retries = 0;
+          console.warn('synthesis-failed after 3 retries — giving up');
+        }
         return;
       }
       console.error('Speech synthesis error:', event);
-      showFeedback("Error speaking word", "error");
     };
 
-    speechSynthesis.cancel();
+    utter.onstart = () => { speakWord._retries = 0; };
+    utter.onend = () => {
+      // Auto-activate mic for Bee mode after word is spoken
+      if (currentMode === 'bee') {
+        setTimeout(() => {
+          if (typeof startVoiceRecognition === 'function') {
+            startVoiceRecognition();
+          }
+        }, 500);
+      }
+    };
+
     speechSynthesis.speak(utter);
     showFeedback("Listen carefully...", "info");
   } catch (error) {
     console.error("Speech error:", error);
-    showFeedback("Could not speak word", "error");
   }
 }
 
 // ENHANCED NEXTWORD FUNCTION WITH REAL-TIME MARKING
 function nextWord() {
+    // Sync currentMode from window.currentMode if local is null
+    if (!currentMode && window.currentMode) currentMode = window.currentMode;
     if (currentIndex >= currentList.length) {
         showSummary();
         return;
@@ -1367,9 +1474,9 @@ function nextWord() {
         inputElement.style.borderColor = '';
         inputElement.style.backgroundColor = '';
         inputElement.style.color = '';
-        inputElement.style.fontWeight = '';
-        inputElement.style.textDecoration = '';
-        inputElement.style.boxShadow = '';
+        inputElement.style.fontWeight = 'normal';
+        inputElement.style.textDecoration = 'none';
+        inputElement.style.boxShadow = 'none';
     }
     
     // Reset handwriting canvas between words
@@ -1388,6 +1495,9 @@ function nextWord() {
 
 // ENHANCED CHECKANSWER FUNCTION WITH REAL-TIME MARKING
 function checkAnswer() {
+    // Sync currentMode from window.currentMode if local is null
+    if (!currentMode && window.currentMode) currentMode = window.currentMode;
+
     if (currentIndex >= currentList.length) return;
     
     const word = currentList[currentIndex];
@@ -1455,15 +1565,15 @@ function checkAnswer() {
     
     currentIndex++;
     
-    // Auto-advance with delay (1.2s — enough to read feedback, not feel broken)
+    // Auto-advance with delay (1.2s)
     setTimeout(() => {
         // Reset input styling for next word
         if (inputElement) {
             inputElement.style.borderColor = '';
             inputElement.style.backgroundColor = '';
             inputElement.style.color = '';
-            inputElement.style.fontWeight = '';
-            inputElement.style.textDecoration = '';
+            inputElement.style.fontWeight = 'normal';
+            inputElement.style.textDecoration = 'none';
             inputElement.value = "";
         }
         
@@ -1598,11 +1708,10 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener('click', showSummary);
   });
   
-  // Input field enter key support — keydown is more reliable than keypress on mobile/Edge
+  // Input field enter key support
   document.querySelectorAll('.answer-input').forEach(input => {
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        e.preventDefault(); // prevent newline in textarea
         checkAnswer();
       }
     });
@@ -1619,13 +1728,14 @@ function initializeSpeechSynthesis() {
     window.speechSynthesis.onvoiceschanged = function() {
       const v = speechSynthesis.getVoices();
       console.log("Voices loaded:", v.length);
-      // Mark voices as ready 600ms after the last reload
+      // Mark voices as ready 2000ms after the last reload
+      // Edge reloads voices multiple times — 2s ensures they're truly done
       clearTimeout(voiceStableTimer);
       window._voicesReady = false;
       voiceStableTimer = setTimeout(() => {
         window._voicesReady = true;
         console.log("✅ Voices stable:", v.length);
-      }, 600);
+      }, 2000);
     };
   }
   
@@ -1898,7 +2008,7 @@ async function hwRecognize(moduleMode) {
   try {
     const canvas  = document.getElementById(`${moduleMode}HwCanvas`);
     const base64  = canvas.toDataURL('image/png').split(',')[1];
-    const response = await fetch('/api/ocr', {
+    const response = await fetch('/.netlify/functions/ocr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: base64, type: 'handwriting' })
@@ -1929,78 +2039,4 @@ function hwReset(moduleMode) {
   if (hwState[moduleMode] && hwState[moduleMode].mode === 'handwriting') {
     hwClear(moduleMode);
   }
-}
-
-// =======================================================
-// FIRESTORE CUSTOM LIST SYNC — cross-device persistence
-// =======================================================
-
-// =======================================================
-// FIRESTORE CUSTOM LIST SYNC — cross-device persistence
-// Uses the existing db instance from firebaseUtils
-// =======================================================
-
-// Wait until Firestore is confirmed working (firebase-utils.js sets
-// window.firebaseUtils.firestoreReady = true after persistence + test pass),
-// then load lists. Falls back to polling if that flag isn't set.
-function waitForFirestoreAndLoadLists() {
-  // Use the firebaseUtils ready flag if available
-  const utils = window.firebaseUtils;
-  const fsDb  = (utils && utils.db) || db;
-
-  if (!fsDb || !currentUser) {
-    setTimeout(waitForFirestoreAndLoadLists, 400);
-    return;
-  }
-
-  // Try a real Firestore call — if it throws no-app, Firestore isn't ready yet
-  try {
-    const promise = fsDb.collection('userLists').doc(currentUser.uid).get();
-    // If we get here without throwing, Firestore accepted the call
-    promise
-      .then(snap => {
-        if (!snap.exists) return;
-        const remote = snap.data().lists || {};
-        let changed = false;
-        for (const [name, data] of Object.entries(remote)) {
-          if (!customLists[name]) { customLists[name] = data; changed = true; }
-        }
-        if (changed) {
-          try { localStorage.setItem('premiumCustomLists', JSON.stringify(customLists)); } catch(e) {}
-          updateCustomListsDisplay();
-          console.log('✅ Lists loaded from Firestore');
-        }
-      })
-      .catch(e => {
-        if (e.code === 'unavailable' || (e.message && e.message.includes('no-app'))) {
-          // Expected during startup — retry silently
-          setTimeout(waitForFirestoreAndLoadLists, 600);
-        } else {
-          console.warn('Firestore list load failed:', e.message);
-        }
-      });
-  } catch(e) {
-    // Synchronous no-app error — Firestore not initialised yet, retry silently
-    setTimeout(waitForFirestoreAndLoadLists, 600);
-  }
-}
-
-async function syncListsToFirestore() {
-  try {
-    const fsDb = (window.firebaseUtils && window.firebaseUtils.db) || db;
-    if (!fsDb || !currentUser) return;
-    // Quick readiness check before writing
-    await fsDb.collection('_ping').doc('ping').get().catch(() => {});
-    await fsDb.collection('userLists').doc(currentUser.uid).set({
-      lists: customLists,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
-    console.log('✅ Lists synced to Firestore');
-  } catch (e) {
-    console.warn('Firestore list sync failed:', e.message);
-  }
-}
-
-function loadListsFromFirestore() {
-  waitForFirestoreAndLoadLists();
 }
