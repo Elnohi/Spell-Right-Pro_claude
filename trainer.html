@@ -835,7 +835,7 @@
     <!-- Mode selector -->
     <div class="mode-tabs">
       <button class="mode-btn" data-mode="practice">
-        <i class="fa fa-book-open"></i> Practice
+        <i class="fa fa-book-open"></i> OET / School
       </button>
       <button class="mode-btn" data-mode="bee">
         <i class="fa fa-deaf"></i> Spelling Bee
@@ -852,14 +852,12 @@
         <div class="setup-card">
           <h4><i class="fa fa-list-alt"></i> Word List</h4>
           <div class="word-list-selector">
-            <button class="word-list-btn active" id="btnListOET"
-                    onclick="selectWordList('oet')">
+            <button class="word-list-btn active" id="btnListOET">
               <i class="fa fa-stethoscope"></i>
               <strong>OET Medical</strong>
               <small>1,511 medical words</small>
             </button>
-            <button class="word-list-btn" id="btnListSchool"
-                    onclick="selectWordList('school')">
+            <button class="word-list-btn" id="btnListSchool">
               <i class="fa fa-graduation-cap"></i>
               <strong>School</strong>
               <small>307 curriculum words</small>
@@ -868,14 +866,12 @@
           <!-- OET sub-mode: full list vs exam simulation -->
           <div id="oetModePanel" style="margin-top:12px;">
             <div class="oet-mode-row">
-              <button class="oet-mode-btn active" id="oetModePractice"
-                      onclick="selectOetMode('practice')">
+              <button class="oet-mode-btn active" id="oetModePractice">
                 <i class="fa fa-book-open"></i>
                 <strong>Full List</strong>
                 <small>All 1,511 words</small>
               </button>
-              <button class="oet-mode-btn" id="oetModeTest"
-                      onclick="selectOetMode('test')">
+              <button class="oet-mode-btn" id="oetModeTest">
                 <i class="fa fa-clock"></i>
                 <strong>Exam Simulation</strong>
                 <small>Random 24 words</small>
@@ -1138,7 +1134,7 @@
 
 
 <nav class="trainer-tab-bar" aria-label="Navigation">
-  <a onclick="switchMode('practice')" id="tab-practice"><i class="fa fa-book-open"></i>Practice</a>
+  <a onclick="switchMode('practice')" id="tab-practice"><i class="fa fa-book-open"></i>OET/School</a>
   <a onclick="switchMode('bee')"      id="tab-bee"><i class="fa fa-deaf"></i>Bee</a>
   <a href="/" ><i class="fa fa-home"></i>Home</a>
 </nav>
