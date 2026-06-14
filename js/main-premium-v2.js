@@ -1223,11 +1223,50 @@ function startTraining(mode) {
     updateBeeBadge();
     nextWord();
   } else {
-    // school — use built-in school list
-    currentList = ['example','language','grammar','knowledge','science',
-                   'mathematics','history','geography','literature','chemistry',
-                   'necessary','accommodate','separate','recommend','privilege',
-                   'immediately','definitely','embarrass','occurrence','committee'];
+    // school — use built-in school word list (same as freemium-school)
+    const SCHOOL_WORDS = [
+      'about', 'above', 'across', 'after', 'again', 'against', 'almost', 'alone',
+      'along', 'already', 'also', 'although', 'always', 'among', 'another', 'answer',
+      'appear', 'around', 'arrive', 'article', 'because', 'become', 'before', 'begin',
+      'behind', 'believe', 'below', 'between', 'beyond', 'brother', 'building', 'business',
+      'capital', 'century', 'certain', 'children', 'circle', 'city', 'class', 'clear',
+      'color', 'common', 'complete', 'consider', 'contain', 'country', 'course', 'cover',
+      'create', 'current', 'decide', 'describe', 'develop', 'different', 'difficult',
+      'direct', 'discover', 'distance', 'divide', 'during', 'early', 'earth', 'east',
+      'effect', 'eight', 'either', 'element', 'energy', 'enough', 'enter', 'entire',
+      'equal', 'especially', 'evening', 'event', 'every', 'example', 'except', 'exercise',
+      'expect', 'experience', 'experiment', 'explain', 'express', 'family', 'father',
+      'figure', 'final', 'follow', 'forest', 'forget', 'form', 'forward', 'friend',
+      'garden', 'general', 'government', 'great', 'ground', 'group', 'grow', 'happen',
+      'heavy', 'height', 'history', 'however', 'hundred', 'idea', 'important', 'improve',
+      'include', 'increase', 'inside', 'instead', 'interest', 'invent', 'island', 'just',
+      'knowledge', 'language', 'large', 'later', 'learn', 'length', 'letter', 'level',
+      'light', 'listen', 'little', 'machine', 'material', 'matter', 'maybe', 'measure',
+      'member', 'method', 'middle', 'minute', 'moment', 'mother', 'mountain', 'music',
+      'nation', 'natural', 'necessary', 'never', 'notice', 'number', 'object', 'observe',
+      'ocean', 'often', 'order', 'original', 'other', 'outside', 'paper', 'paragraph',
+      'parent', 'particular', 'pattern', 'people', 'perhaps', 'period', 'person',
+      'picture', 'piece', 'place', 'planet', 'plant', 'point', 'possible', 'pound',
+      'power', 'practice', 'prepare', 'present', 'president', 'problem', 'process',
+      'produce', 'product', 'program', 'project', 'property', 'protect', 'prove',
+      'provide', 'question', 'quick', 'quiet', 'quite', 'radio', 'raise', 'reach',
+      'ready', 'reason', 'receive', 'record', 'region', 'remember', 'repeat', 'report',
+      'represent', 'require', 'result', 'return', 'right', 'river', 'round', 'science',
+      'second', 'section', 'segment', 'separate', 'serve', 'several', 'shape', 'should',
+      'similar', 'simple', 'since', 'single', 'sister', 'situation', 'social', 'society',
+      'solve', 'sound', 'source', 'south', 'space', 'special', 'specific', 'speech',
+      'spell', 'spring', 'square', 'standard', 'station', 'still', 'stone', 'story',
+      'straight', 'strange', 'street', 'strong', 'structure', 'student', 'study',
+      'subject', 'success', 'sudden', 'suggest', 'summer', 'supply', 'support', 'sure',
+      'surface', 'surprise', 'system', 'table', 'teacher', 'technology', 'television',
+      'temperature', 'therefore', 'thing', 'thought', 'through', 'together', 'tonight',
+      'total', 'toward', 'travel', 'trouble', 'true', 'under', 'understand', 'unit',
+      'until', 'usually', 'value', 'various', 'village', 'visit', 'voice', 'wait',
+      'watch', 'water', 'weather', 'weight', 'welcome', 'west', 'whether', 'while',
+      'whole', 'window', 'winter', 'within', 'without', 'woman', 'wonder', 'world',
+      'write', 'wrong', 'young'
+    ];
+    currentList = [...SCHOOL_WORDS].sort(() => Math.random() - 0.5);
     showFeedback('School practice started — ' + currentList.length + ' words', 'info');
     nextWord();
   }
@@ -1327,6 +1366,16 @@ function speakWord(word) {
     };
 
     utter.onstart = () => { speakWord._retries = 0; };
+    utter.onend = () => {
+      // Auto-activate mic for Bee mode after word is spoken
+      if (currentMode === 'bee') {
+        setTimeout(() => {
+          if (typeof startVoiceRecognition === 'function') {
+            startVoiceRecognition();
+          }
+        }, 500);
+      }
+    };
 
     speechSynthesis.speak(utter);
     showFeedback("Listen carefully...", "info");
@@ -1337,6 +1386,8 @@ function speakWord(word) {
 
 // ENHANCED NEXTWORD FUNCTION WITH REAL-TIME MARKING
 function nextWord() {
+    // Sync currentMode from window.currentMode if local is null
+    if (!currentMode && window.currentMode) currentMode = window.currentMode;
     if (currentIndex >= currentList.length) {
         showSummary();
         return;
@@ -1384,6 +1435,9 @@ function nextWord() {
 
 // ENHANCED CHECKANSWER FUNCTION WITH REAL-TIME MARKING
 function checkAnswer() {
+    // Sync currentMode from window.currentMode if local is null
+    if (!currentMode && window.currentMode) currentMode = window.currentMode;
+    
     if (currentIndex >= currentList.length) return;
     
     const word = currentList[currentIndex];
