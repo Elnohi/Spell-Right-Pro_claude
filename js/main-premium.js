@@ -503,6 +503,17 @@ function initializePremiumFeatures() {
   createCustomWordsUI();
   initializeCustomWords();
   initializeRealTimeValidation();
+
+  // Attach word list and OET mode listeners AFTER createCustomWordsUI injects HTML
+  const btnListOET    = document.getElementById('btnListOET');
+  const btnListSchool = document.getElementById('btnListSchool');
+  if (btnListOET)    btnListOET.addEventListener('click',    () => selectWordList('oet'));
+  if (btnListSchool) btnListSchool.addEventListener('click', () => selectWordList('school'));
+
+  const btnOETPractice = document.getElementById('oetModePractice');
+  const btnOETTest     = document.getElementById('oetModeTest');
+  if (btnOETPractice) btnOETPractice.addEventListener('click', () => selectOetMode('practice'));
+  if (btnOETTest)     btnOETTest.addEventListener('click',     () => selectOetMode('test'));
   
   // ===== NEW: INITIALIZE PREMIUM PILLARS =====
   
@@ -1774,17 +1785,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Word list selector buttons (practice mode)
-  const btnListOET = document.getElementById('btnListOET');
-  const btnListSchool = document.getElementById('btnListSchool');
-  if (btnListOET)    btnListOET.addEventListener('click',    () => selectWordList('oet'));
-  if (btnListSchool) btnListSchool.addEventListener('click', () => selectWordList('school'));
-
-  // OET mode buttons (Full List / Exam Simulation)
-  const btnOETPractice = document.getElementById('oetModePractice');
-  const btnOETTest     = document.getElementById('oetModeTest');
-  if (btnOETPractice) btnOETPractice.addEventListener('click', () => selectOetMode('practice'));
-  if (btnOETTest)     btnOETTest.addEventListener('click',     () => selectOetMode('test'));
 });
 
 // Initialize speech synthesis and recognition
