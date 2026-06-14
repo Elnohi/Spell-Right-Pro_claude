@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Word Submissions — SpellRightPro Admin</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <style>
+    :root {
+      --primary: #7b2ff7;
+      --primary-dark: #5a1db5;
+      --green: #10b981;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --surface: #fff;
+      --surface2: #f8f5ff;
+      --border: rgba(123,47,247,0.12);
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(123,47,247,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #faf8ff;
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Login ── */
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .login-card h1 { font-size: 1.4rem; font-weight: 800; margin: 0 0 8px; }
+    .login-card p  { color: var(--muted); font-size: 0.9rem; margin: 0 0 24px; }
+    .login-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-input:focus { border-color: var(--primary); }
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    /* ── Main layout ── */
+    .admin-wrap { display: none; }
+    .admin-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .admin-header h1 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 0;
+    }
+    .admin-header .stats {
+      display: flex;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .admin-header .stats span strong { color: var(--text); }
+    .btn-logout {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: inherit;
+    }
+    .btn-logout:hover { color: var(--red); border-color: var(--red); }
+
+    .admin-content { max-width: 900px; margin: 0 auto; padding: 32px 24px 80px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--muted);
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.3; }
+    .empty-state h2 { font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 0 0 8px; }
+
+    /* ── Submission card ── */
+    .submission-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .submission-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .submission-meta h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+      color: var(--text);
+    }
+    .submission-meta .meta-row {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-pending  { background: rgba(245,158,11,0.1); color: var(--amber); }
+    .badge-approved { background: rgba(16,185,129,0.1); color: var(--green); }
+    .badge-rejected { background: rgba(239,68,68,0.1);  color: var(--red); }
+
+    /* ── Word chips ── */
+    .word-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .word-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .word-chip.selected {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .word-chip.deselected {
+      background: #fff;
+      color: var(--muted);
+      border-color: #e5e7eb;
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
+    .word-chip i { font-size: 0.7rem; }
+
+    /* ── Action buttons ── */
+    .submission-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-approve {
+      padding: 9px 20px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+    .btn-approve:hover { opacity: 0.85; }
+    .btn-reject {
+      padding: 9px 20px;
+      background: none;
+      color: var(--red);
+      border: 1.5px solid var(--red);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-reject:hover { background: var(--red); color: #fff; }
+    .btn-select-all {
+      padding: 9px 16px;
+      background: none;
+      color: var(--primary);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    /* ── Loading ── */
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast.success { background: var(--green); }
+    .toast.error   { background: var(--red); }
+
+    @media (max-width: 600px) {
+      .admin-header { padding: 12px 16px; }
+      .admin-content { padding: 20px 16px 60px; }
+      .submission-header { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div style="font-size:2.5rem;margin-bottom:12px;">🔐</div>
+    <h1>SpellRightPro Admin</h1>
+    <p>Word submission review panel</p>
+    <input type="password" class="login-input" id="tokenInput" placeholder="Admin token" autocomplete="current-password"/>
+    <button class="btn-primary" onclick="login()">
+      <i class="fa fa-sign-in-alt"></i> Sign In
+    </button>
+    <p id="loginError" style="color:#ef4444;font-size:0.85rem;margin-top:12px;display:none;">Invalid token</p>
+  </div>
+</div>
+
+<!-- Admin panel -->
+<div class="admin-wrap" id="adminWrap">
+  <div class="admin-header">
+    <h1><i class="fa fa-spell-check"></i> Word Submissions</h1>
+    <div class="stats">
+      <span><strong id="statPending">—</strong> pending</span>
+      <span><strong id="statTotal">—</strong> total</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <i class="fa fa-sign-out-alt"></i> Log out
+    </button>
+  </div>
+
+  <div class="admin-content" id="adminContent">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading submissions...</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let adminToken = '';
+  let submissions = [];
+
+  // ── Login ──
+  function login() {
+    const token = document.getElementById('tokenInput').value.trim();
+    if (!token) return;
+    adminToken = token;
+    loadSubmissions();
+  }
+
+  document.getElementById('tokenInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+
+  function logout() {
+    adminToken = '';
+    submissions = [];
+    document.getElementById('loginWrap').style.display = 'flex';
+    document.getElementById('adminWrap').style.display = 'none';
+    document.getElementById('tokenInput').value = '';
+  }
+
+  // ── Load submissions ──
+  async function loadSubmissions() {
+    try {
+      const res = await fetch(`/.netlify/functions/word-admin?action=list&token=${encodeURIComponent(adminToken)}`);
+
+      if (res.status === 401) {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('loginError').style.display = 'none';
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('adminWrap').style.display = 'block';
+      document.getElementById('adminWrap').style.minHeight = '100vh';
+
+      const data = await res.json();
+      submissions = data.submissions || [];
+      renderSubmissions();
+
+    } catch (e) {
+      showToast('Failed to load submissions', 'error');
+    }
+  }
+
+  // ── Render ──
+  function renderSubmissions() {
+    const content = document.getElementById('adminContent');
+    const pending = submissions.filter(s => s.status === 'pending');
+
+    document.getElementById('statPending').textContent = pending.length;
+    document.getElementById('statTotal').textContent = submissions.length;
+
+    if (pending.length === 0) {
+      content.innerHTML = `
+        <div class="empty-state">
+          <i class="fa fa-check-circle" style="color:var(--green);opacity:1;"></i>
+          <h2>All clear!</h2>
+          <p>No pending word submissions to review.</p>
+        </div>`;
+      return;
+    }
+
+    content.innerHTML = pending.map(sub => renderCard(sub)).join('');
+  }
+
+  function renderCard(sub) {
+    const date = new Date(sub.submittedAt).toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+
+    const chips = sub.words.map((word, i) => `
+      <div class="word-chip selected" id="chip-${sub.id}-${i}" onclick="toggleWord('${sub.id}', ${i})">
+        <i class="fa fa-check"></i> ${word}
+      </div>
+    `).join('');
+
+    return `
+      <div class="submission-card" id="card-${sub.id}">
+        <div class="submission-header">
+          <div class="submission-meta">
+            <h3>${escHtml(sub.listName || 'Unnamed List')}</h3>
+            <div class="meta-row">
+              <span><i class="fa fa-user"></i> ${escHtml(sub.userId?.substring(0,12))}...</span>
+              <span><i class="fa fa-calendar"></i> ${date}</span>
+              <span><i class="fa fa-list"></i> ${sub.words.length} word${sub.words.length !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <span class="badge badge-pending">Pending</span>
+        </div>
+
+        <div class="word-chips" id="chips-${sub.id}">${chips}</div>
+
+        <div class="submission-actions">
+          <button class="btn-approve" onclick="approve('${sub.id}')">
+            <i class="fa fa-check"></i> Approve Selected
+          </button>
+          <button class="btn-reject" onclick="reject('${sub.id}')">
+            <i class="fa fa-times"></i> Reject All
+          </button>
+          <button class="btn-select-all" onclick="selectAll('${sub.id}')">
+            Select all
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Word chip toggle ──
+  function toggleWord(subId, idx) {
+    const chip = document.getElementById(`chip-${subId}-${idx}`);
+    if (chip.classList.contains('selected')) {
+      chip.classList.remove('selected');
+      chip.classList.add('deselected');
+      chip.querySelector('i').className = 'fa fa-times';
+    } else {
+      chip.classList.remove('deselected');
+      chip.classList.add('selected');
+      chip.querySelector('i').className = 'fa fa-check';
+    }
+  }
+
+  function selectAll(subId) {
+    const sub = submissions.find(s => s.id === subId);
+    if (!sub) return;
+    sub.words.forEach((_, i) => {
+      const chip = document.getElementById(`chip-${subId}-${i}`);
+      chip.classList.remove('deselected');
+      chip.classList.add('selected');
+      chip.querySelector('i').className = 'fa fa-check';
+    });
+  }
+
+  // ── Get selected words ──
+  function getSelectedWords(subId) {
+    const sub = submissions.find(s => s.id === subId);
+    if (!sub) return [];
+    return sub.words.filter((_, i) => {
+      const chip = document.getElementById(`chip-${subId}-${i}`);
+      return chip?.classList.contains('selected');
+    });
+  }
+
+  // ── Approve ──
+  async function approve(subId) {
+    const words = getSelectedWords(subId);
+    if (words.length === 0) {
+      showToast('No words selected', 'error');
+      return;
+    }
+
+    const btn = document.querySelector(`#card-${subId} .btn-approve`);
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Approving...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/.netlify/functions/word-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve', docId: subId, words, token: adminToken })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+
+      showToast(`✅ ${words.length} word${words.length !== 1 ? 's' : ''} added to OET list (total: ${data.total})`, 'success');
+      document.getElementById(`card-${subId}`).remove();
+      submissions = submissions.filter(s => s.id !== subId);
+      document.getElementById('statPending').textContent = submissions.filter(s => s.status === 'pending').length - 1;
+
+    } catch (e) {
+      showToast('Approval failed: ' + e.message, 'error');
+      btn.innerHTML = '<i class="fa fa-check"></i> Approve Selected';
+      btn.disabled = false;
+    }
+  }
+
+  // ── Reject ──
+  async function reject(subId) {
+    if (!confirm('Reject all words in this submission?')) return;
+
+    try {
+      const res = await fetch('/.netlify/functions/word-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject', docId: subId, token: adminToken })
+      });
+      if (!res.ok) throw new Error('Failed');
+
+      showToast('Submission rejected', 'error');
+      document.getElementById(`card-${subId}`).remove();
+      submissions = submissions.filter(s => s.id !== subId);
+
+    } catch (e) {
+      showToast('Rejection failed: ' + e.message, 'error');
+    }
+  }
+
+  // ── Toast ──
+  function showToast(msg, type = '') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
