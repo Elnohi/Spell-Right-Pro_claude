@@ -2,7 +2,7 @@
 
 [build]
   publish = "."
-  command = "echo 'No build step needed - static site only'"
+  command = "node inject-version.js"
 
 # Environment settings
 [build.environment]
@@ -55,27 +55,28 @@
   to = "/offline.html"
   status = 200
 
-# Pass-through for Digital Asset Links — must NOT be redirected
+# OCR function redirect
 [[redirects]]
-  from = "/.well-known/assetlinks.json"
-  to = "/.well-known/assetlinks.json"
+  from = "/api/ocr"
+  to = "/.netlify/functions/ocr"
   status = 200
-  force = false
+  force = true
 
-# Pass-through for manifest.json
+# Pass-through for manifest.json — must not be redirected
 [[redirects]]
   from = "/manifest.json"
   to = "/manifest.json"
   status = 200
   force = false
 
-# Fallback for any unmatched routes — no force so static files served directly
+# Fallback for any unmatched routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = true
 
-# Serve assetlinks.json with correct content type — no redirect, no cache
+# Digital Asset Links
 [[headers]]
   for = "/.well-known/assetlinks.json"
   [headers.values]
@@ -107,6 +108,12 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 # JS files - long cache except config files
+# main-premium.js — no-cache so updates always served fresh
+[[headers]]
+  for = "/js/main-premium.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
 [[headers]]
   for = "/js/*.js"
   [headers.values]

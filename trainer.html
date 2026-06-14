@@ -121,7 +121,7 @@
     .brand img { height:42px; border-radius:10px; }
     .brand h1 { font-size:1.1rem; font-weight:700; color:var(--brand); margin:0; }
     .brand small { font-size:0.7rem; color:var(--muted); display:block; }
-    .nav-right { display:flex; gap:6px; align-items:center; flex-wrap:nowrap; overflow:hidden; }
+    .nav-right { display:flex; gap:4px; align-items:center; flex-wrap:nowrap; overflow:hidden; }
     .nav-btn {
       background:var(--surface2); color:var(--brand);
       border:1px solid var(--border); border-radius:10px;
@@ -339,6 +339,7 @@
       header { border-radius:0; padding:8px 12px; position:sticky; top:0; z-index:100; }
       header .brand h1 { font-size:0.95rem; }
       header .brand img { height:30px; }
+
       .nav-right { gap:4px; }
       .nav-btn { padding:8px 10px; font-size:0 !important; gap:0; min-width:36px; justify-content:center; }
       .nav-btn i { font-size:15px; margin:0; }
@@ -784,7 +785,7 @@
       <i class="fa fa-home"></i> Home
     </button>
     <button class="nav-btn" onclick="window.location.href='/blog'" title="Blog"><i class="fa fa-book-open"></i></button>
-    <button class="nav-btn" id="toggleDark">
+        <button class="nav-btn" id="toggleDark">
       <i class="fa fa-moon"></i>
     </button>
     <button class="nav-btn" id="btnLogout">
@@ -1086,7 +1087,7 @@
 
         <!-- Controls -->
         <div class="btn-grid">
-          <button class="btn-primary" id="beeListen" style="
+<button class="btn-primary" id="beeListen" style="
             width:100%; padding:16px; font-size:1.05rem; font-weight:700;
             background:linear-gradient(135deg,#7b2ff7,#f72585);
             color:#fff; border:none; border-radius:12px; cursor:pointer;
