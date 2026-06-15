@@ -1156,7 +1156,7 @@ function selectWordList(list) {
     if (oetBtn)    oetBtn.classList.add('active');
     if (schoolBtn) schoolBtn.classList.remove('active');
     if (oetPanel)  oetPanel.style.display = '';
-    const isTest = document.getElementById('oetModeTest')?.classList.contains('active');
+    const isTest = document.getElementById('examTypeTest')?.checked;
     if (startBtn)  startBtn.innerHTML = isTest
       ? '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)'
       : '<i class="fa fa-play"></i> Start OET Full List Practice';
@@ -1184,9 +1184,10 @@ function selectOetMode(mode) {
     if (practiceBtn) practiceBtn.classList.add('active');
     if (testBtn)     testBtn.classList.remove('active');
     if (practiceRadio) practiceRadio.checked = true;
-    if (startBtn)    startBtn.innerHTML  = '<i class="fa fa-play"></i> Start Full List Practice';
+    if (startBtn)    startBtn.innerHTML  = '<i class="fa fa-play"></i> Start OET Full List Practice';
   }
 }
+window.selectOetMode = selectOetMode;
 
 // Mode selection
 document.querySelectorAll(".mode-btn").forEach(btn => {
