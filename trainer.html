@@ -1153,6 +1153,27 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
+
+  // ── OET mode buttons — direct listeners (bypass onclick reliability issues)
+  document.addEventListener('DOMContentLoaded', function() {
+    var testBtn      = document.getElementById('oetModeTest');
+    var practiceBtn  = document.getElementById('oetModePractice');
+    var startBtn     = document.getElementById('practiceStartBtn');
+    var testRadio    = document.getElementById('examTypeTest');
+    var practiceRadio= document.getElementById('examTypePractice');
+    if (testBtn) testBtn.addEventListener('click', function() {
+      if (startBtn)     startBtn.innerHTML = '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)';
+      testBtn.classList.add('active');
+      if (practiceBtn)  practiceBtn.classList.remove('active');
+      if (testRadio)    testRadio.checked = true;
+    });
+    if (practiceBtn) practiceBtn.addEventListener('click', function() {
+      if (startBtn)     startBtn.innerHTML = '<i class="fa fa-play"></i> Start OET Full List Practice';
+      practiceBtn.classList.add('active');
+      if (testBtn)      testBtn.classList.remove('active');
+      if (practiceRadio) practiceRadio.checked = true;
+    });
+  });
 </script>
 
 
