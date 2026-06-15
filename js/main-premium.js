@@ -1361,41 +1361,77 @@ function speakWord(word) {
     showFeedback("Text-to-speech not supported in this browser", "error");
     return;
   }
+  // Retry counter — resets on success
+  if (!speakWord._retries) speakWord._retries = 0;
 
   try {
-    const utter = new SpeechSynthesisUtterance(word);
-    const accentSelect = document.getElementById(`${currentMode}Accent`);
-    const accent = accentSelect?.value || 'en-GB';
-    utter.lang = accent;
-    utter.rate = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
-    utter.pitch = 1;
-
-    // Explicitly pick a real installed voice — Edge fails silently if utter.lang
-    // has no matching voice.
     const voices = speechSynthesis.getVoices();
+    const accentSelect = document.getElementById(`${currentMode}Accent`);
+    const accent = accentSelect ? accentSelect.value : 'en-GB';
+
+    // Pick best available voice
+    let match = null;
     if (voices.length > 0) {
       const langPrefix = accent.split('-')[0];
-      const match =
-        voices.find(v => v.lang === accent) ||
-        voices.find(v => v.lang.startsWith(langPrefix)) ||
-        voices.find(v => v.lang.startsWith('en')) ||
-        voices[0];
-      if (match) { utter.voice = match; utter.lang = match.lang; }
+      match = voices.find(v => v.lang === accent) ||
+              voices.find(v => v.lang.startsWith(langPrefix)) ||
+              voices.find(v => v.lang.startsWith('en')) ||
+              voices[0];
     }
 
-    // Cancel synchronously — no await — to stay within Edge's gesture window.
-    speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(word);
+    utter.lang  = match ? match.lang : accent;
+    if (match) utter.voice = match;
+    utter.rate  = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
+    utter.pitch = 1;
 
-    utter.onerror = (event) => {
-      console.error('Speech synthesis error:', event);
-      showFeedback("Error speaking word", "error");
+    utter.onstart = () => { speakWord._retries = 0; };
+
+    utter.onend = () => {
+      // Auto-activate mic for Bee after word spoken
+      if (currentMode === 'bee') {
+        setTimeout(() => {
+          if (typeof startVoiceRecognition === 'function') startVoiceRecognition();
+        }, 500);
+      }
     };
 
-    speechSynthesis.speak(utter);
+    utter.onerror = (event) => {
+      if (event.error === 'canceled' || event.error === 'interrupted') return;
+      if (event.error === 'synthesis-failed') {
+        const retries = speakWord._retries || 0;
+        if (retries < 3) {
+          speakWord._retries = retries + 1;
+          console.warn('synthesis-failed — retry', retries + 1, 'in 1s');
+          setTimeout(() => speakWord(word), 1000);
+        } else {
+          speakWord._retries = 0;
+          // Still allow user to continue — show word in feedback
+          const feedbackElement = document.getElementById(`${currentMode}Feedback`);
+          if (feedbackElement) {
+            feedbackElement.textContent = `🔇 Listen: "${word}" — type it below`;
+            feedbackElement.style.color = 'var(--warn, #ffb800)';
+          }
+          showFeedback(`Could not speak — type: ${word}`, 'warning');
+        }
+        return;
+      }
+      console.warn('Speech error:', event.error);
+    };
+
+    // Cancel then wait 50ms before speaking — Edge needs this gap
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      speechSynthesis.cancel();
+      setTimeout(() => {
+        speechSynthesis.speak(utter);
+      }, 50);
+    } else {
+      speechSynthesis.speak(utter);
+    }
     showFeedback("Listen carefully...", "info");
+
   } catch (error) {
     console.error("Speech error:", error);
-    showFeedback("Could not speak word", "error");
   }
 }
 
