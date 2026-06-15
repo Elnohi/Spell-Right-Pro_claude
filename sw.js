@@ -1,6 +1,5 @@
 // sw.js — Optimized caching strategy for SpellRightPro
-// VERSION is injected automatically at deploy time by inject-version.js
-const VERSION = '__SW_VERSION__';
+const VERSION = '2026-06-15';
 const STATIC_CACHE = `static-${VERSION}`;
 const HTML_CACHE = `html-${VERSION}`;
 
@@ -35,6 +34,12 @@ self.addEventListener('fetch', event => {
       url.includes('google-analytics.com') ||
       url.includes('gstatic.com') ||
       url.includes('firebaseinstallations.googleapis.com')) {
+    return;
+  }
+
+  // 🚫 Never cache main-premium.js — always fetch fresh from network
+  if (url.includes('main-premium.js')) {
+    event.respondWith(fetch(req));
     return;
   }
 
