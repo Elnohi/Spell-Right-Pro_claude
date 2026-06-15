@@ -30,7 +30,7 @@ let customLists = (() => {
   catch(e) { return {}; }
 })();
 let currentCustomList = null;
-var selectedWordList = 'oet'; // var (not let) so stub in trainer.html shares same global
+// selectedWordList is declared in trainer.html stub — do not re-declare here
 
 // ── Premium Bee adaptive difficulty (Bee mode only) ────────────────────────
 // Mirrors the freemium Bee progression: starts gentle, speeds up only after
