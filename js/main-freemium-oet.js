@@ -314,6 +314,12 @@
       };
       
       utterance.onerror = function(event) {
+        // 'interrupted' fires after speechSynthesis.cancel() — not a real error
+        if (event.error === 'interrupted' || event.error === 'canceled') return;
+        if (event.error === 'not-allowed') {
+          t(ui.feedback, '⚠️ Audio blocked. Click "Allow" in browser and try again.');
+          return;
+        }
         console.error("Speech synthesis error:", event);
         t(ui.feedback, "Error speaking word");
       };

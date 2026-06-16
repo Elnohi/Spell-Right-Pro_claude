@@ -1272,29 +1272,47 @@ function startTraining(mode) {
     var activeList = (typeof selectedWordList !== 'undefined' ? selectedWordList : 'oet');
     console.log('🎯 practice startTraining — activeList:', activeList, '| selectedWordList:', selectedWordList);
     if (activeList === 'school') {
-      const SCHOOL_WORDS = ['about','above','across','after','again','against','almost','alone','along','already','also','although','always','among','another','answer','appear','around','arrive','article','because','become','before','begin','behind','believe','below','between','beyond','brother','building','business','capital','century','certain','children','circle','city','class','clear','color','common','complete','consider','contain','country','course','cover','create','current','decide','describe','develop','different','difficult','direct','discover','distance','divide','during','early','earth','east','effect','eight','either','element','energy','enough','enter','entire','equal','especially','evening','event','every','example','except','exercise','expect','experience','experiment','explain','express','family','father','figure','final','follow','forest','forget','form','forward','friend','garden','general','government','great','ground','group','grow','happen','heavy','height','history','however','hundred','idea','important','improve','include','increase','inside','instead','interest','invent','island','just','knowledge','language','large','later','learn','length','letter','level','light','listen','little','machine','material','matter','maybe','measure','member','method','middle','minute','moment','mother','mountain','music','nation','natural','necessary','never','notice','number','object','observe','ocean','often','order','original','other','outside','paper','paragraph','parent','particular','pattern','people','perhaps','period','person','picture','piece','place','planet','plant','point','possible','pound','power','practice','prepare','present','president','problem','process','produce','product','program','project','property','protect','prove','provide','question','quick','quiet','quite','radio','raise','reach','ready','reason','receive','record','region','remember','repeat','report','represent','require','result','return','right','river','round','science','second','section','segment','separate','serve','several','shape','should','similar','simple','since','single','sister','situation','social','society','solve','sound','source','south','space','special','specific','speech','spell','spring','square','standard','station','still','stone','story','straight','strange','street','strong','structure','student','study','subject','success','sudden','suggest','summer','supply','support','sure','surface','surprise','system','table','teacher','technology','television','temperature','therefore','thing','thought','through','together','tonight','total','toward','travel','trouble','true','under','understand','unit','until','usually','value','various','village','visit','voice','wait','watch','water','weather','weight','welcome','west','whether','while','whole','window','winter','within','without','woman','wonder','world','write','wrong','young'];
-      currentList = [...SCHOOL_WORDS].sort(() => Math.random() - 0.5);
-      showFeedback('School practice — ' + currentList.length + ' words', 'info');
-      nextWord();
+      fetch('/data/school.json')
+        .then(r => r.json())
+        .then(data => {
+          currentList = shuffle(data.words || []);
+          showFeedback('School practice — ' + currentList.length + ' words', 'info');
+          nextWord();
+        })
+        .catch(() => {
+          console.warn('Could not load school.json — using fallback');
+          currentList = shuffle(['apple','banana','school','teacher','student',
+            'notebook','homework','classroom','library','pencil',
+            'eraser','backpack','chalkboard','science','history']);
+          showFeedback('School practice — ' + currentList.length + ' words', 'info');
+          nextWord();
+        });
+      return;
     } else {
       // OET — full list or 24-word test based on examType radio
       loadOETWords();
       return;
     }
   } else if (mode === 'bee') {
-    // Use full OET_WORDS if available, otherwise built-in bee list
-    if (typeof window.OET_WORDS !== 'undefined') {
-      currentList = [...window.OET_WORDS];
-    } else {
-      currentList = ['accommodate','rhythm','occurrence','necessary','embarrass',
-                     'guarantee','privilege','immediately','separate','conscience',
-                     'manoeuvre','bureaucracy','liaison','supersede','threshold',
-                     'committee','conscientious','millennium','perseverance','questionnaire'];
-    }
-    showFeedback('Spelling Bee started — ' + currentList.length + ' words', 'info');
-    // Initialize the adaptive-difficulty badge — starts at Beginner pace
-    updateBeeBadge();
-    nextWord();
+    fetch('/data/spelling-bee.json')
+      .then(r => r.json())
+      .then(data => {
+        currentList = shuffle(data.words || []);
+        showFeedback('Spelling Bee started — ' + currentList.length + ' words', 'info');
+        updateBeeBadge();
+        nextWord();
+      })
+      .catch(() => {
+        console.warn('Could not load spelling-bee.json — using fallback');
+        currentList = shuffle(['accommodate','bellwether','consensus','diaphragm',
+          'embarrass','flabbergasted','gauge','handkerchief','indict','jeopardize',
+          'liaison','maneuver','nebulous','occasionally','playwright',
+          'questionnaire','rendezvous','silhouette','yacht','knapsack']);
+        showFeedback('Spelling Bee started — ' + currentList.length + ' words', 'info');
+        updateBeeBadge();
+        nextWord();
+      });
+    return;
   } else {
     // school — use built-in school list
     currentList = ['example','language','grammar','knowledge','science',
@@ -1322,17 +1340,9 @@ async function loadOETWords() {
   try {
     if (typeof window.OET_WORDS !== 'undefined') {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === "test";
-      if (isTest) {
-        currentList = shuffle(window.OET_WORDS).slice(0, 24);
-        showFeedback(`OET Test mode: ${currentList.length} words loaded`, "success");
-        nextWord();
-      } else {
-        currentList = window.OET_WORDS;
-        const saved = _loadOETProgress();
-        if (saved) { _showOETResumeDialog(saved); return; }
-        showFeedback(`OET Practice mode: ${currentList.length} words loaded`, "success");
-        nextWord();
-      }
+      currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : window.OET_WORDS;
+      showFeedback(`OET ${isTest ? 'Test' : 'Practice'} mode: ${currentList.length} words loaded`, "success");
+      nextWord();
       return;
     }
     
@@ -1347,17 +1357,9 @@ async function loadOETWords() {
     });
     if (typeof window.OET_WORDS !== 'undefined') {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === 'test';
-      if (isTest) {
-        currentList = shuffle(window.OET_WORDS).slice(0, 24);
-        showFeedback(`OET Test mode: ${currentList.length} words loaded`, 'success');
-        nextWord();
-      } else {
-        currentList = [...window.OET_WORDS];
-        const saved = _loadOETProgress();
-        if (saved) { _showOETResumeDialog(saved); return; }
-        showFeedback(`OET Practice mode: ${currentList.length} words loaded`, 'success');
-        nextWord();
-      }
+      currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : [...window.OET_WORDS];
+      showFeedback(`OET ${isTest ? 'Test' : 'Practice'} mode: ${currentList.length} words loaded`, 'success');
+      nextWord();
     } else {
       throw new Error('OET_WORDS not defined after script load');
     }
@@ -1567,10 +1569,7 @@ function checkAnswer() {
     
     currentIndex++;
     
-    // Save position for OET full list mode so user can resume next session
-    if (currentMode === 'practice' && !document.getElementById('examTypeTest')?.checked) {
-      _saveOETProgress();
-    }
+    // Auto-advance with delay
     setTimeout(() => {
         // Reset input styling for next word
         if (inputElement) {
@@ -1597,10 +1596,6 @@ function checkAnswer() {
 
 // Summary function
 function showSummary() {
-  // Clear OET full list progress on completion
-  if (currentMode === 'practice' && !document.getElementById('examTypeTest')?.checked) {
-    localStorage.removeItem('srpOETFullListProgress');
-  }
   const summaryElement = document.getElementById(`${currentMode}Summary`);
   if (!summaryElement) return;
   
@@ -1680,101 +1675,8 @@ function flagCurrentWord() {
   }
 }
 
-// ── OET Full List Session Save / Resume ─────────────────────────────────────
-const _OET_PROGRESS_KEY = 'srpOETFullListProgress';
-
-function _saveOETProgress() {
-  if (currentIndex >= currentList.length) {
-    localStorage.removeItem(_OET_PROGRESS_KEY);
-    return;
-  }
-  try {
-    localStorage.setItem(_OET_PROGRESS_KEY, JSON.stringify({
-      index:     currentIndex,
-      word:      currentList[currentIndex] || '',
-      total:     currentList.length,
-      timestamp: Date.now()
-    }));
-  } catch(e) {}
-}
-
-function _loadOETProgress() {
-  try {
-    const raw = localStorage.getItem(_OET_PROGRESS_KEY);
-    if (!raw) return null;
-    const saved = JSON.parse(raw);
-    if (saved.index > 0 && saved.index < (window.OET_WORDS || []).length) return saved;
-    localStorage.removeItem(_OET_PROGRESS_KEY);
-  } catch(e) {}
-  return null;
-}
-
-function _showOETResumeDialog(saved) {
-  // Remove any existing dialog
-  document.getElementById('oetResumeDialog')?.remove();
-
-  const dialog = document.createElement('div');
-  dialog.id = 'oetResumeDialog';
-  dialog.style.cssText = [
-    'background:rgba(123,47,247,0.12)',
-    'border:1.5px solid rgba(123,47,247,0.35)',
-    'border-radius:14px',
-    'padding:20px 16px',
-    'margin:16px 0',
-    'text-align:center',
-    'color:#fff'
-  ].join(';');
-
-  dialog.innerHTML = `
-    <p style="margin:0 0 6px;font-size:1rem;font-weight:700;">
-      📍 You left off at word <strong>${saved.index}</strong> of ${saved.total}
-    </p>
-    <p style="margin:0 0 16px;font-size:0.82rem;opacity:0.7;">
-      Next word: &ldquo;${saved.word}&rdquo;
-    </p>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-      <button id="oetBtnContinue"
-        style="background:linear-gradient(135deg,#7b2ff7,#f72585);color:#fff;border:none;
-               border-radius:10px;padding:10px 22px;font-weight:700;cursor:pointer;font-size:0.9rem;">
-        ▶ Continue
-      </button>
-      <button id="oetBtnReset"
-        style="background:rgba(255,255,255,0.1);color:#fff;
-               border:1px solid rgba(255,255,255,0.25);border-radius:10px;
-               padding:10px 22px;font-weight:700;cursor:pointer;font-size:0.9rem;">
-        🔄 Start Over
-      </button>
-    </div>
-  `;
-
-  // Inject into the training-phase feedback area
-  const feedback = document.getElementById('practiceFeedback');
-  if (feedback) feedback.parentNode.insertBefore(dialog, feedback);
-
-  document.getElementById('oetBtnContinue').addEventListener('click', function() {
-    dialog.remove();
-    currentIndex = saved.index;
-    showFeedback(`Resuming from word ${currentIndex + 1} of ${currentList.length}`, 'success');
-    nextWord();
-  });
-
-  document.getElementById('oetBtnReset').addEventListener('click', function() {
-    localStorage.removeItem(_OET_PROGRESS_KEY);
-    dialog.remove();
-    currentIndex = 0;
-    showFeedback(`Starting OET Full List from the beginning`, 'info');
-    nextWord();
-  });
-}
-// ── End OET Session Save / Resume ───────────────────────────────────────────
-
 function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+  return [...arr].sort(() => Math.random() - 0.5);
 }
 
 // =======================================================

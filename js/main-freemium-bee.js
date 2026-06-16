@@ -15,7 +15,7 @@
     summary: $('.summary-area')
   };
 
-  const LIST = '/data/word-lists/spelling-bee.json';
+  const LIST = '/data/spelling-bee.json';
   const FALLBACK = ['accommodate','rhythm','occurrence','necessary','embarrass','challenge','definitely','separate','recommend','privilege'];
 
   // ========================================================
@@ -162,6 +162,14 @@
         };
         
         utterance.onerror = (event) => {
+          // 'interrupted' fires normally after speechSynthesis.cancel() — not a real error
+          if (event.error === 'interrupted' || event.error === 'canceled') { resolve(); return; }
+          // Edge sometimes denies audio as 'not-allowed' — guide the user
+          if (event.error === 'not-allowed') {
+            t(els.feedback, '⚠️ Audio blocked. Click "Allow" in browser and try again.');
+            resolve();
+            return;
+          }
           console.error('Speech error:', event);
           t(els.feedback, '⚠️ Speech error. Continuing...');
           resolve();
