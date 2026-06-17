@@ -1630,6 +1630,8 @@ const firebaseConfig = {
       const az = document.getElementById('answerZone');
       if (az) az.style.display = 'block';
       window.toggleSetup(true);
+      // Re-init HW canvas now that the zone has real dimensions
+      if (window.HW) setTimeout(() => HW.init('school'), 50);
       setTimeout(() => { const a = document.getElementById('answer'); if (a) a.focus(); }, 400);
     }
 

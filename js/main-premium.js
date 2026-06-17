@@ -1403,9 +1403,14 @@ function startTraining(mode) {
   currentMode = mode;
   resetTraining();
 
-  // Activate training phase — hide setup, show training
+  // Activate training phase — hide setup, show training area
   const area = document.getElementById(mode + '-area');
   if (area) area.classList.add('training-active');
+
+  // Init HW canvas now that the training area has real dimensions
+  if (mode === 'practice' && window.HW) {
+    setTimeout(() => HW.init('practice'), 50);
+  }
 
   if (currentCustomList && customLists[currentCustomList]) {
     currentList = customLists[currentCustomList].words;
@@ -1606,9 +1611,12 @@ function nextWord() {
 
     // Save position so user can resume if they close the tab
     saveSessionState();
+
+    const word = currentList[currentIndex];   // ← was accidentally removed
+
     const progressElement = document.getElementById(`${currentMode}Progress`);
     const feedbackElement = document.getElementById(`${currentMode}Feedback`);
-    const inputElement = document.getElementById(`${currentMode}Input`);
+    const inputElement    = document.getElementById(`${currentMode}Input`);
     
     if (progressElement) {
         progressElement.textContent = `Word ${currentIndex + 1} of ${currentList.length}`;

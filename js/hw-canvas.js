@@ -168,24 +168,24 @@ window.HW = (function () {
   }
 
   function setMode(id, mode) {
-    const s           = _getState(id);
-    s.mode            = mode;
-    const kbWrap      = document.getElementById(id + 'KeyboardWrap');
-    const hwWrap      = document.getElementById(id + 'HwWrap');
-    const kbBtn       = document.getElementById(id + 'ModeKeyboard');
-    const hwBtn       = document.getElementById(id + 'ModeHandwriting');
-    const label       = document.getElementById(id + 'ZoneLabel');
+    const s      = _getState(id);
+    s.mode       = mode;
+    const kbWrap = document.getElementById(id + 'KeyboardWrap');
+    const hwWrap = document.getElementById(id + 'HwWrap');
+    const kbBtn  = document.getElementById(id + 'ModeKeyboard');
+    const hwBtn  = document.getElementById(id + 'ModeHandwriting');
+    const label  = document.getElementById(id + 'ZoneLabel');
 
     if (mode === 'handwriting') {
       if (kbWrap) kbWrap.style.display = 'none';
-      if (hwWrap) hwWrap.classList.add('visible');
+      if (hwWrap) { hwWrap.style.display = 'block'; hwWrap.classList.add('visible'); }
       if (kbBtn)  kbBtn.classList.remove('active');
       if (hwBtn)  hwBtn.classList.add('active');
       if (label)  label.textContent = '✍️ Write your spelling here';
       init(id);
     } else {
       if (kbWrap) kbWrap.style.display = '';
-      if (hwWrap) hwWrap.classList.remove('visible');
+      if (hwWrap) { hwWrap.style.display = 'none'; hwWrap.classList.remove('visible'); }
       if (kbBtn)  kbBtn.classList.add('active');
       if (hwBtn)  hwBtn.classList.remove('active');
       if (label)  label.textContent = '✏️ Type your spelling here';
