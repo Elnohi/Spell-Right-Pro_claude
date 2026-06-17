@@ -27,14 +27,14 @@
   
   <!-- FIREBASE SDKs -->
   <script src="/js/config.js"></script>
+  <script src="/js/hw-canvas.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
 
-  <!-- Google Adsense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7632930282249669"
-     crossorigin="anonymous"></script>
+
+  <!-- Ads loaded after cookie consent via ads-manager.js (GDPR-safe) -->
+  <script src="/js/ads-manager.js" defer></script>
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H09MF13297"></script>
@@ -333,6 +333,21 @@
       color: var(--muted);
       margin-top: 6px;
     }
+
+    /* ── Input mode toggle ── */
+    .mode-toggle-btn {
+      flex: 1; padding: 7px 10px; border-radius: 8px; font-size: 0.8rem;
+      font-weight: 600; border: 1.5px solid rgba(123,47,247,0.25);
+      background: transparent; color: var(--muted, #6b7280);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .mode-toggle-btn.active {
+      background: rgba(123,47,247,0.1); border-color: rgba(123,47,247,0.5);
+      color: #7b2ff7;
+    }
+    .mode-toggle-btn:hover:not(.active) { background: rgba(123,47,247,0.05); }
+    .hw-wrap { display: none; }
+    .hw-wrap.visible { display: block; }
 
     /* ── Buttons ── */
     .button-group {
@@ -743,16 +758,50 @@
 
       <!-- Answer Zone -->
       <div class="answer-zone" id="answerZone" style="display:none;">
-        <span class="answer-zone-label">✏️ Type your spelling here</span>
-        <textarea
-          id="answer"
-          placeholder="type it…"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
-        ></textarea>
-        <p class="answer-hint">Press <kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-family:monospace;">Enter</kbd> or tap Submit</p>
+        <span class="answer-zone-label" id="oetZoneLabel">✏️ Type your spelling here</span>
+
+        <!-- Input mode toggle -->
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button id="oetModeKeyboard" class="mode-toggle-btn active"
+            onclick="window.HW && HW.setMode('oet','keyboard')"
+            title="Type your answer">
+            <i class="fa fa-keyboard"></i> Keyboard
+          </button>
+          <button id="oetModeHandwriting" class="mode-toggle-btn"
+            onclick="window.HW && HW.setMode('oet','handwriting')"
+            title="Write with finger or stylus">
+            <i class="fa fa-pen-nib"></i> Write
+          </button>
+        </div>
+
+        <!-- Keyboard input -->
+        <div id="oetKeyboardWrap">
+          <textarea
+            id="answer"
+            placeholder="type it…"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          ></textarea>
+          <p class="answer-hint">Press <kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-family:monospace;">Enter</kbd> or tap Submit</p>
+        </div>
+
+        <!-- Handwriting canvas -->
+        <div id="oetHwWrap" class="hw-wrap">
+          <canvas id="oetHwCanvas"
+            style="width:100%;height:140px;border:2px dashed rgba(123,47,247,0.3);border-radius:10px;cursor:crosshair;background:rgba(123,47,247,0.03);touch-action:none;display:block;">
+          </canvas>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+            <span id="oetHwStatus" style="font-size:0.82rem;color:var(--muted);">
+              Write your word on the canvas above
+            </span>
+            <button id="oetHwClearBtn" style="font-size:0.78rem;background:none;border:1px solid var(--border,rgba(0,0,0,0.15));border-radius:6px;padding:3px 10px;cursor:pointer;color:var(--muted);">
+              ✕ Clear
+            </button>
+          </div>
+          <div style="margin-top:6px;font-size:0.9rem;font-weight:600;min-height:1.4em;" id="oetHwText">—</div>
+        </div>
       </div>
 
       <!-- Buttons -->
@@ -1168,14 +1217,26 @@ const firebaseConfig = {
       }
       
       const word = state.words[state.currentIndex];
-      const answer = elements.answer ? elements.answer.value.trim() : '';
+
+      // Get answer from whichever input mode is active
+      let answer = '';
+      if (window.HW) {
+        const hwAnswer = HW.getAnswer('oet');
+        if (hwAnswer !== null) {
+          answer = hwAnswer;
+        } else {
+          answer = elements.answer ? elements.answer.value.trim() : '';
+        }
+      } else {
+        answer = elements.answer ? elements.answer.value.trim() : '';
+      }
       
       if (!answer) {
-        updateFeedback('Please type what you heard', true);
+        updateFeedback('Please type or write what you heard', true);
         return;
       }
       
-      const normalizedWord = word.toLowerCase().trim();
+      const normalizedWord   = word.toLowerCase().trim();
       const normalizedAnswer = answer.toLowerCase().trim();
       
       updateWordDisplay(true);
@@ -1194,6 +1255,7 @@ const firebaseConfig = {
       }
       
       if (elements.answer) elements.answer.value = '';
+      if (window.HW) HW.reset('oet');
       
       state.currentIndex++;
       

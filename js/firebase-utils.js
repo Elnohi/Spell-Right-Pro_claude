@@ -305,6 +305,101 @@ return false;
     }
     return false;
   }
+
+  // ── Cross-device sync ──────────────────────────────────────────────────────
+  // Saves custom word lists to Firestore so they persist across devices.
+  async saveCustomLists(userId, lists) {
+    if (!this.initialized || !userId) return false;
+    try {
+      await this.db.collection('userLists').doc(userId).set({
+        lists,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      console.log('✅ Custom lists synced to Firestore');
+      return true;
+    } catch (err) {
+      console.warn('⚠️ Custom list sync failed:', err.message);
+      return false;
+    }
+  }
+
+  async getCustomLists(userId) {
+    if (!this.initialized || !userId) return null;
+    try {
+      const doc = await this.db.collection('userLists').doc(userId).get();
+      return doc.exists ? doc.data().lists : null;
+    } catch (err) {
+      console.warn('⚠️ Custom list fetch failed:', err.message);
+      return null;
+    }
+  }
+
+  // Saves mistake bank (spaced repetition data) to Firestore.
+  async saveMistakeBank(userId, mistakes, schedule) {
+    if (!this.initialized || !userId) return false;
+    try {
+      await this.db.collection('mistakeBanks').doc(userId).set({
+        mistakes,
+        schedule,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      console.log('✅ Mistake bank synced to Firestore');
+      return true;
+    } catch (err) {
+      console.warn('⚠️ Mistake bank sync failed:', err.message);
+      return false;
+    }
+  }
+
+  async getMistakeBank(userId) {
+    if (!this.initialized || !userId) return null;
+    try {
+      const doc = await this.db.collection('mistakeBanks').doc(userId).get();
+      return doc.exists ? { mistakes: doc.data().mistakes || [], schedule: doc.data().schedule || {} } : null;
+    } catch (err) {
+      console.warn('⚠️ Mistake bank fetch failed:', err.message);
+      return null;
+    }
+  }
+
+  // Pull all user data from Firestore and hydrate localStorage.
+  // Called once on login so the session feels continuous on any device.
+  async hydrateFromCloud(userId) {
+    if (!this.initialized || !userId) return;
+    try {
+      const [lists, mistakeData, progress] = await Promise.all([
+        this.getCustomLists(userId),
+        this.getMistakeBank(userId),
+        this.getUserProgress(userId)
+      ]);
+
+      if (lists) {
+        localStorage.setItem('premiumCustomLists', JSON.stringify(lists));
+        console.log('✅ Custom lists hydrated from Firestore');
+      }
+
+      if (mistakeData) {
+        localStorage.setItem('mistakeBank',     JSON.stringify(mistakeData.mistakes));
+        localStorage.setItem('mistakeSchedule', JSON.stringify(mistakeData.schedule));
+        console.log('✅ Mistake bank hydrated from Firestore');
+      }
+
+      if (progress && progress.sessionHistory) {
+        // Merge cloud history with local — cloud wins on conflict
+        const local = JSON.parse(localStorage.getItem('premiumSessionHistory') || '[]');
+        const merged = [...progress.sessionHistory, ...local]
+          .filter((s, i, arr) => arr.findIndex(x => x.id === s.id) === i)
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 100); // keep last 100 sessions
+        localStorage.setItem('premiumSessionHistory', JSON.stringify(merged));
+        console.log('✅ Session history hydrated from Firestore');
+      }
+
+      document.dispatchEvent(new CustomEvent('srpCloudSynced', { detail: { userId } }));
+    } catch (err) {
+      console.warn('⚠️ Cloud hydration failed (offline?):', err.message);
+    }
+  }
 }
 
 // Create global instance with error handling

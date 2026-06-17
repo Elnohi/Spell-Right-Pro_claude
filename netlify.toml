@@ -1,48 +1,48 @@
-# netlify.toml - Root configuration for Netlify deployment
-
 [build]
   publish = "."
-  command = "node inject-version.js"
+  command = "node inject-version.js || true"
 
-# Environment settings
 [build.environment]
   NODE_VERSION = "20"
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
 
-# Redirects for SPA routing
+# ─── Static asset pass-throughs ─────────────────────────────────────
+# Must come before the catch-all so JSON/JS/CSS fetches are never
+# intercepted and served as index.html.
 [[redirects]]
-  from = "/"
-  to = "/index.html"
+  from = "/data/*"
+  to = "/data/:splat"
   status = 200
 
 [[redirects]]
-  from = "/premium"
-  to = "/premium.html"
+  from = "/.well-known/*"
+  to = "/.well-known/:splat"
+  status = 200
+
+# ─── Clean URL routes ────────────────────────────────────────────────
+[[redirects]]
+  from = "/oet-spelling-guide"
+  to = "/oet-spelling-guide.html"
   status = 200
 
 [[redirects]]
-  from = "/pricing"
-  to = "/pricing.html"
+  from = "/admin"
+  to = "/admin.html"
   status = 200
 
 [[redirects]]
-  from = "/contact"
-  to = "/contact.html"
+  from = "/word-admin"
+  to = "/word-admin.html"
   status = 200
 
 [[redirects]]
-  from = "/privacy"
-  to = "/privacy.html"
+  from = "/progress"
+  to = "/progress.html"
   status = 200
 
 [[redirects]]
-  from = "/terms"
-  to = "/terms.html"
-  status = 200
-
-[[redirects]]
-  from = "/refund"
-  to = "/refund-policy.html"
+  from = "/login"
+  to = "/login.html"
   status = 200
 
 [[redirects]]
@@ -51,50 +51,129 @@
   status = 200
 
 [[redirects]]
+  from = "/pricing"
+  to = "/pricing.html"
+  status = 200
+
+[[redirects]]
+  from = "/payment"
+  to = "/payment.html"
+  status = 200
+
+[[redirects]]
+  from = "/cancel"
+  to = "/cancel.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact-success"
+  to = "/contact-success.html"
+  status = 200
+
+[[redirects]]
+  from = "/pro"
+  to = "/pro.html"
+  status = 200
+
+[[redirects]]
+  from = "/trainer"
+  to = "/trainer.html"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
+[[redirects]]
+  from = "/refund-policy"
+  to = "/refund-policy.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/premium"
+  to = "/premium.html"
+  status = 200
+
+[[redirects]]
+  from = "/freemium-school"
+  to = "/freemium-school.html"
+  status = 200
+
+[[redirects]]
+  from = "/freemium-oet"
+  to = "/freemium-oet.html"
+  status = 200
+
+[[redirects]]
+  from = "/freemium-bee"
+  to = "/freemium-bee.html"
+  status = 200
+
+[[redirects]]
   from = "/offline"
   to = "/offline.html"
   status = 200
 
-# OCR function redirect
+[[redirects]]
+  from = "/thank-you"
+  to = "/thank-you.html"
+  status = 200
+
+[[redirects]]
+  from = "/about"
+  to = "/about.html"
+  status = 200
+
+[[redirects]]
+  from = "/blog"
+  to = "/blog.html"
+  status = 200
+
+# API proxies
 [[redirects]]
   from = "/api/ocr"
   to = "/.netlify/functions/ocr"
   status = 200
   force = true
 
-# Pass-through for manifest.json — must not be redirected
-[[redirects]]
-  from = "/manifest.json"
-  to = "/manifest.json"
-  status = 200
-  force = false
-
-# Admin panel page
-[[redirects]]
-  from = "/word-admin"
-  to = "/word-admin.html"
-  status = 200
-
-# Word submission pipeline
 [[redirects]]
   from = "/api/word-submit"
   to = "/.netlify/functions/word-submit"
   status = 200
   force = true
 
-# Admin word approval
 [[redirects]]
   from = "/api/word-admin"
   to = "/.netlify/functions/word-admin"
   status = 200
   force = true
 
-# Fallback for any unmatched routes
+# ─── Catch-all (LAST — no force so real files take precedence) ───────
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = true
+
+# ─── Security headers (all pages) ────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(self), geolocation=()"
 
 # Digital Asset Links
 [[headers]]
@@ -104,74 +183,53 @@
     Access-Control-Allow-Origin = "*"
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# Headers for security and caching
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-
-# Service worker - no caching
+# Service worker — never cache
 [[headers]]
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Service-Worker-Allowed = "/"
 
-# CSS files - long cache
-[[headers]]
-  for = "/css/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# JS files - long cache except config files
-# main-premium.js — no-cache so updates always served fresh
-[[headers]]
-  for = "/js/main-premium.js"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
-
-[[headers]]
-  for = "/js/*.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# Config files - shorter cache
-[[headers]]
-  for = "/js/config.js"
-  [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
-
-[[headers]]
-  for = "/js/firebase-config.js"
-  [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
-
-# Images - long cache
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# HTML files - no cache
+# HTML — never cache
 [[headers]]
   for = "/*.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# Function configuration (if using Netlify Functions)
+# JS — 1 hour (allows updates without full immutable cache busting)
+[[headers]]
+  for = "/js/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# main-premium.js — never cache (always serve fresh)
+[[headers]]
+  for = "/js/main-premium.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# CSS — 1 hour
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Data files — 1 hour
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Assets — long cache
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, immutable"
+
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# Split testing configuration (optional)
-[[split_test]]
-  enabled = false
-
-# Build hooks for preview deployments
 [context.production]
   environment = { NODE_ENV = "production" }
 

@@ -33,11 +33,11 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
 
-  <!-- Premium support modules -->
-  <script src="/js/firebase-utils.js"></script>
+
+  <!-- Premium support modules -->\n  <script src="/js/firebase-utils.js"></script>
   <script src="/js/common.js"></script>
+  <script src="/js/hw-canvas.js"></script>
   <script src="/js/progress-dashboard.js"></script>
   <script src="/js/mistake-review.js"></script>
   <script src="/js/adaptive-drill.js"></script>
@@ -228,6 +228,23 @@
     .real-time-hint {
       text-align:center; font-size:0.72rem; color:var(--muted); margin-top:6px;
     }
+
+    /* ── Input mode toggle (keyboard / write) ── */
+    .input-mode-toggle { display:flex; gap:8px; margin-bottom:10px; }
+    .mode-toggle-btn {
+      flex:1; padding:7px 10px; border-radius:8px; font-size:0.8rem; font-weight:600;
+      border:1.5px solid rgba(123,47,247,0.25); background:transparent;
+      color:var(--muted,#6b7280); cursor:pointer; transition:all 0.2s;
+    }
+    .mode-toggle-btn.active {
+      background:rgba(123,47,247,0.1); border-color:rgba(123,47,247,0.5);
+      color:#7b2ff7;
+    }
+    .mode-toggle-btn:hover:not(.active) { background:rgba(123,47,247,0.05); }
+
+    /* ── Handwriting canvas wrap ── */
+    .hw-wrap { display:none; }
+    .hw-wrap.visible { display:block; }
 
     /* ── Input group (used by real-time validation) ── */
     .input-group { position:relative; }
@@ -904,15 +921,49 @@
           Listen carefully and type the word…
         </div>
         <div class="answer-zone">
-          <span class="answer-zone-label">✏️ Type your spelling here</span>
-          <div class="input-group">
-            <textarea id="practiceInput" class="answer-input"
-              placeholder="type it…"
-              autocomplete="off" autocorrect="off"
-              autocapitalize="off" spellcheck="false"
-              rows="2"></textarea>
+          <span class="answer-zone-label" id="practiceZoneLabel">✏️ Type your spelling here</span>
+
+          <!-- Input mode toggle -->
+          <div class="input-mode-toggle" style="display:flex;gap:8px;margin-bottom:10px;">
+            <button id="practiceModeKeyboard" class="mode-toggle-btn active"
+              onclick="window.HW && HW.setMode('practice','keyboard')"
+              title="Type your answer">
+              <i class="fa fa-keyboard"></i> Keyboard
+            </button>
+            <button id="practiceModeHandwriting" class="mode-toggle-btn"
+              onclick="window.HW && HW.setMode('practice','handwriting')"
+              title="Write your answer with finger or stylus">
+              <i class="fa fa-pen-nib"></i> Write
+            </button>
           </div>
-          <p class="real-time-hint">Real-time feedback — green = correct, red = wrong</p>
+
+          <!-- Keyboard input -->
+          <div id="practiceKeyboardWrap">
+            <div class="input-group">
+              <textarea id="practiceInput" class="answer-input"
+                placeholder="type it…"
+                autocomplete="off" autocorrect="off"
+                autocapitalize="off" spellcheck="false"
+                rows="2"></textarea>
+            </div>
+            <p class="real-time-hint">Real-time feedback — green = correct, red = wrong</p>
+          </div>
+
+          <!-- Handwriting canvas (hidden until Write mode selected) -->
+          <div id="practiceHwWrap" class="hw-wrap" style="display:none;">
+            <canvas id="practiceHwCanvas" class="hw-canvas"
+              style="width:100%;height:140px;border:2px dashed rgba(123,47,247,0.3);border-radius:10px;cursor:crosshair;background:rgba(123,47,247,0.03);touch-action:none;">
+            </canvas>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+              <span id="practiceHwStatus" style="font-size:0.82rem;color:var(--muted);">
+                Write your word on the canvas above
+              </span>
+              <button id="practiceHwClearBtn" style="font-size:0.78rem;background:none;border:1px solid var(--border,rgba(0,0,0,0.15));border-radius:6px;padding:3px 10px;cursor:pointer;color:var(--muted);">
+                ✕ Clear
+              </button>
+            </div>
+            <div style="margin-top:6px;font-size:0.9rem;font-weight:600;min-height:1.4em;" id="practiceHwText">—</div>
+          </div>
         </div>
         <div class="btn-grid">
           <button class="btn-submit-answer" id="practiceSubmit">
@@ -1051,50 +1102,12 @@
      SCRIPTS — order matters
 ══════════════════════════════════════════════════════════ -->
 <!-- OET word list (loaded on demand by main-premium.js via script tag) -->
-<!-- <script src="/js/oet_word_list.js"></script> -->
+<script src="/js/oet_word_list.js"></script>
 
-<!-- Stub functions so onclick handlers work before main-premium.js loads -->
+<!-- selectedWordList shared state — read by main-premium.js -->
+<!-- selectWordList() and selectOetMode() are defined in main-premium.js -->
 <script>
   var selectedWordList = 'oet';
-  function selectWordList(list) {
-    selectedWordList = list;
-    var oetBtn    = document.getElementById('btnListOET');
-    var schoolBtn = document.getElementById('btnListSchool');
-    var oetPanel  = document.getElementById('oetModePanel');
-    var startBtn  = document.getElementById('practiceStartBtn');
-    if (list === 'oet') {
-      if (oetBtn)    oetBtn.classList.add('active');
-      if (schoolBtn) schoolBtn.classList.remove('active');
-      if (oetPanel)  oetPanel.style.display = '';
-      var isTest = document.getElementById('oetModeTest') && document.getElementById('oetModeTest').classList.contains('active');
-      if (startBtn)  startBtn.innerHTML = isTest
-        ? '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)'
-        : '<i class="fa fa-play"></i> Start OET Full List Practice';
-    } else {
-      if (schoolBtn) schoolBtn.classList.add('active');
-      if (oetBtn)    oetBtn.classList.remove('active');
-      if (oetPanel)  oetPanel.style.display = 'none';
-      if (startBtn)  startBtn.innerHTML = '<i class="fa fa-play"></i> Start School Practice';
-    }
-  }
-  function selectOetMode(mode) {
-    var practiceBtn   = document.getElementById('oetModePractice');
-    var testBtn       = document.getElementById('oetModeTest');
-    var startBtn      = document.getElementById('practiceStartBtn');
-    var practiceRadio = document.getElementById('examTypePractice');
-    var testRadio     = document.getElementById('examTypeTest');
-    if (mode === 'test') {
-      if (testBtn)       testBtn.classList.add('active');
-      if (practiceBtn)   practiceBtn.classList.remove('active');
-      if (testRadio)     testRadio.checked = true;
-      if (startBtn)      startBtn.innerHTML = '<i class="fa fa-clock"></i> Start Exam Simulation (24 words)';
-    } else {
-      if (practiceBtn)   practiceBtn.classList.add('active');
-      if (testBtn)       testBtn.classList.remove('active');
-      if (practiceRadio) practiceRadio.checked = true;
-      if (startBtn)      startBtn.innerHTML = '<i class="fa fa-play"></i> Start OET Full List Practice';
-    }
-  }
 </script>
 <!-- Main premium logic -->
 <script src="/js/main-premium.js"></script>

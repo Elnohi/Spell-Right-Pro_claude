@@ -414,6 +414,15 @@ class MistakeReview {
     localStorage.setItem('mistakeBank', JSON.stringify(this.mistakes));
     this.updateStats();
     this.loadRecentMistakes();
+
+    // Sync to Firestore for cross-device access (fire-and-forget)
+    if (window.firebaseUtils && window.firebaseUtils.initialized && window.currentUser) {
+      window.firebaseUtils.saveMistakeBank(
+        window.currentUser.uid,
+        this.mistakes,
+        this.schedule
+      );
+    }
   }
 }
 

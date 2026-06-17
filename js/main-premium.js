@@ -32,7 +32,107 @@ let customLists = (() => {
 let currentCustomList = null;
 // selectedWordList is declared in trainer.html stub — do not re-declare here
 
-// ── Premium Bee adaptive difficulty (Bee mode only) ────────────────────────
+// ── Session save / resume ──────────────────────────────────────────────────
+const SESSION_SAVE_KEY = 'srp_session_state';
+const SESSION_MAX_AGE  = 24 * 60 * 60 * 1000; // 24 hours
+
+function saveSessionState() {
+  if (!currentMode || !currentList.length || currentIndex === 0) return;
+  try {
+    const state = {
+      mode:             currentMode,
+      list:             currentList,
+      index:            currentIndex,
+      score:            score,
+      correctWords:     correctWords,
+      incorrectWords:   incorrectWords,
+      flaggedWords:     [...flaggedWords],
+      selectedWordList: typeof selectedWordList !== 'undefined' ? selectedWordList : 'oet',
+      examType:         document.querySelector('input[name="examType"]:checked')?.value || 'practice',
+      savedAt:          Date.now()
+    };
+    localStorage.setItem(SESSION_SAVE_KEY, JSON.stringify(state));
+  } catch(e) { console.warn('Session save failed:', e); }
+}
+
+function clearSessionState() {
+  localStorage.removeItem(SESSION_SAVE_KEY);
+}
+
+function loadSessionState() {
+  try {
+    const raw = localStorage.getItem(SESSION_SAVE_KEY);
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    if (!state.savedAt || Date.now() - state.savedAt > SESSION_MAX_AGE) {
+      clearSessionState();
+      return null;
+    }
+    return state;
+  } catch(e) { return null; }
+}
+
+function showResumePrompt(state) {
+  const existing = document.getElementById('srpResumePrompt');
+  if (existing) existing.remove();
+
+  const modeLabel = state.selectedWordList === 'school' ? 'School' :
+                    state.mode === 'bee' ? 'Spelling Bee' :
+                    state.examType === 'test' ? 'OET Exam (24 words)' : 'OET Full List';
+  const pct = Math.round((state.index / state.list.length) * 100);
+
+  const banner = document.createElement('div');
+  banner.id = 'srpResumePrompt';
+  banner.style.cssText = `
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#7b2ff7;color:#fff;border-radius:14px;padding:14px 20px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.25);z-index:9999;
+    display:flex;align-items:center;gap:14px;font-size:0.9rem;
+    max-width:480px;width:90%;
+  `;
+  banner.innerHTML = `
+    <div style="flex:1">
+      <strong>Resume last session?</strong><br>
+      <span style="opacity:0.85">${modeLabel} — ${state.index}/${state.list.length} words (${pct}% done)</span>
+    </div>
+    <button onclick="resumeSession()" style="background:#fff;color:#7b2ff7;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;white-space:nowrap">Resume</button>
+    <button onclick="this.closest('#srpResumePrompt').remove();clearSessionState();" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:8px;padding:8px 10px;cursor:pointer">✕</button>
+  `;
+  document.body.appendChild(banner);
+
+  // Auto-dismiss after 12s
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+}
+
+function resumeSession() {
+  const state = loadSessionState();
+  if (!state) return;
+  document.getElementById('srpResumePrompt')?.remove();
+
+  currentMode         = state.mode;
+  currentList         = state.list;
+  currentIndex        = state.index;
+  score               = state.score;
+  correctWords        = state.correctWords || [];
+  incorrectWords      = state.incorrectWords || [];
+  flaggedWords        = new Set(state.flaggedWords || []);
+
+  // Activate the correct mode tab
+  const modeBtn = document.querySelector(`.mode-btn[data-mode="${currentMode}"]`);
+  if (modeBtn) modeBtn.click();
+
+  // Restore word list selection for practice mode
+  if (currentMode === 'practice' && typeof selectWordList === 'function') {
+    selectWordList(state.selectedWordList || 'oet');
+  }
+
+  // Show training area and start from saved position
+  const area = document.getElementById(currentMode + '-area');
+  if (area) area.classList.add('training-active');
+
+  showFeedback(`Resumed — word ${currentIndex + 1} of ${currentList.length}`, 'info');
+  nextWord();
+}
 // Mirrors the freemium Bee progression: starts gentle, speeds up only after
 // the user demonstrates ≥80% accuracy. School and OET are unaffected.
 let beeBeginnerEndIndex     = null;   // null = still at Beginner
@@ -199,6 +299,13 @@ function setupAuthListener() {
                 // Only call initializePremiumFeatures if not already called
                 if (!window._premiumFeaturesInitialized) {
                     initializePremiumFeatures();
+                }
+                // Hydrate localStorage from Firestore for cross-device sync
+                if (window.firebaseUtils && typeof window.firebaseUtils.hydrateFromCloud === 'function') {
+                    window.firebaseUtils.hydrateFromCloud(user.uid).then(() => {
+                        // Reload custom lists UI after cloud data arrives
+                        if (typeof refreshCustomListsUI === 'function') refreshCustomListsUI();
+                    });
                 }
                 setTimeout(waitForFirestoreAndLoadLists, 3000);
             } else {
@@ -614,6 +721,41 @@ function animateVoiceVisualizer(active) {
   });
 }
 
+// ── Bee: phonetic letter-name map (shared with freemium bee) ─────────────────
+// Handles "see ay tee" → "cat", "double you" → "w", etc.
+// Ported from freemium-bee.html for parity.
+const BEE_PHONETIC = {
+  'ay':'a','bee':'b','see':'c','cee':'c','dee':'d','ee':'e',
+  'ef':'f','eff':'f','gee':'g','aitch':'h','haitch':'h','eye':'i',
+  'jay':'j','kay':'k','el':'l','ell':'l','em':'m','en':'n',
+  'oh':'o','oe':'o','pee':'p','cue':'q','que':'q','ar':'r',
+  'arr':'r','ess':'s','tee':'t','you':'u','yew':'u','vee':'v',
+  'double you':'w','doubleyou':'w','double u':'w',
+  'ex':'x','why':'y','wye':'y','zed':'z','zee':'z',
+  'sea':'c','be':'b','we':'w','tea':'t','are':'r','use':'u'
+};
+
+function transcriptToSpelling(transcript) {
+  const t = transcript.toLowerCase().trim();
+  // Single token with no spaces → whole word spoken (e.g. competition mode)
+  if (!/[\s\-,]/.test(t)) return t;
+  const tokens = t.split(/[\s\-,\.]+/).filter(Boolean);
+  // All single letters: "c a t" → "cat"
+  if (tokens.every(tok => tok.length === 1)) return tokens.join('');
+  // Phonetic letter names: greedy two-token first ("double you"), then single
+  const mapped = [];
+  let i = 0;
+  while (i < tokens.length) {
+    const two = tokens.slice(i, i + 2).join(' ');
+    if (BEE_PHONETIC[two]) { mapped.push(BEE_PHONETIC[two]); i += 2; continue; }
+    const one = tokens[i];
+    if (BEE_PHONETIC[one]) { mapped.push(BEE_PHONETIC[one]); i++; continue; }
+    return t; // unmappable — fall back to raw transcript
+  }
+  if (mapped.every(ch => ch.length === 1)) return mapped.join('');
+  return t;
+}
+
 function processSpokenSpelling(spokenText) {
   const recognizedText = document.getElementById('beeRecognizedText');
   const spokenTextElement = document.getElementById('beeSpokenText');
@@ -639,7 +781,7 @@ function startVoiceRecognition() {
   
   try {
     recognition.start();
-    showFeedback('Listening... Please spell the word', 'info');
+    showFeedback('Listening... Spell the word letter by letter', 'info');
   } catch (error) {
     console.error('Error starting recognition:', error);
     showFeedback('Error starting voice recognition', 'error');
@@ -650,7 +792,8 @@ function checkBeeAnswer(spokenText) {
   if (currentIndex >= currentList.length) return;
   
   const word = currentList[currentIndex];
-  const normalizedSpoken = spokenText.toLowerCase().replace(/[^a-z]/g, '');
+  // Use phonetic-aware transcription instead of simple strip
+  const normalizedSpoken = transcriptToSpelling(spokenText.toLowerCase().trim());
   const normalizedWord = word.toLowerCase().trim();
   
   document.getElementById('beeRecognizedText').style.display = 'none';
@@ -1313,15 +1456,8 @@ function startTraining(mode) {
         nextWord();
       });
     return;
-  } else {
-    // school — use built-in school list
-    currentList = ['example','language','grammar','knowledge','science',
-                   'mathematics','history','geography','literature','chemistry',
-                   'necessary','accommodate','separate','recommend','privilege',
-                   'immediately','definitely','embarrass','occurrence','committee'];
-    showFeedback('School practice started — ' + currentList.length + ' words', 'info');
-    nextWord();
   }
+  // Note: mode is always 'practice' or 'bee' — no other branches possible
 }
 
 // Back to setup — hide training phase, show setup phase
@@ -1365,9 +1501,17 @@ async function loadOETWords() {
     }
   } catch (err) {
     console.error("OET list load error:", err);
-    currentList = ["abdomen", "anemia", "antibiotic", "artery", "asthma", "biopsy", "catheter", "diagnosis", "embolism", "fracture"];
-    showFeedback("Using fallback OET words", "info");
-    nextWord();
+    // If OET_WORDS partially loaded, use a real subset rather than a tiny hardcoded list
+    if (typeof window.OET_WORDS !== 'undefined' && window.OET_WORDS.length > 0) {
+      const isTest = document.querySelector('input[name="examType"]:checked')?.value === 'test';
+      currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : [...window.OET_WORDS];
+      showFeedback(`OET words loaded (${currentList.length} words)`, 'success');
+      nextWord();
+    } else {
+      // Complete failure — show clear error, don't silently serve 10 words
+      showFeedback('⚠️ Could not load OET word list. Please refresh the page and try again.', 'error');
+      console.error('OET word list failed to load:', err);
+    }
   }
 }
 
@@ -1459,8 +1603,9 @@ function nextWord() {
         showSummary();
         return;
     }
-    
-    const word = currentList[currentIndex];
+
+    // Save position so user can resume if they close the tab
+    saveSessionState();
     const progressElement = document.getElementById(`${currentMode}Progress`);
     const feedbackElement = document.getElementById(`${currentMode}Feedback`);
     const inputElement = document.getElementById(`${currentMode}Input`);
@@ -1487,8 +1632,8 @@ function nextWord() {
     }
     
     // Reset handwriting canvas between words
-    if (currentMode === "practice" && typeof hwReset === "function") {
-        hwReset(currentMode);
+    if (currentMode === 'practice' && window.HW) {
+        HW.reset('practice');
     }
 
     // Clear any previous voice recognition UI (only if bee elements exist)
@@ -1505,17 +1650,23 @@ function checkAnswer() {
     if (currentIndex >= currentList.length) return;
     
     const word = currentList[currentIndex];
-    let userAnswer = "";
+    let userAnswer = '';
     
-    if (currentMode === "bee") {
+    if (currentMode === 'bee') {
         startVoiceRecognition();
         return;
-    } else if (currentMode === "practice" &&
-               hwState[currentMode] && hwState[currentMode].mode === "handwriting") {
-        userAnswer = hwGetAnswer(currentMode);
+    } else if (currentMode === 'practice' && window.HW) {
+        const hwAnswer = HW.getAnswer('practice');
+        if (hwAnswer !== null) {
+            // null means keyboard mode; empty string means HW mode but nothing written
+            userAnswer = hwAnswer;
+        } else {
+            const inputElement = document.getElementById('practiceInput');
+            userAnswer = inputElement ? inputElement.value.trim() : '';
+        }
     } else {
         const inputElement = document.getElementById(`${currentMode}Input`);
-        userAnswer = inputElement ? inputElement.value.trim() : "";
+        userAnswer = inputElement ? inputElement.value.trim() : '';
     }
     
     if (!userAnswer) {
@@ -1596,6 +1747,9 @@ function checkAnswer() {
 
 // Summary function
 function showSummary() {
+  // Session completed — clear the saved state so resume prompt doesn't appear
+  clearSessionState();
+
   const summaryElement = document.getElementById(`${currentMode}Summary`);
   if (!summaryElement) return;
   
@@ -1654,6 +1808,42 @@ function showSummary() {
   
   summaryElement.innerHTML = summaryHTML;
   summaryElement.style.display = "block";
+
+  // Record session in progress dashboard (premium feature)
+  if (window.progressDashboard && typeof window.progressDashboard.recordSession === 'function') {
+    window.progressDashboard.recordSession(currentMode, correctWords, incorrectWords);
+  }
+
+  // ── Cross-device sync — fire-and-forget ───────────────────────────────────
+  if (currentUser && window.firebaseUtils && window.firebaseUtils.initialized) {
+    const uid = currentUser.uid;
+
+    // 1. Save session progress
+    window.firebaseUtils.saveUserProgress(uid, {
+      mode:           currentMode,
+      score:          score,
+      totalWords:     currentList.length,
+      correctWords:   correctWords,
+      incorrectWords: incorrectWords.map(i => i.word || i),
+      wordsLearned:   correctWords.length,
+      sessionDate:    new Date().toISOString(),
+      sessionHistory: JSON.parse(localStorage.getItem('premiumSessionHistory') || '[]').slice(0, 100)
+    });
+
+    // 2. Sync custom lists
+    const lists = JSON.parse(localStorage.getItem('premiumCustomLists') || '{}');
+    if (Object.keys(lists).length) {
+      window.firebaseUtils.saveCustomLists(uid, lists);
+    }
+
+    // 3. Sync mistake bank
+    const mistakes  = JSON.parse(localStorage.getItem('mistakeBank')     || '[]');
+    const schedule  = JSON.parse(localStorage.getItem('mistakeSchedule') || '{}');
+    if (mistakes.length) {
+      window.firebaseUtils.saveMistakeBank(uid, mistakes, schedule);
+    }
+  }
+
   // Rating prompt
   if (window.srpRating) {
     srpRating.recordSession();
@@ -1746,6 +1936,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // NOTE: createCustomWordsUI, initializeCustomWords, initializeRealTimeValidation
     // are called from initializePremiumFeatures() only — NOT here — to avoid duplicates.
     console.log('SpellRightPro Premium initialized');
+
+    // Show resume prompt if user has a mid-session saved state
+    setTimeout(() => {
+      const saved = loadSessionState();
+      if (saved) showResumePrompt(saved);
+    }, 1500); // slight delay so page renders first
 });
 
 // Enhanced function to handle premium access simulation for testing
@@ -1849,185 +2045,17 @@ function simulatePremiumAccess() {
   }
 })();
 
+
 // =======================================================
 // HANDWRITING INPUT ENGINE
-// Supports: Web Handwriting Recognition API (Chrome/Android)
-//           Cloud Vision OCR fallback (all other devices)
-// Modes: school, oet
+// Moved to /js/hw-canvas.js — shared module used by
+// freemium-school, freemium-oet, and premium trainer.
+// Access via: window.HW.setMode(), HW.getAnswer(), HW.reset()
+// The old inline hwState/hwInitCanvas/hwRecognize etc. are
+// superseded by hw-canvas.js which is loaded in trainer.html.
 // =======================================================
 
-const hwState = {
-  practice: { mode: 'keyboard', drawing: false, strokes: [], lastStrokeTime: null, recognizeTimer: null }
-};
-
+// setInputMode() kept as alias for any legacy onclick handlers
 function setInputMode(moduleMode, inputMode) {
-  const s = hwState[moduleMode];
-  s.mode = inputMode;
-  const keyboardWrap = document.getElementById(`${moduleMode}KeyboardWrap`);
-  const keyboardHint = document.getElementById(`${moduleMode}KeyboardHint`);
-  const hwWrap       = document.getElementById(`${moduleMode}HwWrap`);
-  const kbBtn        = document.getElementById(`${moduleMode}ModeKeyboard`);
-  const hwBtn        = document.getElementById(`${moduleMode}ModeHandwriting`);
-  const label        = document.getElementById(`${moduleMode}ZoneLabel`);
-  if (inputMode === 'handwriting') {
-    if (keyboardWrap) keyboardWrap.style.display = 'none';
-    if (keyboardHint) keyboardHint.style.display = 'none';
-    if (hwWrap) hwWrap.classList.add('visible');
-    if (kbBtn) kbBtn.classList.remove('active');
-    if (hwBtn) hwBtn.classList.add('active');
-    if (label) label.textContent = '✍️ Write your spelling here';
-    hwInitCanvas(moduleMode);
-  } else {
-    if (keyboardWrap) keyboardWrap.style.display = '';
-    if (keyboardHint) keyboardHint.style.display = '';
-    if (hwWrap) hwWrap.classList.remove('visible');
-    if (kbBtn) kbBtn.classList.add('active');
-    if (hwBtn) hwBtn.classList.remove('active');
-    if (label) label.textContent = '✏️ Type your spelling here';
-  }
-}
-
-function hwInitCanvas(moduleMode) {
-  const canvas = document.getElementById(`${moduleMode}HwCanvas`);
-  if (!canvas || canvas.dataset.hwInit) return;
-  canvas.dataset.hwInit = '1';
-  const resize = () => {
-    const rect = canvas.getBoundingClientRect();
-    canvas.width  = rect.width  * window.devicePixelRatio;
-    canvas.height = rect.height * window.devicePixelRatio;
-    const ctx = canvas.getContext('2d');
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  };
-  resize();
-  window.addEventListener('resize', resize);
-  canvas.addEventListener('pointerdown', e => hwPointerDown(e, moduleMode));
-  canvas.addEventListener('pointermove', e => hwPointerMove(e, moduleMode));
-  canvas.addEventListener('pointerup',   e => hwPointerUp(e, moduleMode));
-  canvas.addEventListener('pointerout',  e => hwPointerUp(e, moduleMode));
-  canvas.style.touchAction = 'none';
-}
-
-function hwGetPos(e, canvas) {
-  const rect = canvas.getBoundingClientRect();
-  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-}
-
-function hwPointerDown(e, moduleMode) {
-  e.preventDefault();
-  const s = hwState[moduleMode];
-  if (e.pointerType === 'mouse' && e.buttons !== 1) return;
-  s.drawing = true;
-  const canvas = document.getElementById(`${moduleMode}HwCanvas`);
-  const pos = hwGetPos(e, canvas);
-  s.strokes.push([pos]);
-  const ctx = canvas.getContext('2d');
-  ctx.beginPath();
-  ctx.moveTo(pos.x, pos.y);
-}
-
-function hwPointerMove(e, moduleMode) {
-  e.preventDefault();
-  const s = hwState[moduleMode];
-  if (!s.drawing) return;
-  const canvas = document.getElementById(`${moduleMode}HwCanvas`);
-  const pos = hwGetPos(e, canvas);
-  s.strokes[s.strokes.length - 1].push(pos);
-  const ctx = canvas.getContext('2d');
-  ctx.lineWidth   = e.pointerType === 'pen' ? Math.max(1.5, e.pressure * 4) : 2.5;
-  ctx.lineCap     = 'round';
-  ctx.lineJoin    = 'round';
-  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#1a0533';
-  ctx.lineTo(pos.x, pos.y);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(pos.x, pos.y);
-}
-
-function hwPointerUp(e, moduleMode) {
-  const s = hwState[moduleMode];
-  if (!s.drawing) return;
-  s.drawing = false;
-  s.lastStrokeTime = Date.now();
-  clearTimeout(s.recognizeTimer);
-  s.recognizeTimer = setTimeout(() => hwRecognize(moduleMode), 800);
-}
-
-function hwClear(moduleMode) {
-  const s = hwState[moduleMode];
-  s.strokes = [];
-  clearTimeout(s.recognizeTimer);
-  const canvas = document.getElementById(`${moduleMode}HwCanvas`);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const textEl   = document.getElementById(`${moduleMode}HwText`);
-  const statusEl = document.getElementById(`${moduleMode}HwStatus`);
-  if (textEl)   textEl.textContent   = '—';
-  if (statusEl) statusEl.textContent = 'Write your word on the canvas above';
-}
-
-async function hwRecognize(moduleMode) {
-  const s = hwState[moduleMode];
-  if (!s.strokes.length) return;
-  const statusEl = document.getElementById(`${moduleMode}HwStatus`);
-  const textEl   = document.getElementById(`${moduleMode}HwText`);
-  if (statusEl) statusEl.textContent = 'Recognizing…';
-
-  // Path 1: Web Handwriting Recognition API (Chrome/Android)
-  if ('createHandwritingRecognizer' in navigator) {
-    try {
-      const recognizer = await navigator.createHandwritingRecognizer({ languages: ['en'] });
-      const prediction  = recognizer.startDrawing({});
-      for (const stroke of s.strokes) {
-        const hwStroke = prediction.addStroke(new HandwritingStroke());
-        for (const pt of stroke) hwStroke.addPoint({ x: pt.x, y: pt.y, t: Date.now() });
-      }
-      const results = await prediction.getPrediction();
-      recognizer.finish();
-      if (results && results.length > 0) {
-        const word = results[0].text.trim();
-        if (textEl)   textEl.textContent   = word;
-        if (statusEl) statusEl.textContent = '✅ Recognized — tap Submit to check';
-        return;
-      }
-    } catch (err) {
-      console.warn('Web Handwriting API failed, falling back to OCR:', err);
-    }
-  }
-
-  // Path 2: Cloud Vision OCR via /api/ocr Netlify function
-  try {
-    const canvas  = document.getElementById(`${moduleMode}HwCanvas`);
-    const base64  = canvas.toDataURL('image/png').split(',')[1];
-    const response = await fetch('/.netlify/functions/ocr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64, type: 'handwriting' })
-    });
-    if (!response.ok) throw new Error(`OCR HTTP ${response.status}`);
-    const data = await response.json();
-    const raw  = data.text || data.fullTextAnnotation?.text || data.textAnnotations?.[0]?.description || '';
-    const word = raw.replace(/\s+/g, ' ').trim().split('\n')[0].trim();
-    if (word) {
-      if (textEl)   textEl.textContent   = word;
-      if (statusEl) statusEl.textContent = '✅ Recognized — tap Submit to check';
-    } else {
-      if (statusEl) statusEl.textContent = '⚠️ Could not read — write more clearly or use keyboard';
-    }
-  } catch (err) {
-    console.error('OCR fallback failed:', err);
-    if (statusEl) statusEl.textContent = '⚠️ Recognition failed — try keyboard mode';
-  }
-}
-
-function hwGetAnswer(moduleMode) {
-  const textEl = document.getElementById(`${moduleMode}HwText`);
-  const val = textEl ? textEl.textContent.trim() : '';
-  return val === '—' ? '' : val;
-}
-
-function hwReset(moduleMode) {
-  if (hwState[moduleMode] && hwState[moduleMode].mode === 'handwriting') {
-    hwClear(moduleMode);
-  }
+  if (window.HW) HW.setMode(moduleMode, inputMode);
 }

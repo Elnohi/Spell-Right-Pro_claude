@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "org.spellrightpro.www.twa",
+        "sha256_cert_fingerprints": ["4B:4F:C2:C9:2B:36:DF:F8:FF:D5:BE:F4:BC:58:CE:C4:03:7E:66:BA:41:1C:C7:1D:AA:F5:D5:6F:7E:AB:EF:EA"]
+      }
+    }]

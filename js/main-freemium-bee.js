@@ -132,59 +132,8 @@
   function t(el, s) { if (el) el.textContent = s; }
   const norm = s => (s || '').toLowerCase().replace(/[^\p{L}]+/gu, '');
 
-  function speakWord(word) {
-    return new Promise((resolve) => {
-      if (!('speechSynthesis' in window)) {
-        t(els.feedback, '🎤 Text-to-speech not supported in this browser');
-        resolve();
-        return;
-      }
-
-      try {
-        speechSynthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(word);
-        utterance.rate = 0.9;
-        utterance.pitch = 1;
-        utterance.volume = 1;
-        
-        const voices = speechSynthesis.getVoices();
-        if (voices.length > 0) {
-          const ukVoice = voices.find(v => v.lang.includes('en-GB')) || 
-                         voices.find(v => v.lang.includes('en-US')) || 
-                         voices[0];
-          utterance.voice = ukVoice;
-        }
-        
-        utterance.onend = () => {
-          console.log('Finished speaking:', word);
-          resolve();
-        };
-        
-        utterance.onerror = (event) => {
-          // 'interrupted' fires normally after speechSynthesis.cancel() — not a real error
-          if (event.error === 'interrupted' || event.error === 'canceled') { resolve(); return; }
-          // Edge sometimes denies audio as 'not-allowed' — guide the user
-          if (event.error === 'not-allowed') {
-            t(els.feedback, '⚠️ Audio blocked. Click "Allow" in browser and try again.');
-            resolve();
-            return;
-          }
-          console.error('Speech error:', event);
-          t(els.feedback, '⚠️ Speech error. Continuing...');
-          resolve();
-        };
-        
-        speechSynthesis.speak(utterance);
-        t(els.feedback, '🎧 Listening...');
-        
-      } catch (error) {
-        console.error('Speech synthesis failed:', error);
-        t(els.feedback, '⚠️ Could not speak word');
-        resolve();
-      }
-    });
-  }
+  // speakWord() is defined in freemium-bee.html inline script (full async version
+  // with phonetic map, adaptive difficulty, watchdog timer). Do not redefine here.
 
   // ... [KEEP ALL EXISTING FUNCTIONS UNCHANGED UNTIL Event Listeners] ...
 
@@ -412,37 +361,17 @@
   // ========================================================
   
   function endSession() {
-    state.active = false; 
+    // endSession() UI/summary is handled by the inline script in freemium-bee.html.
+    // This wrapper handles the tier-management side-effects only:
+    // save session history and show history preview for free users.
+    state.active = false;
     speechSynthesis.cancel();
-    
-    // Save session history with tier limits
+
     const history = saveSessionHistory();
-    
-    const flagged = [...state.flags];
-    const total = state.words.length;
-    const correctCount = state.correct.length;
-    const incorrectCount = state.incorrect.length;
 
-    let summaryHTML = `
-      <div style="background: rgba(0,0,0,0.05); padding: 20px; border-radius: 10px;">
-        <h3 style="margin-top: 0; color: #7b2ff7;">Bee Session Complete! 🎉</h3>
-        <p style="font-size: 1.2em; font-weight: bold; color: #7b2ff7;">Score: ${correctCount}/${total} correct</p>
-    `;
-
-    // ... [KEEP EXISTING SUMMARY HTML CODE] ...
-
-    summaryHTML += `</div>`;
-    
-    if (els.summary) {
-      els.summary.innerHTML = summaryHTML;
-      els.summary.style.display = 'block';
-    }
-    
-    // Add history preview for free users
+    // Show history preview for free users after HTML summary renders
     if (window.tierManager?.currentTier === 'free' && history.length > 0) {
-      setTimeout(() => {
-        addHistoryPreview(history);
-      }, 500);
+      setTimeout(() => addHistoryPreview(history), 800);
     }
   }
 

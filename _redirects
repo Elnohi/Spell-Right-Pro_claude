@@ -1,24 +1,31 @@
-# ─── Trailing slash redirects ───────────────────────────────────────
-# Send /page/ to /page (prevents double redirect, fixes Google indexing)
-/freemium-bee/      /freemium-bee      301
-/freemium-oet/      /freemium-oet      301
-/freemium-school/   /freemium-school   301
-/oet-spelling-guide/ /oet-spelling-guide 301
-/premium/           /premium           301
-/pricing/           /pricing           301
-/login/             /login             301
-/progress/          /progress          301
-/admin/             /admin             301
-/privacy/           /privacy           301
-/terms/             /terms             301
-/contact/           /contact           301
-/refund-policy/     /refund-policy     301
-/security/          /security          301
+# ─── Trailing slash redirects ────────────────────────────────────────
+/freemium-bee/        /freemium-bee        301
+/freemium-oet/        /freemium-oet        301
+/freemium-school/     /freemium-school     301
+/oet-spelling-guide/  /oet-spelling-guide  301
+/premium/             /premium             301
+/pricing/             /pricing             301
+/login/               /login               301
+/progress/            /progress            301
+/admin/               /admin               301
+/privacy/             /privacy             301
+/terms/               /terms               301
+/contact/             /contact             301
+/refund-policy/       /refund-policy       301
+/security/            /security            301
+
+# ─── Static asset pass-throughs (must be BEFORE catch-all) ──────────
+# Prevents the SPA catch-all from intercepting JSON/JS/data fetches.
+# Netlify serves real files first, but the force=true in netlify.toml
+# catch-all would override without these explicit rules.
+/data/*               /data/:splat         200
+/js/*                 /js/:splat           200
+/css/*                /css/:splat          200
+/assets/*             /assets/:splat       200
+/.well-known/*        /.well-known/:splat  200
+/.netlify/functions/* /.netlify/functions/:splat  200
 
 # ─── Clean URL routes (extension-less → .html) ──────────────────────
-# Static files (ads.txt, robots.txt, sitemap.xml, manifest.json) are served
-# automatically by Netlify when they exist in the publish root — DO NOT
-# add explicit rewrite rules for them, that breaks static file serving.
 /oet-spelling-guide  /oet-spelling-guide.html  200
 /admin               /admin.html               200
 /progress            /progress.html            200
@@ -40,7 +47,9 @@
 /freemium-bee        /freemium-bee.html        200
 /offline             /offline.html             200
 /thank-you           /thank-you.html           200
+/word-admin          /word-admin.html          200
+/about               /about.html               200
+/blog                /blog.html                200
 
 # ─── Catch-all (must be LAST) ───────────────────────────────────────
-# Only applies to unmatched paths — static files and rules above take precedence
 /*                   /index.html               200
