@@ -23,7 +23,6 @@
 /css/*                /css/:splat          200
 /assets/*             /assets/:splat       200
 /.well-known/*        /.well-known/:splat  200
-/.netlify/functions/* /.netlify/functions/:splat  200
 
 # ─── Clean URL routes (extension-less → .html) ──────────────────────
 /oet-spelling-guide  /oet-spelling-guide.html  200
