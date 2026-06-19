@@ -158,3 +158,21 @@ Both sections now wrap in a white card (matching the existing `.training-card` s
 - [ ] Homepage: scroll to "Premium vs Freemium" table — text should be clearly dark on white, not faint
 - [ ] Homepage: scroll to bottom — Trust Badges section and footer should be clearly readable white cards, not blending into the gradient
 - [ ] Confirm no duplicate "SSL Secure / Cancel Anytime / GDPR Compliant" badges appear twice on the page
+
+---
+
+## Phase 2g hotfix — Quick List "Use" / "Rename" buttons invisible
+
+### Bug found
+Yes — caught this one, thank you for flagging it. The "Use" and "Rename" buttons under saved Quick Lists in the premium trainer were rendering nearly invisible (white text on a near-white background), while "Delete" looked fine because of its red tint.
+
+### Root cause
+`css/premium.css` had a leftover `.btn-small` rule from an earlier dark-theme version of the trainer, using `!important` on every property — `color: white !important` and `background: rgba(255,255,255,0.15) !important`. Because of `!important`, this rule always won over `trainer.html`'s own correct light-theme `.btn-small` rule (purple text, white background), regardless of load order. Measured contrast was 1.12:1 — essentially unreadable.
+
+Same root cause as the earlier `.list-card` styling — designed for a dark purple background, but `trainer.html`'s light theme never matches that.
+
+### Fix
+Removed the dead `.list-card`, `.list-header strong`, `.word-count`, `.list-words-preview`, `.list-actions`, `.btn-small`, `.btn-danger` rules from `premium.css`. Confirmed via search that `index.html` and `pro.html` (the only other pages loading `premium.css`) never use these class names — fully safe to remove. `trainer.html`'s own correct versions of all these classes now apply cleanly with no conflict.
+
+## What to test
+- [ ] Premium trainer → expand custom words panel → any saved Quick List → "Use" and "Rename" buttons should show clear purple text on a white background, same visual weight as "Delete"
