@@ -1972,7 +1972,7 @@ function simulatePremiumAccess() {
 (function() {
   var SESSIONS_KEY = 'srp_sessions_count';
   var DONE_KEY     = 'srp_rating_done';
-  var GOOGLE_URL   = 'https://g.page/r/https://g.page/r/CcXpShfGcR9GEAE/review/review';
+  var GOOGLE_URL   = 'https://g.page/r/CcXpShfGcR9GEAE/review';
 
   if (!window.srpRating || !window.srpRating.selectStar) {
     window.srpRating = {
