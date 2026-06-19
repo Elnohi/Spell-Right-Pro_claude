@@ -223,7 +223,7 @@ body.dark-mode button:hover {
 ======================================================= */
 .trainer-area {
   display: none;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface2, rgba(123,47,247,0.04));
   border-radius: var(--radius);
   padding: 25px;
   margin-top: 20px;
@@ -420,22 +420,22 @@ body.dark-mode button:hover {
 }
 
 .incorrect-words {
-  background: rgba(244, 67, 54, 0.1);
+  background: rgba(244, 67, 54, 0.08);
   border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
 .flagged-words {
-  background: rgba(255, 193, 7, 0.1);
+  background: rgba(255, 193, 7, 0.08);
   border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
 .correct-words {
-  background: rgba(76, 175, 80, 0.1);
+  background: rgba(76, 175, 80, 0.08);
   border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
 .incorrect-words h4 {
-  color: #f72585;
+  color: #d6005c;
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -443,7 +443,7 @@ body.dark-mode button:hover {
 }
 
 .flagged-words h4 {
-  color: #ffd166;
+  color: #a16b00;
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -451,7 +451,7 @@ body.dark-mode button:hover {
 }
 
 .correct-words h4 {
-  color: #4cc9f0;
+  color: #1c7430;
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -465,29 +465,38 @@ body.dark-mode button:hover {
 }
 
 .word-item {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--surface, #ffffff);
+  color: var(--text, #1a0533);
   padding: 10px 15px;
   border-radius: 8px;
   font-size: 0.9rem;
-  border-left: 4px solid var(--primary);
+  border-left: 4px solid var(--primary, #7b2ff7);
+  border-top: 1px solid var(--border, rgba(123,47,247,0.15));
+  border-right: 1px solid var(--border, rgba(123,47,247,0.15));
+  border-bottom: 1px solid var(--border, rgba(123,47,247,0.15));
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   transition: transform 0.2s ease;
+}
+
+.word-item strong {
+  color: var(--text, #1a0533);
 }
 
 .word-item:hover {
   transform: translateX(5px);
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--surface2, #f4f0fc);
 }
 
 .incorrect-words .word-item {
-  border-left-color: #f72585;
+  border-left-color: #d6005c;
 }
 
 .flagged-words .word-item {
-  border-left-color: #ffd166;
+  border-left-color: #a16b00;
 }
 
 .correct-words .word-item {
-  border-left-color: #4cc9f0;
+  border-left-color: #1c7430;
 }
 
 /* =======================================================
@@ -512,18 +521,7 @@ body.dark-mode button:hover {
   margin-top: 15px;
 }
 
-.list-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius);
-  padding: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: transform 0.2s ease;
-}
-
-.list-card:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.15);
-}
+/* .list-card and .list-card:hover removed — see note below */
 
 .list-header {
   display: flex;
@@ -532,52 +530,13 @@ body.dark-mode button:hover {
   margin-bottom: 10px;
 }
 
-.list-header strong {
-  color: white;
-  font-size: 1rem;
-}
-
-.word-count {
-  background: var(--primary);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.list-words-preview {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  margin-bottom: 15px;
-  line-height: 1.4;
-}
-
-.list-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.btn-small {
-  padding: 6px 12px !important;
-  font-size: 0.8rem !important;
-  background: rgba(255, 255, 255, 0.15) !important;
-  border: none !important;
-  border-radius: 6px !important;
-  color: white !important;
-  cursor: pointer !important;
-  transition: background 0.2s ease !important;
-}
-
-.btn-small:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  transform: none !important;
-}
-
-.btn-danger {
-  background: rgba(244, 67, 54, 0.3) !important;
-}
+/* .list-card, .list-header, .word-count, .list-words-preview, .list-actions,
+   .btn-small, .btn-danger were removed from here — they were leftover dark-theme
+   styles that conflicted with trainer.html's own light-theme versions of the
+   same class names via !important, making "Use"/"Rename" buttons nearly
+   invisible (white text on white-tinted background). trainer.html defines
+   the correct versions inline. Confirmed unused by index.html and pro.html,
+   the only other pages that load this stylesheet. */
 
 .btn-danger:hover {
   background: rgba(244, 67, 54, 0.5) !important;
