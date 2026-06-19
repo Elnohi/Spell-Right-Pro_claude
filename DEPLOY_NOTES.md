@@ -94,3 +94,67 @@ Both OET full list and the 24-word exam simulator already pull from the same `wi
 - [ ] Premium OET full list: word count shows 1,635-ish (not 10)
 - [ ] Premium OET exam simulator: shows exactly 24 words, drawn from the same OET list as full mode
 - [ ] All 3 pages: tap "Write" toggle → canvas appears immediately with correct size, ready to draw
+
+---
+
+## Phase 2d hotfix — Google review link
+
+### Bug fixed
+The "Leave a Google review" link was malformed in 4 files — it doubled `https://g.page/r/` and had a trailing `/review/review`. Clicking it led nowhere (404). Fixed to the correct format `https://g.page/r/CcXpShfGcR9GEAE/review` in:
+- `js/main-premium.js` (premium trainer)
+- `freemium-school.html`
+- `freemium-oet.html`
+- `freemium-bee.html`
+
+## What to test
+- [ ] Complete any session (free or premium) → after 2nd session, rating prompt appears → click "Leave a Google review" → should open the actual Google review page, not a 404
+
+---
+
+## Phase 2e hotfix — contrast / accessibility fix
+
+### Bug fixed
+Session summary screen had several elements with very weak contrast against the white card:
+- Rating stars (unselected) used `var(--border)` — a 15%-opacity purple meant for hairlines, basically invisible against white. Now uses `#c9bfe0` (light mode) / `#5a4a78` (dark mode).
+- "Incorrect Words", "Correct Words", "Flagged Words" sections and `.summary-header`/`.score` had **zero CSS** in `trainer.html` — they were running on unstyled browser defaults, which is why the box and text looked washed out.
+
+### Fix
+Added complete, WCAG AA-compliant styling (verified ≥4.5:1 contrast ratio) for:
+- `.summary-header`, `.score` — proper heading and score colour
+- `.incorrect-words` / `.correct-words` / `.flagged-words` — solid light backgrounds (not translucent) with dark-mode equivalents
+- `.word-item` — proper border, background, text colour
+- `.star-btn` — visible unselected state in both light and dark mode
+
+Applied to `trainer.html`, `freemium-school.html`, `freemium-oet.html`, `freemium-bee.html` — all four pages now share consistent, accessible summary screens.
+
+## What to test
+- [ ] Complete a session in any mode → summary screen shows clearly visible "Incorrect Words" box with readable dark-red header text on a light pink background (not washed out)
+- [ ] Rating prompt → unselected stars should be clearly visible as light purple/grey, not invisible
+- [ ] Toggle dark mode → all of the above should still look correct, no white-on-white or invisible text
+
+---
+
+## Phase 2f hotfix — index.html contrast fix
+
+### Bugs fixed
+The homepage body has a vivid purple-to-pink gradient background (`#7b2ff7 → #f107a3`). Two sections sat directly on this gradient without a white card wrapper, assuming a dark theme that doesn't exist here:
+
+1. **Trust Badges section + Footer** — grey/default text (`#666`, inherited `#222`) on the gradient measured as low as **1.02:1** contrast (needs 4.5:1). Also had duplicate SSL/Cancel/GDPR badges appearing twice (once in the Trust Badges section, once in the footer).
+2. **"Premium vs Freemium" comparison table** — used translucent white overlays (`rgba(255,255,255,0.05)`) designed for a dark background, with default dark text on top — both badly mismatched against the actual purple/pink gradient.
+
+### Fix
+Both sections now wrap in a white card (matching the existing `.training-card` style already used elsewhere on the page), with text colours chosen to clear WCAG AA on white:
+- Footer: `#555` body / `#6b6b6b` copyright / `#7b2ff7` links — all ≥4.5:1
+- Trust badges: `#1a0050` on white — 18:1
+- Comparison table: `#333` body / `#1a0050` headers on white — 12–18:1
+- Removed the duplicate trust badge row from the footer (was repeated from the Trust Badges section above it)
+
+### Sections checked and confirmed already correct (no change needed)
+- "Why Go Premium?" gradient card — uses explicit `color:white`, correctly passes against its own gradient
+- Navbar — has its own white card background already
+- Bottom mobile tab bar — `#7b6f8a` on white (4.68:1) and `#9d8fc0` on dark (6.47:1) both pass
+
+## What to test
+- [ ] Homepage: scroll to "Premium vs Freemium" table — text should be clearly dark on white, not faint
+- [ ] Homepage: scroll to bottom — Trust Badges section and footer should be clearly readable white cards, not blending into the gradient
+- [ ] Confirm no duplicate "SSL Secure / Cancel Anytime / GDPR Compliant" badges appear twice on the page
