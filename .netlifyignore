@@ -1,0 +1,6 @@
+# Internal dev reference pages — do not deploy
+social-posts.html
+spellrightpro_file_structure.html
+
+# Backend files — deployed separately to Google Cloud Run
+dockerfile.txt

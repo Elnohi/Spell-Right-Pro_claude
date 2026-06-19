@@ -68,3 +68,29 @@
 - [ ] Premium: complete a session → open browser DevTools → Network tab shows Firestore writes for `userProgress`, `userLists`, `mistakeBanks`
 - [ ] Premium: log in on a second device → custom lists and mistake bank appear (hydrated from Firestore)
 - [ ] fetch /data/school.json in browser → returns JSON (not index.html)
+
+---
+
+## Phase 2c hotfix (this update)
+
+### Bugs fixed
+| Bug | Fix |
+|-----|-----|
+| `nextWord()` missing `const word` declaration — words never spoke, session appeared frozen | Restored the declaration |
+| Handwriting canvas never opened (all 3 pages) | `practiceHwWrap` had inline `style="display:none"` overriding the toggle class; `setMode()` now sets `style.display` directly instead of relying on CSS classes |
+| Handwriting canvas had zero dimensions when first opened | `HW.init()` now called 50ms after the answer zone/training area becomes visible, not before |
+
+### Content fix
+| File | What changed |
+|------|-------------|
+| `data/word-lists/school.json` | Was a 15-word placeholder. Now contains the exact same 307-word curriculum list already used by `freemium-school.html`'s inline `SCHOOL_WORDS` array — premium and freemium now draw from one identical source. |
+
+### OET — confirmed correct, no change needed
+Both OET full list and the 24-word exam simulator already pull from the same `window.OET_WORDS` (1,635 words from `oet_word_list.js`) — exam simulator is just `shuffle().slice(0,24)` of the same list. This was already correct in the code; if you saw a wrong word count previously, it was because `oet_word_list.js` was commented out in `trainer.html` (fixed in Phase 1) — make sure that deploy went out.
+
+## What to test after this deploy
+- [ ] Premium OET/School: word plays automatically when session starts (was silent before)
+- [ ] Premium school: word count shows 307 (not 15)
+- [ ] Premium OET full list: word count shows 1,635-ish (not 10)
+- [ ] Premium OET exam simulator: shows exactly 24 words, drawn from the same OET list as full mode
+- [ ] All 3 pages: tap "Write" toggle → canvas appears immediately with correct size, ready to draw
