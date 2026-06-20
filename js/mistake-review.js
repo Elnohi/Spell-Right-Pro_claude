@@ -39,8 +39,8 @@ class MistakeReview {
           font-weight: bold;
         ">PREMIUM</div>
         
-        <h3><i class="fa fa-exclamation-circle"></i> Review Your Mistakes</h3>
-        <p style="opacity: 0.9; margin-bottom: 20px;">
+        <h3 style="color:var(--text,#1a0533);"><i class="fa fa-exclamation-circle"></i> Review Your Mistakes</h3>
+        <p style="opacity: 0.9; margin-bottom: 20px; color:var(--text,#1a0533);">
           AI-powered review of words you've misspelled. Uses spaced repetition to help you remember.
         </p>
         
@@ -58,7 +58,7 @@ class MistakeReview {
             text-align: center;
           ">
             <div style="font-size: 1.5rem; font-weight: bold; color: #f44336;" id="dueCount">0</div>
-            <div style="font-size: 0.9rem; opacity: 0.8;">Due Now</div>
+            <div style="font-size: 0.9rem; opacity: 0.8; color:var(--text,#1a0533);">Due Now</div>
           </div>
           
           <div style="
@@ -68,7 +68,7 @@ class MistakeReview {
             text-align: center;
           ">
             <div style="font-size: 1.5rem; font-weight: bold; color: #FFC107;" id="totalMistakes">0</div>
-            <div style="font-size: 0.9rem; opacity: 0.8;">Total Mistakes</div>
+            <div style="font-size: 0.9rem; opacity: 0.8; color:var(--text,#1a0533);">Total Mistakes</div>
           </div>
           
           <div style="
@@ -78,7 +78,7 @@ class MistakeReview {
             text-align: center;
           ">
             <div style="font-size: 1.5rem; font-weight: bold; color: #4CAF50;" id="masteredCount">0</div>
-            <div style="font-size: 0.9rem; opacity: 0.8;">Mastered</div>
+            <div style="font-size: 0.9rem; opacity: 0.8; color:var(--text,#1a0533);">Mastered</div>
           </div>
         </div>
         
@@ -94,12 +94,13 @@ class MistakeReview {
               font-size: 1.2rem;
               font-weight: bold;
               margin-bottom: 10px;
-              color: #fff;
+              color: var(--text,#1a0533);
             " id="reviewWord"></div>
             <div style="
               font-size: 0.9rem;
               opacity: 0.8;
               margin-bottom: 15px;
+              color: var(--text,#1a0533);
             ">
               Missed on: <span id="missedDate"></span>
             </div>
@@ -145,7 +146,7 @@ class MistakeReview {
           </div>
           
           <div style="text-align: center; margin-top: 10px;">
-            <span id="reviewProgress">0/0</span>
+            <span id="reviewProgress" style="color:var(--text,#1a0533);">0/0</span>
           </div>
         </div>
         
@@ -166,14 +167,14 @@ class MistakeReview {
             <i class="fa fa-play-circle"></i> Start Mistake Review Session
           </button>
           
-          <div style="text-align: center; margin-top: 15px; opacity: 0.7;">
+          <div style="text-align: center; margin-top: 15px; opacity: 0.7; color:var(--text,#1a0533);">
             <small>Session length: 10 words • Estimated time: 5 minutes</small>
           </div>
         </div>
         
         <!-- Mistake List -->
         <div style="margin-top: 25px;">
-          <h4 style="margin-bottom: 15px;">
+          <h4 style="margin-bottom: 15px; color:var(--text,#1a0533);">
             <i class="fa fa-history"></i> Recent Mistakes
           </h4>
           <div id="recentMistakes" style="
@@ -251,7 +252,7 @@ class MistakeReview {
       .slice(0, 10);
     
     if (recent.length === 0) {
-      container.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 20px;">No mistakes yet. Keep practicing!</p>';
+      container.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 20px; color:var(--text,#1a0533);">No mistakes yet. Keep practicing!</p>';
       return;
     }
     
@@ -265,8 +266,8 @@ class MistakeReview {
         justify-content: space-between;
         align-items: center;
       ">
-        <span style="font-weight: bold;">${mistake.word}</span>
-        <span style="font-size: 0.8rem; opacity: 0.7;">
+        <span style="font-weight: bold; color:var(--text,#1a0533);">${mistake.word}</span>
+        <span style="font-size: 0.8rem; opacity: 0.7; color:var(--text,#1a0533);">
           ${new Date(mistake.timestamp).toLocaleDateString()}
         </span>
       </div>

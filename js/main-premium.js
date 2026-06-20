@@ -351,8 +351,13 @@ function showNonPremiumMessage() {
 function showOverlay() {
     const overlay = document.getElementById("loginOverlay");
     const mainContent = document.querySelector("main");
+    const loadingCard = document.getElementById("authLoadingCard");
+    const formCard = document.getElementById("authCardContent");
     if (overlay) overlay.style.display = "flex";
     if (mainContent) mainContent.style.display = "none";
+    // Auth state is now known (no user / not premium) — swap spinner for the real form
+    if (loadingCard) loadingCard.style.display = "none";
+    if (formCard) formCard.style.display = "block";
 }
 
 function hideOverlay() {
@@ -361,6 +366,23 @@ function hideOverlay() {
     if (overlay) overlay.style.display = "none";
     if (mainContent) mainContent.style.display = "block";
 }
+
+// Safety net: if Firebase auth hasn't resolved within 8 seconds (slow network,
+// CDN blocked, etc.), stop showing the spinner and show the login form anyway.
+// Without this, a slow connection leaves the user staring at a full-screen
+// overlay with no way to interact with the page and no indication anything
+// is wrong — taps on what looks like the practice screen are silently
+// swallowed by this overlay sitting at z-index 9999.
+setTimeout(() => {
+    const loadingCard = document.getElementById("authLoadingCard");
+    const formCard = document.getElementById("authCardContent");
+    if (loadingCard && loadingCard.style.display !== "none") {
+        console.warn('⏱️ Auth check timed out after 8s — showing login form');
+        loadingCard.style.display = "none";
+        if (formCard) formCard.style.display = "block";
+        showFeedback('Taking longer than usual — please sign in or check your connection', 'info');
+    }
+}, 8000);
 
 function showFeedback(message, type = "info") {
     const existing = document.querySelector(".feedback-message");

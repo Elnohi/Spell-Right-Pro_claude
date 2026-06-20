@@ -66,14 +66,14 @@ class AdaptiveDrill {
           font-weight: bold;
         ">PREMIUM</div>
         
-        <h3><i class="fa fa-brain"></i> Adaptive Focus Drill</h3>
-        <p style="opacity: 0.9; margin-bottom: 20px;">
+        <h3 style="color:var(--text,#1a0533);"><i class="fa fa-brain"></i> Adaptive Focus Drill</h3>
+        <p style="opacity: 0.9; margin-bottom: 20px; color:var(--text,#1a0533);">
           AI-generated drill targeting your weakest spelling areas.
         </p>
         
         <!-- Weakness Analysis -->
         <div class="weakness-analysis" style="margin-bottom: 25px;">
-          <h4 style="margin-bottom: 15px;">
+          <h4 style="margin-bottom: 15px; color:var(--text,#1a0533);">
             <i class="fa fa-chart-pie"></i> Your Weakest Areas
           </h4>
           <div id="weaknessBars">
@@ -105,7 +105,7 @@ class AdaptiveDrill {
           margin-top: 20px;
           display: none;
         ">
-          <h4 style="margin-bottom: 15px;">
+          <h4 style="margin-bottom: 15px; color:var(--text,#1a0533);">
             <i class="fa fa-list-check"></i> Your Personalized Drill
           </h4>
           <div style="margin-bottom: 15px;">
@@ -118,7 +118,7 @@ class AdaptiveDrill {
             "></div>
             
             <div style="margin-bottom: 15px;">
-              <strong>Focus Areas:</strong>
+              <strong style="color:var(--text,#1a0533);">Focus Areas:</strong>
               <div id="focusAreas" style="
                 display: flex;
                 gap: 8px;
@@ -128,7 +128,7 @@ class AdaptiveDrill {
             </div>
             
             <div style="margin-bottom: 20px;">
-              <strong>Words in this drill:</strong>
+              <strong style="color:var(--text,#1a0533);">Words in this drill:</strong>
               <div id="drillWords" style="
                 margin-top: 10px;
                 max-height: 150px;
@@ -199,7 +199,7 @@ class AdaptiveDrill {
     
     if (this.weakCategories.length === 0) {
       container.innerHTML = `
-        <div style="text-align: center; padding: 20px; opacity: 0.7;">
+        <div style="text-align: center; padding: 20px; opacity: 0.7; color:var(--text,#1a0533);">
           <i class="fa fa-chart-line" style="font-size: 2rem; margin-bottom: 10px;"></i>
           <p>Complete a few practice sessions to see your weak areas.</p>
         </div>
@@ -210,7 +210,7 @@ class AdaptiveDrill {
     container.innerHTML = this.weakCategories.map(cat => `
       <div style="margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-          <span>${this.formatCategoryName(cat.category)}</span>
+          <span style="color:var(--text,#1a0533);">${this.formatCategoryName(cat.category)}</span>
           <span style="font-weight: bold; color: ${this.getAccuracyColor(cat.accuracy)}">
             ${cat.accuracy}%
           </span>
@@ -228,7 +228,7 @@ class AdaptiveDrill {
             transition: width 1s ease;
           "></div>
         </div>
-        <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 3px;">
+        <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 3px; color:var(--text,#1a0533);">
           ${cat.total} attempts
         </div>
       </div>
@@ -294,8 +294,8 @@ class AdaptiveDrill {
         display: flex;
         justify-content: space-between;
       ">
-        <span>${i + 1}. ${word}</span>
-        <span style="opacity: 0.6; font-size: 0.8rem;">
+        <span style="color:var(--text,#1a0533);">${i + 1}. ${word}</span>
+        <span style="opacity: 0.6; font-size: 0.8rem; color:var(--text,#1a0533);">
           ${this.getWordCategory(word)}
         </span>
       </div>
