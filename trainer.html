@@ -35,7 +35,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 
-  <!-- Premium support modules -->\n  <script src="/js/firebase-utils.js"></script>
+  <!-- Premium support modules -->
+  <script src="/js/firebase-utils.js"></script>
   <script src="/js/common.js"></script>
   <script src="/js/hw-canvas.js"></script>
   <script src="/js/progress-dashboard.js"></script>
@@ -102,6 +103,8 @@
       border:none; border-radius:12px; font-size:1rem; font-weight:700;
       font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:4px;
       transition:all .2s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      line-height:1.2; white-space:nowrap;
     }
     .auth-submit:hover { background:#5b1ec4; transform:translateY(-1px); }
     .auth-link { color:var(--brand); cursor:pointer; font-weight:600; }
@@ -794,7 +797,14 @@
   </script>
 
 <div id="loginOverlay">
-  <div class="auth-card">
+  <!-- Shown immediately while we wait to find out if the user is already signed in.
+       Prevents the screen from looking "stuck" on a slow connection, and avoids the
+       login form flashing for an instant for already-authenticated premium users. -->
+  <div class="auth-card" id="authLoadingCard" style="text-align:center;">
+    <i class="fa fa-spinner fa-spin" style="font-size:2rem;color:#7b2ff7;margin-bottom:16px;"></i>
+    <p style="margin:0;color:var(--muted);">Checking your account…</p>
+  </div>
+  <div class="auth-card" id="authCardContent" style="display:none;">
     <h2><i class="fa fa-crown" style="color:#f72585;"></i> Premium Trainer</h2>
     <p>Sign in to access your premium spelling practice</p>
     <p style="margin:-16px 0 20px;font-size:0.8rem;color:var(--muted);">
