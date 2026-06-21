@@ -503,15 +503,17 @@ body.dark-mode button:hover {
    CUSTOM WORDS STYLES - UPDATED
 ======================================================= */
 
-/* Ensure custom words sections are hidden initially */
+/* Ensure custom words sections are hidden initially.
+   NOTE: visibility is controlled entirely by the .open class
+   (added/removed by premSelectSource() in main-premium.js).
+   A previous version of this file also forced display:block
+   whenever the parent .trainer-area had .active — that rule had
+   higher specificity than .custom-words-area.open and unconditionally
+   overrode it, making the upload/paste panel impossible to hide
+   once a mode tab was selected, regardless of which word source
+   button the user clicked. Removed. */
 .custom-words-area {
   display: none;
-}
-
-/* Show custom words only when parent trainer area is active */
-.trainer-area.active .custom-words-area {
-  display: block;
-  animation: fadeIn 0.5s ease-in;
 }
 
 .lists-grid {
