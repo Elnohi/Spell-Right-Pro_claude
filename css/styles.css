@@ -14,7 +14,7 @@
   --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.1);
   --radius: 14px;
   --font-main: 'Inter', 'Segoe UI', sans-serif;
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
 /* =======================================================
@@ -815,8 +815,12 @@ body.dark-mode .back-home-link:hover {
 }
 
 .training-card p:not(.muted) {
+  color: #222;
   line-height: 1.65;
   margin: 0 0 16px;
+}
+.training-card p:not(.muted) strong {
+  color: #1a0050;
 }
 .training-card p:not(.muted):last-child {
   margin-bottom: 0;

@@ -17,8 +17,22 @@
   </style>
 </head>
 <body>
+  <header class="navbar">
+    <a href="/index.html" class="brand">
+      <img src="/assets/logo.png" alt="SpellRightPro Logo" class="logo"/>
+      <div>
+        <span>SpellRightPro</span>
+        <span class="subtitle">Terms of Service</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <button id="darkModeToggle" class="btn-icon" title="Toggle dark mode"><i class="fa fa-moon"></i></button>
+      <a class="btn-icon" href="/index.html" title="Home"><i class="fa fa-home"></i></a>
+      <a class="btn-primary" href="/premium.html"><i class="fa fa-crown"></i> Premium</a>
+    </div>
+  </header>
+
   <div class="container">
-    <nav style="margin-bottom: 16px;"><a href="/">← Back to Home</a></nav>
     <div class="card">
       <h1>Terms of Service</h1>
       <p><strong>Effective date:</strong> 2025-01-28</p> 
@@ -93,6 +107,21 @@
     <button onclick="declineCookies()" style="background:#555;color:white;border:none;padding:8px 18px;margin:0 5px;border-radius:6px;cursor:pointer;">Decline</button>
   </div>
   <script>
+    // Dark mode
+    (function() {
+      const toggle = document.getElementById('darkModeToggle');
+      function apply() {
+        const on = localStorage.getItem('dark') === 'true';
+        document.body.classList.toggle('dark-mode', on);
+        if (toggle) toggle.querySelector('i').className = on ? 'fa fa-sun' : 'fa fa-moon';
+      }
+      toggle?.addEventListener('click', () => {
+        localStorage.setItem('dark', !(localStorage.getItem('dark') === 'true'));
+        apply();
+      });
+      apply();
+    })();
+
     function showCookieBanner() {
       if (!localStorage.getItem('cookieConsent'))
         document.getElementById('cookieConsentBanner').style.display = 'block';

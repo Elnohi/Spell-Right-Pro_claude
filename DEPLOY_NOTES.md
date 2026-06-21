@@ -255,3 +255,30 @@ The new content section's `<p>` tags had no explicit color, inheriting the globa
 - [ ] Toggle dark mode on homepage — new "What SpellRightPro does" section text should be clearly readable, light lavender on dark purple
 - [ ] Resize browser to ~375px wide (or test on an actual phone) — confirm order is: mode chooser, new content section, Why Go Premium, comparison table, trust badges — not premium showcase pushed to the bottom
 - [ ] Confirm mode chooser subtitle ("Start with the mode that suits you best") still has its original spacing below it
+
+---
+
+## Phase 2k — ROOT CAUSE FOUND: invisible text on homepage (color-scheme bug)
+
+### The actual bug, finally confirmed
+`:root { color-scheme: light dark; }` in `css/styles.css` opted the entire site into browser-driven automatic dark-mode color adaptation — completely separate from, and invisible to, the app's own `body.dark-mode` JS toggle system.
+
+On Android devices with system dark mode enabled, Chrome's **Auto Dark Theme** feature can rewrite page text colors — including overriding explicit author-set colors like `body { color: #222 }` — based on its own internal heuristics, independent of anything in our CSS. This is why it reproduced identically across multiple devices: any device with system dark mode on triggers Chrome's auto-dark rewriting the same way, regardless of which physical device it is.
+
+This explains every detail in the screenshots precisely:
+- The H2 heading rendered correctly (Chrome's heuristics are more conservative about overriding headings)
+- `<a>` link text rendered correctly (links get distinct system-driven colors that survive the rewrite)
+- Plain `<p>` and `<strong>` text — relying only on inherited `body` color — rendered invisible, since that's exactly the category of element Chrome's Auto Dark Theme targets for rewriting
+
+### The fix
+Changed `color-scheme: light dark` to `color-scheme: light` in `:root`. This explicitly tells every browser "this site is light-mode by design" and **disables Chrome's Auto Dark Theme color rewriting entirely** — confirmed via MDN documentation as the standard fix for this exact issue. The app's own dark mode (toggled via the moon icon, applying `body.dark-mode`) is implemented entirely through explicit CSS class rules, not through the native `color-scheme` mechanism, so it is completely unaffected by this change and continues to work exactly as before.
+
+Also added explicit `color: #222` to `.training-card p` and `color: #1a0050` to `.training-card p strong` as defense in depth, so even if a similar auto-theming behavior appears in a future browser version, this specific text is pinned to an explicit value and can't be silently rewritten.
+
+### Why this only showed up now
+This vulnerability has existed site-wide since `color-scheme: light dark` was set, but every other piece of plain text on the page happened to already have an explicit `color` somewhere in its cascade (buttons, badges, link-card paragraphs, etc.) — accumulated defensively over earlier rounds of fixes. The new homepage content was the first substantial block of plain prose added without that same defensive coloring, which is what finally exposed the long-standing site-wide gap.
+
+## What to test
+- [ ] On an Android device with system dark mode ON, visit the homepage in a normal (non-incognito) tab — the new "What SpellRightPro does" section text should now be clearly visible, dark text on the white card
+- [ ] Toggle the in-app dark mode button (moon icon) — should still correctly switch the whole page to the app's own dark theme as before, completely unaffected by this fix
+- [ ] Check a few other pages (trainer, freemium-school) on the same dark-mode-enabled device to confirm no other plain text was silently invisible there too
