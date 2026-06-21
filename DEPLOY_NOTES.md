@@ -282,3 +282,45 @@ This vulnerability has existed site-wide since `color-scheme: light dark` was se
 - [ ] On an Android device with system dark mode ON, visit the homepage in a normal (non-incognito) tab — the new "What SpellRightPro does" section text should now be clearly visible, dark text on the white card
 - [ ] Toggle the in-app dark mode button (moon icon) — should still correctly switch the whole page to the app's own dark theme as before, completely unaffected by this fix
 - [ ] Check a few other pages (trainer, freemium-school) on the same dark-mode-enabled device to confirm no other plain text was silently invisible there too
+
+---
+
+## Phase 2l — TWA stale cache fix + verification of bee/upload behavior
+
+### Bug found: TWA app stuck on old broken styles.css
+**Root cause:** `sw.js`'s `VERSION` constant was hardcoded to `'2026-06-15'` and was never bumped across any of our previous deploys. The service worker's cache-cleanup logic (in the `activate` event) only deletes old caches that don't match the *current* `VERSION` string — since it never changed, the TWA's installed cache kept serving the same stale `styles.css` (and other static assets) indefinitely, even after the website itself picked up the fix. This explains exactly why the website showed the fix but the installed Android app didn't — the website's network-first HTML strategy got fresh HTML each time, but `styles.css` is cached under stale-while-revalidate, so the TWA's *already-cached copy* of the old broken CSS kept winning the race on every load.
+
+**Fix:** Bumped `VERSION` to `'2026-06-21-a'`. On next launch, the TWA's service worker will detect the new cache name, delete every old cache (old CSS, old JS, everything), and fetch fresh copies of all assets.
+
+**Going forward:** this `VERSION` string needs to be bumped on every deploy that changes a cached asset (CSS, JS, images), or the TWA can silently keep serving stale files indefinitely the same way again.
+
+### Investigated: "difficult to activate Premium Bee"
+Traced the full bee activation chain — mode tab switching, start button wiring, word list fetch with fallback, speech recognition initialization timing, and microphone Permissions-Policy. Everything checked out correctly in the code. The most likely explanation, given the TWA cache bug just found, is that the same stale-cache issue was also serving an outdated `main-premium.js`-adjacent script (`common.js`, `firebase-utils.js`) on the installed app, which the version bump above should resolve. If bee activation is still difficult after this update installs, it points to something outside the web code — most likely the underlying Android TWA manifest missing the `RECORD_AUDIO` permission declaration, which isn't something fixable from these web files.
+
+### Confirmed already correct: custom words upload area visibility
+Checked the full toggle logic (`premSelectSource()`) and its CSS (`.custom-words-area { display:none }` / `.open { display:block }`). This was already built exactly as requested — the upload/paste/saved-lists panel starts hidden, and the "Use App Words" button starts active by default in the generated HTML itself, before any JS runs. Only clicking "Add My Words" adds the `.open` class and reveals the panel. No code change was needed here; if this still isn't working correctly in the deployed app, it's very likely the same stale TWA cache serving an older version of `main-premium.js`'s logic before this toggle existed.
+
+## What to test after this deploy
+- [ ] Fully uninstall and reinstall the TWA app (or clear its app data/cache via Android Settings) to force the new service worker to take over — confirm the homepage text now appears correctly
+- [ ] In the reinstalled app, try activating Premium Bee mode again — confirm whether the difficulty persists
+- [ ] In premium trainer (OET or School), confirm the word upload panel stays hidden until "Add My Words" is tapped
+
+---
+
+## Phase 2m — ACTUAL ROOT CAUSE: missing <meta name="color-scheme"> tag (TWA-specific)
+
+### Why the website worked but the app didn't
+You correctly identified the key clue: text appeared when the app's own dark mode was toggled on, but was invisible in light mode — and only inside the installed app, never on the website. This pointed away from caching and toward something Android-WebView-specific.
+
+**Confirmed via official Android developer documentation:** Android WebView (which powers the TWA) requires an actual **HTML `<meta name="color-scheme">` tag** to honor a page's own theming — the CSS-only `:root { color-scheme: light }` property (which is what Phase 2k added) is correctly honored by regular browsers like the desktop/mobile Chrome you tested the website in, but **WebView's default dark-theme strategy specifically looks for the meta tag** as authoritative confirmation that the page manages its own appearance. Without it, WebView falls back to its own algorithmic Force Dark / Auto Dark behavior, which selectively lightens text colors it judges as "light-mode" — explaining exactly why some elements (headings, links) survived while plain paragraph text didn't.
+
+### The fix
+Added `<meta name="color-scheme" content="light"/>` as the second line inside `<head>` (right after `<meta charset>`) on **every real page in the site** — 27 pages in total, not just the homepage, since this WebView behavior could affect any page opened inside the TWA.
+
+This is confirmed **not to conflict** with the app's own dark mode toggle (the moon icon): that feature works entirely through a manually-toggled CSS class (`body.dark-mode`) set via JavaScript and localStorage, with zero dependency on `prefers-color-scheme`, `color-scheme`, or any browser/OS theming signal. The two systems are completely independent — this fix only stops WebView from second-guessing the page's own light-mode design when the app's dark mode is OFF.
+
+## What to test after this deploy
+- [ ] Clear the TWA app's storage/cache (or uninstall and reinstall) so the new service worker version takes over and fetches this updated HTML
+- [ ] Open the app with the in-app dark mode OFF — confirm the homepage's "What SpellRightPro does" text is now visible
+- [ ] Toggle the in-app dark mode ON then OFF again inside the app — confirm both states still render correctly and the toggle itself still works exactly as before
+- [ ] Spot-check 2-3 other pages inside the app (trainer, freemium-school) to confirm no other previously-invisible text appears now that wasn't visible before
