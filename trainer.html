@@ -531,12 +531,17 @@
       margin-bottom: 14px;
     }
     .app-word-hint i { color:#00c57a; font-size:0.95rem; flex-shrink:0; }
-    /* Custom panel — collapsed by default, opened by JS */
+    /* Custom panel — collapsed by default, opened by JS.
+       !important is intentional here: a previous bug in premium.css
+       silently overrode this with a higher-specificity selector,
+       making the panel impossible to hide. !important guarantees
+       this exact rule always wins regardless of what any other
+       stylesheet does, now or in the future. */
     .custom-words-area {
-      display: none;
+      display: none !important;
       margin-bottom: 14px;
     }
-    .custom-words-area.open { display: block; }
+    .custom-words-area.open { display: block !important; }
     /* Quick-create textarea */
     #quickWordsInput {
       width: 100%;
