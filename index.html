@@ -79,8 +79,10 @@
       #launchBanner { display: none !important; }
       .ad-container { display: none !important; }
 
-      /* Make training-card the hero on mobile */
-      .training-card { order: -1; margin-top: 0; }
+      /* Make the mode chooser the hero on mobile — scoped by ID so it
+         doesn't pull every .training-card (comparison table, trust
+         badges, the new content section) ahead of premium-showcase too */
+      #modeChooserCard { order: -1; margin-top: 0; }
       .container { display: flex; flex-direction: column; padding: 0 12px 16px; }
 
       /* Practice mode cards: bigger tap targets */
@@ -211,7 +213,7 @@
   <main class="container">
 
 
-    <section class="training-card">
+    <section class="training-card" id="modeChooserCard">
       <h2 class="card-title">Choose Your Practice</h2>
       <p class="muted">Start with the mode that suits you best.</p>
 
@@ -234,6 +236,25 @@
         <p>Freemium: one custom list per day. <a href="/premium.html">Upgrade</a> for unlimited lists and advanced stats.</p>
       </div>
 
+    </section>
+
+    <!-- About this tool — substantive content section -->
+    <section class="training-card" style="margin: 40px 0;">
+      <h2 class="card-title">What SpellRightPro does, and why listen-and-type works</h2>
+
+      <p>Most spelling tools test recognition: they show you a word and ask if it looks right. That's a different skill from the one you actually need under exam pressure, in a classroom, or live at a spelling bee — producing a word correctly from memory, with nobody showing you the answer first. SpellRightPro is built around that harder, more useful skill. You hear a word spoken aloud, you write it from memory using a keyboard, handwriting input, or your voice, and you get immediate feedback on exactly where it went wrong.</p>
+
+      <p>The app covers three distinct audiences with three separate word banks, because the vocabulary that matters for a nursing exam has nothing to do with what a ten-year-old needs for a spelling test, and neither has much to do with classic spelling bee words like "diaphragm" or "questionnaire".</p>
+
+      <p><strong>OET medical spelling</strong> draws from a list of more than 1,500 healthcare terms — drug names, anatomical terms, clinical abbreviations spelled out in full, and the everyday clinical vocabulary that candidates often know how to use but stumble on spelling correctly under timed conditions. You can read more about the most commonly misspelled OET words in our <a href="/oet-spelling-guide">OET spelling guide</a>, or see how OET compares to other English tests in <a href="/oet-vs-ielts">OET vs IELTS</a>.</p>
+
+      <p><strong>School spelling practice</strong> uses a curriculum-aligned word list spanning early grade-school basics through commonly misspelled words at a more advanced level, so a list that works for a Year 3 classroom looks nothing like one built for Year 9. Teachers and parents can also upload their own custom word lists in seconds.</p>
+
+      <p><strong>Spelling Bee mode</strong> is built specifically around how competitions actually work — voice recognition listens to you spell a word letter by letter, exactly the way a judge would, rather than just typing it into a box. It's the only mode where producing the spelling out loud is the whole point.</p>
+
+      <p>Every mode includes a British, American, or Australian accent option (Premium), real-time marking as you type, and a full breakdown after each session of exactly which words you got wrong and what you wrote instead — because knowing you made five mistakes is far less useful than knowing which five words they were.</p>
+
+      <p>You can read about why this tool exists in the first place on our <a href="/about">About page</a>, or jump straight into a free practice session above — no signup required.</p>
     </section>
 
     <!-- Premium Features Showcase -->

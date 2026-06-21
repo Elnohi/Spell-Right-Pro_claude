@@ -3,6 +3,9 @@
 /freemium-oet/        /freemium-oet        301
 /freemium-school/     /freemium-school     301
 /oet-spelling-guide/  /oet-spelling-guide  301
+/oet-referral-letter-guide/  /oet-referral-letter-guide  301
+/oet-vs-ielts/        /oet-vs-ielts        301
+/oet-abbreviations/   /oet-abbreviations   301
 /premium/             /premium             301
 /pricing/             /pricing             301
 /login/               /login               301
@@ -26,6 +29,9 @@
 
 # ─── Clean URL routes (extension-less → .html) ──────────────────────
 /oet-spelling-guide  /oet-spelling-guide.html  200
+/oet-referral-letter-guide  /oet-referral-letter-guide.html  200
+/oet-vs-ielts        /oet-vs-ielts.html        200
+/oet-abbreviations   /oet-abbreviations.html   200
 /admin               /admin.html               200
 /progress            /progress.html            200
 /login               /login.html               200

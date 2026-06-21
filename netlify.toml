@@ -26,6 +26,21 @@
   status = 200
 
 [[redirects]]
+  from = "/oet-referral-letter-guide"
+  to = "/oet-referral-letter-guide.html"
+  status = 200
+
+[[redirects]]
+  from = "/oet-vs-ielts"
+  to = "/oet-vs-ielts.html"
+  status = 200
+
+[[redirects]]
+  from = "/oet-abbreviations"
+  to = "/oet-abbreviations.html"
+  status = 200
+
+[[redirects]]
   from = "/admin"
   to = "/admin.html"
   status = 200

@@ -176,3 +176,82 @@ Removed the dead `.list-card`, `.list-header strong`, `.word-count`, `.list-word
 
 ## What to test
 - [ ] Premium trainer → expand custom words panel → any saved Quick List → "Use" and "Rename" buttons should show clear purple text on a white background, same visual weight as "Delete"
+
+---
+
+## Phase 2h hotfix — PrimeTestLab Android report (5 issues)
+
+### Issue 1 — Sign In button text misaligned/truncated on mobile
+**Root cause:** `.btn-submit` (login.html) and `.auth-submit` (trainer.html) had no `display:flex`/`align-items`/`justify-content` — the icon + text relied on default inline flow, which renders inconsistently across mobile WebView font engines.
+**Fix:** Added explicit flex layout, `gap:8px`, `line-height:1.2`, `white-space:nowrap` to both button classes. Confirmed `index.html`'s navbar Sign In link already had correct flex via `.btn-secondary` — no change needed there.
+
+### Issue 2 — Stray "n" character at top of screen
+**Root cause:** A literal two-character `\n` (backslash + n) had leaked into the raw HTML of `trainer.html` outside any comment — from an earlier edit where a template string's `\n` was inserted as literal text instead of an actual line break. Browsers render this as visible text, not a newline.
+**Fix:** Removed the stray `\n` from `trainer.html`. Confirmed all other `\n` occurrences across the codebase are legitimate JavaScript string/regex usage (`.split(/[\n,]+/)`, `.join('\n')`, template literals in `confirm()` dialogs) that correctly execute as real newlines at runtime — not HTML rendering bugs.
+
+### Issue 3 — File upload picker doesn't launch
+**Root cause:** `netlify.toml`'s `Permissions-Policy` header had `camera=()` — fully blocking camera access for all contexts, inconsistent with `microphone=(self)` on the same line. Many Android WebView/TWA file-picker implementations probe camera capability when a file input's picker UI loads (to decide whether to offer "Take Photo"), and a hard `camera=()` block can cause the entire file-picker intent to fail silently rather than just omitting the camera option.
+**Fix:** Changed to `camera=(self), microphone=(self), geolocation=()` — matches the existing self-scoping pattern already used for microphone.
+
+### Issue 4 — Poor contrast on "newly added text cards"
+**Root cause:** `mistake-review.js` and `adaptive-drill.js` (the Mistake Review and Adaptive Drill premium feature cards) had headings, labels, and list items with no explicit `color` set — relying entirely on inherited body text color. In light mode this happened to look fine; in dark mode, the inherited color produced contrast as low as 1.29:1 against the card backgrounds (need 4.5:1).
+**Fix:** Added `color:var(--text,#1a0533)` to every heading, paragraph, label, and list item across both files — now correctly tracks light/dark theme automatically instead of relying on inheritance.
+
+### Issue 5 — "Start/Get Full List Practice" button unresponsive
+**Root cause:** `#loginOverlay` is a full-screen (`position:fixed; inset:0; z-index:9999`) overlay shown until Firebase auth resolves. `hideOverlay()` is only called inside `auth.onAuthStateChanged()` — if Firebase is slow to initialize (slow network, CDN throttling, momentary connectivity issue — common on real-device testing over WiFi), there was **no timeout or fallback**. The overlay stays up indefinitely, silently swallowing every tap on the page underneath it, including the practice Start button.
+**Fix:**
+  - Added a loading spinner card (`Checking your account…`) shown immediately, so the screen never looks "stuck" with no feedback
+  - Added an 8-second safety timeout — if auth still hasn't resolved, the spinner is replaced with the actual login form and a clear message, guaranteed
+  - `showOverlay()` now explicitly swaps from spinner to login form when Firebase confirms there's no active session
+
+## What to test
+- [ ] Login page (mobile/Android): "Sign In" button text displays cleanly, icon and text aligned, no overlap
+- [ ] Trainer page: no stray characters anywhere near the top of the screen
+- [ ] Trainer page (logged in, premium): tap "Choose File" under custom word upload — Android file picker should launch
+- [ ] Trainer page in dark mode: open Mistake Review and Adaptive Drill cards — all text clearly readable, not blending into background
+- [ ] Trainer page on a throttled/slow connection (Chrome DevTools → Network → Slow 3G): confirm the overlay shows a spinner first, then either logs in automatically or shows the login form within ~8 seconds — never stays blank/stuck
+
+---
+
+## Phase 2i — AdSense "Low value content" fix
+
+### What Google flagged
+AdSense rejected the site for "low value content" with a note that it doesn't yet meet minimum content/quality criteria.
+
+### Root cause
+The site actually has strong content — four guides between 1,000 and ~2,000 words each. The problem was reachability and depth at the entry point, not absence of content:
+1. **Homepage had only ~201 words**, most of it UI labels ("Sign In", "Go Premium") rather than explanatory text — this is the priority-1.0 page in the sitemap and the one a reviewer/crawler sees first.
+2. **3 of 4 guide pages were missing from `sitemap.xml`** — only `oet-spelling-guide` was listed.
+3. **3 of those same pages had no clean-URL redirect rule** — `/oet-referral-letter-guide`, `/oet-vs-ielts`, `/oet-abbreviations` would have 404'd even if linked, since only `/oet-spelling-guide` had a working rewrite rule in both `_redirects` and `netlify.toml`.
+
+### Fix
+- **`index.html`**: added a new ~400-word content section ("What SpellRightPro does, and why listen-and-type works") explaining the methodology and all three practice modes in real prose, with internal links to the OET spelling guide, OET vs IELTS, and About page. Homepage word count: 201 → 608.
+- **`sitemap.xml`**: added the 3 missing guide pages plus `/about` and `/blog` — 11 → 16 URLs total.
+- **`_redirects`** and **`netlify.toml`**: added trailing-slash and clean-URL rules for `oet-referral-letter-guide`, `oet-vs-ielts`, `oet-abbreviations` — these would have 404'd without this fix.
+
+## What to test after deploy
+- [ ] Visit `/oet-referral-letter-guide`, `/oet-vs-ielts`, `/oet-abbreviations` directly — all three should load the guide, not 404
+- [ ] Visit `/` — scroll past the mode chooser, confirm the new "What SpellRightPro does" section renders with working links
+- [ ] Fetch `/sitemap.xml` directly — confirm all 16 URLs are listed
+- [ ] In Google Search Console, resubmit the sitemap so the new URLs get crawled before reapplying to AdSense on or after 27 June
+
+---
+
+## Phase 2j — contrast, layout, and responsive fixes for the new homepage content
+
+You asked whether contrast, layout, and device suitability had actually been checked — they hadn't, fully. Found and fixed 3 real issues:
+
+### 1. Dark mode contrast failure (genuine bug, same pattern as before)
+The new content section's `<p>` tags had no explicit color, inheriting the global `body { color: #222 }`. In dark mode, `.training-card` switches to a dark purple background (`#1e0e35`) but there was no matching override for plain paragraph text — measured contrast: **1.13:1** (need 4.5:1), same failure pattern as the premium feature cards fixed earlier. Added `body.dark-mode .training-card p { color: #d8c8ee }` — now 11.47:1. Confirmed this doesn't affect the comparison table or trust badges sections, which use `<td>`/`<div>` with their own hardcoded colors, not plain `<p>`.
+
+### 2. Mobile layout — accidental section reordering (pre-existing bug, exposed by the new section)
+`.training-card { order: -1 }` at the 480px breakpoint was written assuming only one `.training-card` existed (the mode chooser). With my new section reusing the same class, this rule would pull **all four** `.training-card` sections ahead of `premium-showcase` on mobile, pushing the "Why Go Premium" pitch to the bottom of the page below the comparison table and trust badges — not the intended order. Fixed by giving the mode chooser a unique ID (`#modeChooserCard`) and scoping the reorder rule to that ID only, so other sections keep their natural source order on mobile.
+
+### 3. Minor hardening
+- Added `overflow-wrap: break-word` to `.training-card` as a safety net against any future long unbroken string causing horizontal overflow on narrow screens.
+- Added `line-height: 1.65` to `.training-card p` for better readability of the new multi-paragraph prose (previously inherited the browser's tight ~1.2 default). Scoped with `:not(.muted)` to avoid overriding the mode chooser subtitle's existing margin via specificity.
+
+## What to test
+- [ ] Toggle dark mode on homepage — new "What SpellRightPro does" section text should be clearly readable, light lavender on dark purple
+- [ ] Resize browser to ~375px wide (or test on an actual phone) — confirm order is: mode chooser, new content section, Why Go Premium, comparison table, trust badges — not premium showcase pushed to the bottom
+- [ ] Confirm mode chooser subtitle ("Start with the mode that suits you best") still has its original spacing below it

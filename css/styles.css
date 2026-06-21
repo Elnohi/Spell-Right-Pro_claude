@@ -811,6 +811,15 @@ body.dark-mode .back-home-link:hover {
   padding: 28px 24px;
   margin-bottom: 24px;
   border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow-wrap: break-word;
+}
+
+.training-card p:not(.muted) {
+  line-height: 1.65;
+  margin: 0 0 16px;
+}
+.training-card p:not(.muted):last-child {
+  margin-bottom: 0;
 }
 
 .card-title {
@@ -903,6 +912,9 @@ body.dark-mode .card-title {
 }
 body.dark-mode .muted {
   color: #b09ad0;
+}
+body.dark-mode .training-card p {
+  color: #d8c8ee;
 }
 
 body.dark-mode .card.link-card {
