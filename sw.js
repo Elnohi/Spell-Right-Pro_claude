@@ -1,5 +1,5 @@
 // sw.js — Optimized caching strategy for SpellRightPro
-const VERSION = '2026-06-15';
+const VERSION = '2026-06-21-a';
 const STATIC_CACHE = `static-${VERSION}`;
 const HTML_CACHE = `html-${VERSION}`;
 
