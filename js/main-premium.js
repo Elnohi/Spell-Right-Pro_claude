@@ -1317,6 +1317,13 @@ function selectWordList(list) {
   const schoolBtn = document.getElementById('btnListSchool');
   const oetPanel  = document.getElementById('oetModePanel');
   const startBtn  = document.getElementById('practiceStartBtn');
+
+  // Switching the built-in word source should return to "Use App Words" —
+  // otherwise the upload/paste panel from a previous "Add My Words" click
+  // stays visible indefinitely, even though the user is now using a
+  // built-in list, not a custom one.
+  premSelectSource('app', 'practice');
+
   if (list === 'oet') {
     if (oetBtn)    oetBtn.classList.add('active');
     if (schoolBtn) schoolBtn.classList.remove('active');
