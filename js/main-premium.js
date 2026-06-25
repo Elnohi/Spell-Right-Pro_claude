@@ -273,6 +273,7 @@ function setupAuthListener() {
         
         if (user) {
             currentUser = user;
+            window.currentUser = user;
             console.log('✅ User authenticated:', user.email);
             
             // Check premium status
@@ -315,6 +316,7 @@ function setupAuthListener() {
         } else {
             console.log('❌ No user, showing login');
             currentUser = null;
+            window.currentUser = null;
             userIsPremium = false;
             showOverlay();
         }
@@ -823,12 +825,14 @@ function checkBeeAnswer(spokenText) {
   if (normalizedSpoken === normalizedWord) {
     score++;
     correctWords.push(word);
+    window.mistakeReview?.markCorrect(word);
     showFeedback("✅ Correct! Well done!", "success");
     const feedbackElement = document.getElementById('beeFeedback');
     feedbackElement.style.color = '#28a745';
     feedbackElement.style.fontWeight = 'bold';
   } else {
     incorrectWords.push({ word: word, answer: spokenText });
+    window.mistakeReview?.addMistake(word, 'bee');
     showFeedback(`❌ Incorrect. The word was: ${word}`, "error");
     const feedbackElement = document.getElementById('beeFeedback');
     feedbackElement.style.color = '#dc3545';
@@ -1428,6 +1432,28 @@ document.querySelectorAll(".start-btn").forEach(btn => {
   });
 });
 
+// Blend previously-mistaken words into a freshly built word list so they
+// resurface in the next session instead of only living in the separate
+// "Mistake Review" panel. `isExam` keeps the fixed-length 24-word test the
+// same size by swapping a few slots rather than appending extra words.
+function injectMistakenWords(list, { mode = 'oet', limit = 8, isExam = false, examReplaceCount = 5 } = {}) {
+  if (!window.mistakeReview || typeof window.mistakeReview.getWordsForNextSession !== 'function') return list;
+
+  const due = window.mistakeReview.getWordsForNextSession(mode, limit);
+  if (!due.length) return list;
+
+  if (isExam) {
+    const toInsert = due.slice(0, examReplaceCount);
+    const rest = list.filter(w => !toInsert.some(d => d.toLowerCase() === w.toLowerCase()));
+    return shuffle([...toInsert, ...rest]).slice(0, list.length);
+  }
+
+  // Practice / School / Bee — surface mistaken words early in the session,
+  // then the rest of the (already shuffled) list, deduplicated.
+  const rest = list.filter(w => !due.some(d => d.toLowerCase() === w.toLowerCase()));
+  return [...due, ...shuffle(rest)];
+}
+
 function startTraining(mode) {
   currentMode = mode;
   resetTraining();
@@ -1452,15 +1478,15 @@ function startTraining(mode) {
       fetch('/data/school.json')
         .then(r => r.json())
         .then(data => {
-          currentList = shuffle(data.words || []);
+          currentList = injectMistakenWords(shuffle(data.words || []), { mode: 'school', limit: 8 });
           showFeedback('School practice — ' + currentList.length + ' words', 'info');
           nextWord();
         })
         .catch(() => {
           console.warn('Could not load school.json — using fallback');
-          currentList = shuffle(['apple','banana','school','teacher','student',
+          currentList = injectMistakenWords(shuffle(['apple','banana','school','teacher','student',
             'notebook','homework','classroom','library','pencil',
-            'eraser','backpack','chalkboard','science','history']);
+            'eraser','backpack','chalkboard','science','history']), { mode: 'school', limit: 8 });
           showFeedback('School practice — ' + currentList.length + ' words', 'info');
           nextWord();
         });
@@ -1474,17 +1500,17 @@ function startTraining(mode) {
     fetch('/data/spelling-bee.json')
       .then(r => r.json())
       .then(data => {
-        currentList = shuffle(data.words || []);
+        currentList = injectMistakenWords(shuffle(data.words || []), { mode: 'bee', limit: 6 });
         showFeedback('Spelling Bee started — ' + currentList.length + ' words', 'info');
         updateBeeBadge();
         nextWord();
       })
       .catch(() => {
         console.warn('Could not load spelling-bee.json — using fallback');
-        currentList = shuffle(['accommodate','bellwether','consensus','diaphragm',
+        currentList = injectMistakenWords(shuffle(['accommodate','bellwether','consensus','diaphragm',
           'embarrass','flabbergasted','gauge','handkerchief','indict','jeopardize',
           'liaison','maneuver','nebulous','occasionally','playwright',
-          'questionnaire','rendezvous','silhouette','yacht','knapsack']);
+          'questionnaire','rendezvous','silhouette','yacht','knapsack']), { mode: 'bee', limit: 6 });
         showFeedback('Spelling Bee started — ' + currentList.length + ' words', 'info');
         updateBeeBadge();
         nextWord();
@@ -1504,13 +1530,26 @@ function backToSetup(mode) {
   if (summary) { summary.style.display = 'none'; summary.innerHTML = ''; }
 }
 
+// Builds the OET word list for this session, folding in any due mistaken
+// words. Full-list practice gets them prepended; the fixed-length 24-word
+// exam simulation swaps a few slots instead so it stays 24 words.
+function buildOetList(words, isTest) {
+  const base = isTest ? shuffle(words).slice(0, 24) : [...words];
+  return injectMistakenWords(base, {
+    mode: 'oet',
+    limit: isTest ? 5 : 10,
+    isExam: isTest,
+    examReplaceCount: 5
+  });
+}
+
 // OET words loading
 async function loadOETWords() {
   console.log('📚 loadOETWords called — examType:', document.querySelector('input[name="examType"]:checked')?.value);
   try {
     if (typeof window.OET_WORDS !== 'undefined') {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === "test";
-      currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : window.OET_WORDS;
+      currentList = buildOetList(window.OET_WORDS, isTest);
       showFeedback(`OET ${isTest ? 'Test' : 'Practice'} mode: ${currentList.length} words loaded`, "success");
       nextWord();
       return;
@@ -1527,7 +1566,7 @@ async function loadOETWords() {
     });
     if (typeof window.OET_WORDS !== 'undefined') {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === 'test';
-      currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : [...window.OET_WORDS];
+      currentList = buildOetList(window.OET_WORDS, isTest);
       showFeedback(`OET ${isTest ? 'Test' : 'Practice'} mode: ${currentList.length} words loaded`, 'success');
       nextWord();
     } else {
@@ -1538,7 +1577,7 @@ async function loadOETWords() {
     // If OET_WORDS partially loaded, use a real subset rather than a tiny hardcoded list
     if (typeof window.OET_WORDS !== 'undefined' && window.OET_WORDS.length > 0) {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === 'test';
-      currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : [...window.OET_WORDS];
+      currentList = buildOetList(window.OET_WORDS, isTest);
       showFeedback(`OET words loaded (${currentList.length} words)`, 'success');
       nextWord();
     } else {
@@ -1721,6 +1760,7 @@ function checkAnswer() {
     if (normalizedAnswer === normalizedWord) {
         score++;
         correctWords.push(word);
+        window.mistakeReview?.markCorrect(word);
         showFeedback("✅ Correct! Well done!", "success");
         
         // Visual confirmation
@@ -1738,6 +1778,10 @@ function checkAnswer() {
         }
     } else {
         incorrectWords.push({ word: word, answer: userAnswer });
+        const mistakeCategory = currentMode === 'practice'
+            ? (typeof selectedWordList !== 'undefined' ? selectedWordList : 'oet')
+            : currentMode;
+        window.mistakeReview?.addMistake(word, mistakeCategory);
         showFeedback(`❌ Incorrect. The word was: ${word}`, "error");
         
         // Visual feedback for incorrect
@@ -1783,20 +1827,99 @@ function checkAnswer() {
 }
 
 // Summary function
+// ── Lightweight per-session history, just for the summary mini-chart ──────
+// (Separate from progressDashboard's detailed `attempts_*` log — this is a
+// tiny rolling list of {date, mode, accuracy} so the chart has no heavy
+// computation to do on every summary render.)
+const SESSION_HISTORY_KEY_BASE = 'srp_session_history';
+
+function getSessionHistoryKey() {
+  const uid = (currentUser && currentUser.uid) || window.progressDashboard?.userId || 'guest';
+  return `${SESSION_HISTORY_KEY_BASE}_${uid}`;
+}
+
+function recordSessionHistoryPoint(mode, correct, total) {
+  if (!total) return;
+  try {
+    const key = getSessionHistoryKey();
+    const history = JSON.parse(localStorage.getItem(key) || '[]');
+    history.push({
+      date: new Date().toISOString(),
+      mode: mode,
+      accuracy: Math.round((correct / total) * 100)
+    });
+    localStorage.setItem(key, JSON.stringify(history.slice(-20)));
+  } catch (e) { /* storage unavailable — chart just shows "not enough data" */ }
+}
+
+function getSessionHistory() {
+  try { return JSON.parse(localStorage.getItem(getSessionHistoryKey()) || '[]'); }
+  catch (e) { return []; }
+}
+
+// Small inline SVG sparkline — no external chart library needed.
+function renderMiniProgressChart() {
+  const points = getSessionHistory().slice(-10);
+  if (points.length < 2) {
+    return `<div style="text-align:center;padding:10px 4px;opacity:0.65;font-size:0.82rem;">
+      Complete one more session to start seeing your progress chart here.
+    </div>`;
+  }
+
+  const W = 280, H = 70, PAD = 8;
+  const xs = points.map((_, i) => PAD + (i / (points.length - 1)) * (W - PAD * 2));
+  const ys = points.map(p => H - PAD - (p.accuracy / 100) * (H - PAD * 2));
+  const poly = xs.map((x, i) => `${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const dots = xs.map((x, i) => {
+    const c = points[i].accuracy >= 80 ? '#4CAF50' : points[i].accuracy >= 60 ? '#FFC107' : '#f44336';
+    return `<circle cx="${x.toFixed(1)}" cy="${ys[i].toFixed(1)}" r="3.5" fill="${c}"><title>${points[i].accuracy}%</title></circle>`;
+  }).join('');
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:70px;display:block;">
+      <polyline points="${poly}" fill="none" stroke="#7b2ff7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:0.7rem;opacity:0.6;margin-top:2px;">
+      <span>${points.length} session${points.length === 1 ? '' : 's'} shown</span>
+      <span>Latest: ${points[points.length - 1].accuracy}%</span>
+    </div>`;
+}
+
 function showSummary() {
   // Session completed — clear the saved state so resume prompt doesn't appear
   clearSessionState();
 
   const summaryElement = document.getElementById(`${currentMode}Summary`);
   if (!summaryElement) return;
-  
+
+  // Category for mistake-bank lookups: oet/school for practice mode, bee for Bee
+  const sessionCategory = currentMode === 'practice'
+    ? (typeof selectedWordList !== 'undefined' ? selectedWordList : 'oet')
+    : currentMode;
+
+  // Record this session for the mini-chart and for the streak/accuracy dashboard
+  recordSessionHistoryPoint(currentMode, score, currentList.length);
+
   let summaryHTML = `
     <div class="summary-header">
       <h3>Session Complete</h3>
       <div class="score">Score: ${score}/${currentList.length}</div>
     </div>
   `;
-  
+
+  // ── Mini progress-over-time chart ──────────────────────────────────────
+  summaryHTML += `
+    <div class="progress-mini-chart">
+      <h4><i class="fa fa-chart-line"></i> Your Progress</h4>
+      ${renderMiniProgressChart()}
+      <div class="progress-saved-note">
+        <i class="fa fa-check-circle"></i> Progress saved
+        ${window.progressDashboard?.stats?.totalSessions ? `— ${window.progressDashboard.stats.totalSessions} sessions so far` : ''}
+      </div>
+    </div>
+  `;
+
   if (incorrectWords.length > 0) {
     summaryHTML += `
       <div class="incorrect-words">
@@ -1814,7 +1937,30 @@ function showSummary() {
     
     summaryHTML += `</div></div>`;
   }
-  
+
+  // ── Frequently Mistaken Words — persists across sessions, clears itself
+  // the moment the word is spelled correctly in any future session ───────
+  const frequentlyMistaken = window.mistakeReview?.getFrequentlyMistaken(sessionCategory) || [];
+  if (frequentlyMistaken.length > 0) {
+    summaryHTML += `
+      <div class="frequently-mistaken-words">
+        <h4><i class="fa fa-fire"></i> Frequently Mistaken (${frequentlyMistaken.length})</h4>
+        <div class="word-list">
+    `;
+    frequentlyMistaken.forEach(m => {
+      summaryHTML += `
+        <div class="word-item">
+          <strong>${m.word}</strong> <span class="miss-count">missed ${m.count}×</span>
+        </div>
+      `;
+    });
+    summaryHTML += `
+        </div>
+        <p class="fmw-hint">These disappear automatically once you spell them correctly in a future session.</p>
+      </div>
+    `;
+  }
+
   if (flaggedWords.size > 0) {
     summaryHTML += `
       <div class="flagged-words">
@@ -1842,6 +1988,22 @@ function showSummary() {
     
     summaryHTML += `</div></div>`;
   }
+
+  // ── Session actions ─────────────────────────────────────────────────────
+  const mistakenCount = (window.mistakeReview?.getWordsForNextSession(sessionCategory, 999) || []).length;
+  summaryHTML += `
+    <div class="session-actions">
+      <button class="btn-sec" onclick="startOverSession()">
+        <i class="fa fa-rotate-left"></i> Start Over
+      </button>
+      <button class="btn-sec" onclick="startNewSession()">
+        <i class="fa fa-plus"></i> Start New
+      </button>
+      <button class="btn-submit-answer" onclick="practiceMistakenWordsSession()" ${mistakenCount === 0 ? 'disabled style="opacity:0.55;cursor:default;"' : ''}>
+        <i class="fa fa-bullseye"></i> Practice Mistaken Words${mistakenCount ? ` (${mistakenCount})` : ''}
+      </button>
+    </div>
+  `;
   
   summaryElement.innerHTML = summaryHTML;
   summaryElement.style.display = "block";
@@ -1887,6 +2049,52 @@ function showSummary() {
     var ratingHTML = srpRating.getPromptHTML();
     if (ratingHTML) summaryElement.insertAdjacentHTML("beforeend", ratingHTML);
   }
+}
+
+// ── Summary screen actions ─────────────────────────────────────────────────
+
+// Re-run the exact same word list from the beginning.
+function startOverSession() {
+  const area = document.getElementById(currentMode + '-area');
+  const summary = document.getElementById(currentMode + 'Summary');
+
+  resetTraining(); // resets index/score/correct/incorrect/flagged + bee badge + speech state
+
+  if (summary) { summary.style.display = 'none'; summary.innerHTML = ''; }
+  if (area) area.classList.add('training-active');
+
+  showFeedback('🔄 Starting over with the same words', 'info');
+  nextWord();
+}
+
+// Go back to setup so the user can pick a new mode / word list / accent.
+function startNewSession() {
+  backToSetup(currentMode);
+}
+
+// Build a session purely from this category's due/unresolved mistaken words.
+function practiceMistakenWordsSession() {
+  const category = currentMode === 'practice'
+    ? (typeof selectedWordList !== 'undefined' ? selectedWordList : 'oet')
+    : currentMode;
+
+  const words = window.mistakeReview?.getWordsForNextSession(category, 50) || [];
+  if (!words.length) {
+    showFeedback('🎉 No mistaken words to review right now — great job!', 'success');
+    return;
+  }
+
+  const area = document.getElementById(currentMode + '-area');
+  const summary = document.getElementById(currentMode + 'Summary');
+
+  resetTraining(); // resets index/score/correct/incorrect/flagged + bee badge + speech state
+  currentList = shuffle(words);
+
+  if (summary) { summary.style.display = 'none'; summary.innerHTML = ''; }
+  if (area) area.classList.add('training-active');
+
+  showFeedback(`🎯 Practising ${currentList.length} mistaken word${currentList.length === 1 ? '' : 's'}`, 'info');
+  nextWord();
 }
 
 function flagCurrentWord() {

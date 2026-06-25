@@ -399,22 +399,30 @@ class MistakeReview {
   // Call this from main-premium.js when a word is missed
   addMistake(word, mode) {
     const existing = this.mistakes.find(m => m.word === word);
-    
+
     if (!existing) {
       this.mistakes.push({
         word: word,
         mode: mode,
         timestamp: new Date().toISOString(),
-        count: 1
+        count: 1,
+        resolved: false   // unresolved = shows up in "Frequently Mistaken"
       });
     } else {
       existing.timestamp = new Date().toISOString();
       existing.count++;
+      existing.resolved = false; // missed again — back on the highlight list
     }
-    
+
+    // Make it due for review soon via the existing spaced-repetition schedule
+    this.recordIncorrect(word);
+
     localStorage.setItem('mistakeBank', JSON.stringify(this.mistakes));
-    this.updateStats();
-    this.loadRecentMistakes();
+
+    if (document.querySelector('.mistake-review-section')) {
+      this.updateStats();
+      this.loadRecentMistakes();
+    }
 
     // Sync to Firestore for cross-device access (fire-and-forget)
     if (window.firebaseUtils && window.firebaseUtils.initialized && window.currentUser) {
@@ -424,6 +432,62 @@ class MistakeReview {
         this.schedule
       );
     }
+  }
+
+  // Call this from main-premium.js whenever a word is spelled correctly
+  // (in regular practice, not just the dedicated review session).
+  // Clears the word from the "Frequently Mistaken" highlight immediately.
+  // If it's missed again later, addMistake() un-resolves it.
+  markCorrect(word) {
+    const existing = this.mistakes.find(m => m.word === word);
+    if (!existing || existing.resolved) return;
+
+    existing.resolved = true;
+    existing.lastCorrectAt = new Date().toISOString();
+    localStorage.setItem('mistakeBank', JSON.stringify(this.mistakes));
+
+    // Advance the spaced-repetition schedule like a normal correct review
+    this.recordCorrect(word);
+
+    if (document.querySelector('.mistake-review-section')) {
+      this.updateStats();
+      this.loadRecentMistakes();
+    }
+
+    if (window.firebaseUtils && window.firebaseUtils.initialized && window.currentUser) {
+      window.firebaseUtils.saveMistakeBank(
+        window.currentUser.uid,
+        this.mistakes,
+        this.schedule
+      );
+    }
+  }
+
+  // Words to highlight on the session summary screen: missed 2+ times and
+  // not yet cleared by a correct answer. Optionally scoped to one category
+  // (oet / school / bee) so the OET summary doesn't show Bee mistakes etc.
+  getFrequentlyMistaken(category, threshold = 2) {
+    return this.mistakes
+      .filter(m => (m.count || 1) >= threshold && !m.resolved && (!category || m.mode === category))
+      .sort((a, b) => (b.count || 0) - (a.count || 0));
+  }
+
+  // Words to fold into the NEXT practice session: anything due for spaced
+  // review, plus any other unresolved mistake, deduped and capped at `limit`.
+  getWordsForNextSession(category, limit = 8) {
+    const matchesCategory = m => !category || m.mode === category;
+    const due        = this.loadDueReviews().filter(matchesCategory);
+    const unresolved = this.mistakes.filter(m => !m.resolved && matchesCategory(m));
+
+    const seen = new Set();
+    const words = [];
+    [...due, ...unresolved].forEach(m => {
+      const key = m.word.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      words.push(m.word);
+    });
+    return words.slice(0, limit);
   }
 }
 
