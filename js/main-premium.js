@@ -1603,15 +1603,31 @@ function speakWord(word) {
     const voices = speechSynthesis.getVoices();
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect ? accentSelect.value : 'en-GB';
+    const retries = speakWord._retries || 0;
 
-    // Pick best available voice
+    // Pick best available voice. Edge (and some other browsers) list two
+    // kinds of voices: local/offline ones that work instantly, and
+    // "Online (Natural)" voices that stream audio from a cloud TTS service
+    // on every word — those are the ones that throw 'synthesis-failed' or
+    // 'network' errors when that round-trip hiccups (more common in
+    // InPrivate/incognito). We prefer local voices by default, and once a
+    // retry is underway we force a local voice so we're not just repeating
+    // the same failing online voice three times in a row.
     let match = null;
     if (voices.length > 0) {
       const langPrefix = accent.split('-')[0];
-      match = voices.find(v => v.lang === accent) ||
-              voices.find(v => v.lang.startsWith(langPrefix)) ||
-              voices.find(v => v.lang.startsWith('en')) ||
-              voices[0];
+      const pool = retries > 0
+        ? voices.filter(v => v.localService)   // retry: local voices only
+        : voices;
+
+      match = pool.find(v => v.lang === accent && v.localService) ||
+              pool.find(v => v.lang === accent) ||
+              pool.find(v => v.lang.startsWith(langPrefix) && v.localService) ||
+              pool.find(v => v.lang.startsWith(langPrefix)) ||
+              pool.find(v => v.lang.startsWith('en') && v.localService) ||
+              pool.find(v => v.lang.startsWith('en')) ||
+              pool[0] ||
+              voices[0]; // last-resort fallback if the local-only pool was empty
     }
 
     const utter = new SpeechSynthesisUtterance(word);
@@ -1633,11 +1649,11 @@ function speakWord(word) {
 
     utter.onerror = (event) => {
       if (event.error === 'canceled' || event.error === 'interrupted') return;
-      if (event.error === 'synthesis-failed') {
-        const retries = speakWord._retries || 0;
-        if (retries < 3) {
-          speakWord._retries = retries + 1;
-          console.warn('synthesis-failed — retry', retries + 1, 'in 1s');
+      if (event.error === 'synthesis-failed' || event.error === 'network') {
+        const r = speakWord._retries || 0;
+        if (r < 3) {
+          speakWord._retries = r + 1;
+          console.warn(event.error + ' — retry', r + 1, 'in 1s (forcing local voice)');
           setTimeout(() => speakWord(word), 1000);
         } else {
           speakWord._retries = 0;
