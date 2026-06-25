@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="color-scheme" content="light"/>
+  <meta name="theme-color" content="#3a0087"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Free Spelling Bee Practice — Voice Mode | SpellRightPro</title>
@@ -1215,11 +1216,17 @@
       utter.volume = 1;
       utter.lang   = 'en-GB';
 
+      // Prefer local (on-device) voices — avoids Chrome's known
+      // synthesis-failed bug with network-dependent voices
+      const ukFemale = voices.filter(v => v.lang === 'en-GB' && /female|hazel|susan|kate|zira/i.test(v.name));
+      const ukVoices = voices.filter(v => v.lang === 'en-GB');
+      const enVoices = voices.filter(v => v.lang.startsWith('en'));
+
       utter.voice =
-        voices.find(v => v.lang === 'en-GB' && /female|hazel|susan|kate|zira/i.test(v.name)) ||
-        voices.find(v => v.lang === 'en-GB') ||
-        voices.find(v => v.lang.startsWith('en')) ||
-        voices[0] || null;
+        ukFemale.find(v => v.localService) ||
+        ukVoices.find(v => v.localService) ||
+        enVoices.find(v => v.localService) ||
+        ukFemale[0] || ukVoices[0] || enVoices[0] || voices[0] || null;
 
       setFeedback('🔊 Listen carefully…');
 

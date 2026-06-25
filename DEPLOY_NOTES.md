@@ -324,3 +324,162 @@ This is confirmed **not to conflict** with the app's own dark mode toggle (the m
 - [ ] Open the app with the in-app dark mode OFF — confirm the homepage's "What SpellRightPro does" text is now visible
 - [ ] Toggle the in-app dark mode ON then OFF again inside the app — confirm both states still render correctly and the toggle itself still works exactly as before
 - [ ] Spot-check 2-3 other pages inside the app (trainer, freemium-school) to confirm no other previously-invisible text appears now that wasn't visible before
+
+---
+
+## Phase 2n — fixed: custom word upload panel stays open after switching OET ↔ School
+
+### Bug found
+There are two separate, independent toggles in the premium trainer's practice setup:
+1. `premSelectSource('app'|'custom', mode)` — controls whether the **upload/paste panel** is shown (this is the one fixed in Phase 2l's investigation, and was already working correctly on its own)
+2. `selectWordList('oet'|'school')` — controls which **built-in word list** (OET medical vs School curriculum) is active
+
+These two never talked to each other. If a user opened "Add My Words" (toggle #1 → panel visible), then switched between OET and School (toggle #2), the panel from toggle #1 stayed open indefinitely — because `selectWordList()` had no code resetting it. This is exactly the bug you reported: the upload area stays visible even when a built-in ("device") word list is selected.
+
+### Fix
+`selectWordList()` now calls `premSelectSource('app', 'practice')` at the very start, every time the user switches between OET and School. This resets the source toggle back to "Use App Words" and closes the upload/paste panel automatically — matching the same behavior that already correctly happens when switching between Practice and Bee modes (which calls `selectWordList('oet')` on return to Practice, and now inherits this same reset through that call).
+
+## What to test
+- [ ] Premium trainer → Practice tab → click "Add My Words" → panel opens
+- [ ] Click the School button (or OET button) → panel should now close automatically, "Use App Words" should become active again
+- [ ] Switch to Bee tab, then back to Practice → confirm the panel is still closed (was already working, confirming no regression)
+
+---
+
+## Phase 2o — REAL FIX: custom word panel visible even with "Use App Words" selected
+
+### The actual root cause, finally found
+Your screenshots showed it precisely: "Use App Words" highlighted as active, with the full textarea and upload UI still visible underneath. The previous fix (Phase 2n) addressed a genuine but different bug — it didn't explain this one, because this bug isn't about the OET/School toggle failing to reset the panel. It's that **the panel can never be hidden by JavaScript at all**, due to a CSS specificity conflict I hadn't checked.
+
+`css/premium.css` had its own leftover rule from an earlier design version:
+```
+.trainer-area.active .custom-words-area { display: block; }
+```
+This selector has higher specificity (0,3,0) than `trainer.html`'s own `.custom-words-area.open { display: block; }` (0,2,0). Since `.trainer-area` gets the `.active` class the instant a mode tab (Practice/Bee) is selected — completely independent of which word-source button is clicked — this rule **unconditionally forced the panel visible** the moment any practice mode loaded, regardless of whether `.open` was present or not. The `premSelectSource()` JavaScript was correctly adding/removing `.open` exactly as designed; it just had zero effect because this other, higher-priority rule didn't care about `.open` at all.
+
+### Fix
+Removed the conflicting `.trainer-area.active .custom-words-area` rule from `premium.css`. Visibility is now controlled by exactly one rule (`.custom-words-area.open` in `trainer.html`), with nothing else in the cascade able to override it.
+
+### Why Phase 2n's fix was still worth keeping
+That fix (auto-resetting the panel when switching OET ↔ School) addressed a real, separate gap in the reset logic. It's still correct and still needed — it just wasn't the cause of *this specific* screenshot, since the panel was never actually closeable in the first place until this CSS conflict is resolved.
+
+## What to test
+- [ ] Premium trainer → Practice tab loads → "Use App Words" should be active AND the textarea/upload section should be completely hidden by default
+- [ ] Click "Add My Words" → panel should appear
+- [ ] Click "Use App Words" again → panel should now correctly disappear (this was the broken behavior — confirm it's fixed)
+- [ ] Switch OET ↔ School → panel should stay closed / reset correctly per Phase 2n's fix
+
+---
+
+## Phase 2p — hardened fix: custom words panel (applies to ALL modes: OET, School, Bee)
+
+### Context
+You reported that after Phase 2o's fix, the panel-hiding behavior regressed across all three premium modes (it had only been reported for OET/School before). Traced this thoroughly:
+- Confirmed Bee has always shared the exact same `createCustomWordsUI()` / `premSelectSource()` code as OET/School since this system was first built — there's no separate bee-specific implementation that could have been broken differently.
+- Confirmed the Phase 2o CSS removal was surgically correct and didn't touch any other rule (`.trainer-area.active`, `.mode-btn.active`, `.oet-mode-btn.active` are all untouched and independent).
+- The most likely explanation: `/css/*` is cached for up to 1 hour (`Cache-Control: public, max-age=3600`), and the TWA's service worker adds a further stale-while-revalidate layer on top — so the Phase 2o fix may not have actually been live yet when re-tested, across any of the three modes.
+
+### Hardening applied this round
+To remove any remaining ambiguity or caching risk, added `!important` to both states of the rule directly in `trainer.html`'s own inline `<style>` block:
+```css
+.custom-words-area { display: none !important; }
+.custom-words-area.open { display: block !important; }
+```
+`!important` guarantees this exact rule wins regardless of specificity, load order, or any future rule added anywhere else in the codebase — closing off this entire class of bug permanently. Also removed the now-fully-redundant duplicate rule from `premium.css`, so there is exactly one place that controls this behavior, in `trainer.html` itself.
+
+## What to test (please test in an incognito/private window or after fully clearing cache, to rule out any stale-asset ambiguity)
+- [ ] Premium trainer → OET/School tab → confirm panel hidden by default, only "Use App Words" visible as active
+- [ ] Premium trainer → Bee tab → confirm same: panel hidden by default
+- [ ] Click "Add My Words" on each of the three modes → panel should appear
+- [ ] Click back to "Use App Words" on each → panel should now correctly disappear in all three
+
+---
+
+## Phase 2q — homepage text color consistency fix
+
+### What you flagged
+The new "What SpellRightPro does" homepage section used `#222` for its paragraph text, which is the site's global `body` default — but not the color actually used for *descriptive paragraph text inside cards* elsewhere on the same page. The mode-card descriptions ("Hands-free voice practice...", "Healthcare words...") use `#444`, and the subtitle above the mode chooser uses `#555`. Using `#222` made the new section's text visibly darker/heavier than its immediate neighbors, even though all three shades individually pass contrast requirements.
+
+### Fix
+Changed `.training-card p:not(.muted)` from `#222` to `#444`, matching the existing convention for descriptive card paragraph text. Verified this still passes WCAG AA at 9.74:1 contrast on white. Left `<strong>` labels at `#1a0050` (matching `.card-title`) since that's correct, deliberate emphasis — now reading clearly heavier than the `#444` body text around it, as bold text should. Confirmed the dark-mode pairing was already internally consistent and needed no change.
+
+## What to test
+- [ ] Homepage in light mode: the new section's paragraph text should now visually match the weight of the mode-card descriptions above it, not look darker/bolder than the rest of the page
+
+---
+
+## Phase 2q — text color consistency fix on homepage
+
+### What was wrong
+Good catch — the new homepage paragraph text used `#444` (light mode) / `#d8c8ee` (dark mode), neither of which matched any other body text already on the page. The site had actually accumulated several slightly different greys over time (`#222` on body, `#333` on the support container, `#444` on link-card descriptions, `#555` on `.muted`) — all individually passing contrast, but inconsistent with each other. My new section added yet another value instead of matching what was already established.
+
+### Fix
+Changed the new section's paragraph color to `#222` in light mode — the same color the page's own `body` element already declares as its default — and `#b09ad0` in dark mode, matching `.muted` (the existing color used for the mode chooser's subtitle text). Both choices are now visually identical to text elsewhere on the same page, not a new shade.
+
+Confirmed contrast remains well above WCAG AA in both modes: 15.91:1 light, 7.17:1 dark.
+
+---
+
+## Phase 2r — PrimeTestLab Issues #2 and #3 (Issue #1 / Suggestion #1 are NOT in these files)
+
+### Issue #3 — status bar / navigation bar don't match app theme (FIXED)
+**Root cause:** Zero pages had a `<meta name="theme-color">` tag. `manifest.json` declares `theme_color: #7b2ff7` correctly, but that only controls the PWA splash screen — it doesn't reliably theme the live status/navigation bar while navigating between pages with different backgrounds, which Android 16's edge-to-edge default makes very visible.
+
+**Fix:** Added a `<meta name="theme-color">` tag to all 27 real pages, each matching that specific page's actual dominant background color rather than one hardcoded value everywhere — purple gradient pages get `#7b2ff7`/`#3a0087`, white-card content pages (terms, privacy, contact, legal pages) get `#ffffff`/`#faf8ff`, etc. Android reads this and automatically chooses light or dark status bar icons based on the color's luminance — no separate icon-contrast setting needed.
+
+### Issue #2 — keyboard emoji instead of a modern icon (LIKELY FIXED)
+**Found:** "✏️ Type your spelling here" — the pencil emoji label sitting directly beside the keyboard/write toggle buttons (which already correctly use Font Awesome's `fa-keyboard` vector icon). This emoji-next-to-vector-icon mismatch in the same UI region is the most likely match for what was reported, even though I couldn't find a literal keyboard-shaped emoji character anywhere in the codebase — it may have rendered differently on the test device's specific font/emoji set than it does here.
+
+**Fix:** Replaced both emoji-prefixed labels ("✏️ Type your spelling here" / "✍️ Write your spelling here") with proper Font Awesome icons (`fa-keyboard` / `fa-pen-nib`) across `trainer.html`, `freemium-school.html`, `freemium-oet.html`, and the shared `hw-canvas.js` module that updates this label dynamically when toggling input modes.
+
+**Broader note:** the codebase uses emoji as inline icons extensively (25+ files). I did not do a full sweep replacing every one — that would be a large, separate undertaking. This fix targets the specific spot most likely to match the report.
+
+### Issue #1 / Suggestion #1 — onboarding overlay (NOT FOUND — likely outside these files)
+Searched the entire web codebase for "Skip" buttons, "Don't show this again" checkboxes, onboarding overlays, tours, and walkthroughs. Found none. This strongly suggests the onboarding screen the tester saw is implemented in the **native Android TWA wrapper project** (a separate Android Studio / Bubblewrap project that generates the actual installable APK), not in this website's HTML/CSS/JS. I don't have access to that project, so I can't fix this from here. If you have access to that Android project, the fix per the report is: add proper margin/padding around the Skip button and "Don't show this again" checkbox, and apply responsive layout constraints. Suggestion #1 (moving onboarding to its own screen entirely) would need to be implemented there too.
+
+### Suggestion #2 — app bar crowding (NOT ADDRESSED — optional, needs your direction)
+This is explicitly optional per the report and requires a product decision about which controls are "less frequently used" before any code change makes sense. Flagging it here rather than guessing what to move.
+
+## What to test
+- [ ] On Android 16 (or any modern Android), open the app and navigate between a purple page (trainer) and a white page (terms/privacy) — confirm the status bar color changes to match each page
+- [ ] Check the "Write/Type your spelling here" label on premium trainer, freemium school, and freemium OET — should now show a clean vector icon, not an emoji
+
+---
+
+## Phase 2r — speech synthesis reliability fix (no sound / synthesis-failed errors)
+
+### What the console showed
+Your screenshot's console log showed: `Auth check timed out after 8s` (our own deliberate safety-net message, working as designed), followed by 6 `synthesis-failed — retry` warnings, ending in `Could not speak — type: Spiders` — the graceful text fallback also working as designed. Also visible: `Failed to load resource: net::ERR_BLOCKED_BY_CLIENT` for Google Analytics — this is just an ad blocker or browser privacy feature blocking analytics, completely unrelated and harmless.
+
+### Root cause: a known Chrome bug, not a code defect
+Confirmed via Chromium's own public bug tracker (issue #374263394): some of Chrome's built-in voices are not fully on-device — they fetch their actual audio from a remote Google server at speak-time. If that network request is blocked, slow, or restricted (ad blockers, private/incognito browsing, content blockers, flaky connections), `speechSynthesis.speak()` either hangs or throws exactly the `synthesis-failed` error seen in your console. This has been an open, widely-reported Chrome issue since version 130 and is outside what any website's code can directly fix — it can only be worked around.
+
+### Fix applied
+Every voice-selection function across the app (`main-premium.js`, `freemium-oet.html`, `freemium-school.html`, `freemium-bee.html`) now checks each candidate voice's `localService` property and prefers genuinely on-device voices first, only falling back to network-dependent voices if no local voice exists at all for that language. Local voices don't have this failure mode, so this sidesteps the bug rather than trying to fix Chrome itself.
+
+### What this does NOT fix
+If a device has zero local voices installed for English (rare, but possible on some minimal Android configurations), or if the network block is broad enough to affect literally everything, speech could still occasionally fail — in which case the existing retry-then-fallback-to-text behavior (already working in your screenshot) takes over, so the user is never stuck with no feedback at all.
+
+## What to test
+- [ ] Test voice playback in a normal (non-InPrivate) browser window with no ad blocker — should be unaffected either way, but worth confirming
+- [ ] Test in InPrivate/incognito mode again after this fix — synthesis-failed retries should be far less frequent or absent, since local voices avoid the network dependency entirely
+
+---
+
+## Phase 2s — CRITICAL FIX: spelling word was leaked before marking (premium OET/School)
+
+### Bug confirmed — genuinely serious
+You're right to flag this. When speech synthesis failed 3 times in a row (the Chrome bug fixed in Phase 2r), the fallback message in `main-premium.js` literally printed the answer on screen before the user typed anything: `🔇 Listen: "Spiders" — type it below`. This completely defeats the purpose of a spelling test — the user just copies what's already shown instead of recalling the spelling.
+
+### Audited the entire codebase for the same pattern
+Checked every file for any place a word gets written to a visible element before the answer is checked:
+- `main-premium.js` line 1622 — **the actual bug**, now fixed
+- `main-premium.js` line 1770 — confirmed correct: this only fires inside the incorrect-answer branch, after the user's answer has already been compared, so revealing the correct spelling at that point is appropriate
+- `freemium-oet.html`'s `updateWordDisplay(reveal=true)` — confirmed correct: the only `reveal=true` call site is inside `checkAnswer()`, after the answer is captured and compared
+- `freemium-school.html`, `freemium-bee.html` — their own synthesis-failed fallback messages never included the word at all; no leak existed there
+
+### Fix
+The synthesis-failed fallback now says `🔇 Audio failed — tap "Say Again" to retry` instead of revealing the word. The existing "Say Again" button already calls `speakWord(word)` directly, so the user has a real way to retry hearing the word — they're just never shown the answer outright.
+
+## What to test
+- [ ] Force a TTS failure (e.g. block network requests in DevTools, or test in a restrictive private browsing session) — confirm the feedback message no longer reveals the word, and tapping "Say Again" successfully retries the audio
