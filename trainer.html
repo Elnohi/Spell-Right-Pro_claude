@@ -360,6 +360,50 @@
     body.dark-mode .correct-words h4   { color:#86efac; }
     body.dark-mode .flagged-words h4   { color:#fcd34d; }
 
+    /* ── Mini progress chart (summary screen) ── */
+    .progress-mini-chart {
+      background:var(--surface2); border:1px solid var(--border); border-radius:12px;
+      padding:14px 16px; margin:0 0 20px;
+    }
+    .progress-mini-chart h4 {
+      margin:0 0 6px; font-size:0.9rem; font-weight:700; color:var(--text);
+      display:flex; align-items:center; gap:7px;
+    }
+    .progress-mini-chart h4 i { color:var(--brand); }
+    .progress-saved-note {
+      font-size:0.75rem; color:var(--muted); margin-top:8px;
+      display:flex; align-items:center; gap:6px;
+    }
+    .progress-saved-note i { color:#22c55e; }
+
+    /* ── Frequently Mistaken Words (persists across sessions) ── */
+    .frequently-mistaken-words {
+      margin:20px 0; padding:16px 18px; border-radius:12px;
+      background:#fff7ed; border:1px solid rgba(249,115,22,0.35);
+    }
+    .frequently-mistaken-words h4 {
+      margin:0 0 12px; font-size:0.95rem; font-weight:700; color:#c2410c;
+      display:flex; align-items:center; gap:8px;
+    }
+    .frequently-mistaken-words .word-item { border-left:3px solid #f97316; }
+    .frequently-mistaken-words .miss-count {
+      font-size:0.75rem; opacity:0.65; margin-left:6px; white-space:nowrap;
+    }
+    .fmw-hint { margin:10px 0 0; font-size:0.76rem; color:var(--muted); }
+    body.dark-mode .frequently-mistaken-words { background:rgba(249,115,22,0.12); border-color:rgba(249,115,22,0.4); }
+    body.dark-mode .frequently-mistaken-words h4 { color:#fdba74; }
+
+    /* ── Session-summary action buttons ── */
+    .session-actions {
+      display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;
+    }
+    .session-actions .btn-sec { flex:1; min-width:130px; }
+    .session-actions .btn-submit-answer { flex:1.4; min-width:170px; }
+    @media (max-width:480px) {
+      .session-actions { flex-direction:column; }
+      .session-actions .btn-sec, .session-actions .btn-submit-answer { flex:1; min-width:0; }
+    }
+
     .word-list {
       display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
       gap:8px;
