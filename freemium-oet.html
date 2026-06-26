@@ -175,8 +175,6 @@
       justify-content: space-between;
       align-items: center;
       padding-bottom: 16px;
-      cursor: pointer;
-      user-select: none;
     }
     .setup-title {
       font-size: 0.78rem;
@@ -189,18 +187,6 @@
       gap: 7px;
     }
     .setup-title i { color: var(--brand); font-size: 0.9rem; }
-    .setup-toggle {
-      font-size: 0.75rem;
-      color: var(--brand);
-      font-weight: 600;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 4px 10px;
-      cursor: pointer;
-      transition: all .2s;
-    }
-    .setup-toggle:hover { background: rgba(123,47,247,.12); }
 
     .setup-body { padding-bottom: 20px; }
 
@@ -708,11 +694,10 @@
          SETUP PANEL
     ══════════════════════════════════════════════════════ -->
     <div id="setupPanel">
-      <div class="setup-header" onclick="toggleSetup()">
+      <div class="setup-header">
         <span class="setup-title">
           <i class="fa fa-cog"></i> Practice Setup
         </span>
-        <span class="setup-toggle" id="setupToggleBtn">▲ Hide</span>
       </div>
 
       <div class="setup-body" id="setupBody">
@@ -1024,7 +1009,7 @@ const firebaseConfig = {
       end: document.getElementById('btnEnd'),
       progress: document.getElementById('progress'),
       feedback: document.getElementById('feedback'),
-      summaryArea: document.getElementById('summaryArea'),
+      summaryArea: document.querySelector('.summary-area'),
       accentSelect: document.getElementById('oetAccent'),
       customBox: document.getElementById('customWords'),
       useCustom: document.getElementById('useCustomList'),
@@ -1776,18 +1761,13 @@ const firebaseConfig = {
     }
     
 
-    // ── Setup panel toggle ─────────────────────────────────────────────────
-    window.toggleSetup = function(forceCollapse) {
+    // ── Setup panel auto-collapse (one-way — no manual re-expand) ───────────
+    // The panel collapses automatically once a session starts, to keep
+    // focus on the active word. There is no toggle button to reopen it;
+    // it resets to expanded only when the page is reloaded.
+    window.toggleSetup = function() {
       const panel = document.getElementById('setupPanel');
-      const btn   = document.getElementById('setupToggleBtn');
-      const collapsed = panel.classList.contains('collapsed');
-      if (forceCollapse === true || !collapsed) {
-        panel.classList.add('collapsed');
-        if (btn) btn.textContent = '▼ Show setup';
-      } else {
-        panel.classList.remove('collapsed');
-        if (btn) btn.textContent = '▲ Hide';
-      }
+      if (panel) panel.classList.add('collapsed');
     };
 
     function activateSessionUI() {
