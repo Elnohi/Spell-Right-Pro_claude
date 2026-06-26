@@ -894,9 +894,9 @@ const firebaseConfig = {
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
       
-      // Only initialize analytics if cookies accepted
+      // Only initialize analytics if cookies accepted AND the analytics SDK is loaded
       const consent = localStorage.getItem('cookieConsent');
-      if (consent === 'true') {
+      if (consent === 'true' && typeof firebase.analytics === 'function') {
         firebase.analytics();
         console.log('📊 Firebase Analytics initialized');
       }
@@ -1158,8 +1158,8 @@ const firebaseConfig = {
         utterance.volume = 1;
         
         const accent = elements.accentSelect ? elements.accentSelect.value : 'en-US';
-        utterance.lang = accent;
-        
+        utterance.lang = accent; // default — corrected below once a voice is chosen
+
         const voices = speechSynthesis.getVoices();
         if (voices.length > 0) {
           // Prefer local (on-device) voices — avoids Chrome's known
@@ -1170,6 +1170,13 @@ const firebaseConfig = {
                         anyEnglish.find(v => v.localService) ||
                         exactLang[0] || anyEnglish[0] || voices[0];
           utterance.voice = voice;
+          // Critical: keep utterance.lang in sync with the voice actually
+          // assigned. If no exact 'en-GB' voice exists and we fall back to
+          // an 'en-US' (or other) voice, utterance.lang must match that
+          // voice's real lang — leaving it mismatched (e.g. lang='en-GB'
+          // paired with an en-US voice) causes some speech engines to
+          // throw a generic, uninformative error instead of speaking.
+          if (voice) utterance.lang = voice.lang;
         }
         
         utterance.onend = () => {
@@ -1814,7 +1821,19 @@ const firebaseConfig = {
       setTimeout(() => {
         showCookieBanner();
       }, 1500);
-      
+
+      // Warm up speech synthesis voices early. Chrome/Edge load the voice
+      // list asynchronously in the background — calling getVoices() once
+      // on page load (and again when onvoiceschanged fires) ensures the
+      // list is populated well before the user taps Start, instead of
+      // speakWord() hitting an empty array on the very first call.
+      if (window.speechSynthesis) {
+        speechSynthesis.getVoices();
+        speechSynthesis.onvoiceschanged = () => {
+          console.log('Voices loaded:', speechSynthesis.getVoices().length);
+        };
+      }
+
       updateFeedback('Ready! Click "Start" to begin your OET spelling practice.');
       console.log('✅ OET Spelling Test initialized successfully');
     }
@@ -1930,19 +1949,11 @@ const firebaseConfig = {
       });
     }
   });
-  
+
   // Monitor errors
   window.addEventListener('error', function(e) {
-  if (typeof gtag !== 'undefined' && e.error)
-    gtag('event', 'exception', { description: e.error.message, fatal: false });
-});
-    
-    // Send to error tracking service
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'exception', {
-        description: e.error.message,
-        fatal: false
-      });
+    if (typeof gtag !== 'undefined' && e.error) {
+      gtag('event', 'exception', { description: e.error.message, fatal: false });
     }
   });
 </script>
