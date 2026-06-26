@@ -2121,7 +2121,7 @@ window.OET_WORDS = [
   "Gassy",
   "Hepatitis B",
   "High-fat",
-  "Highly strung",
+  "High strung",
   "Paint factory",
   "School breaks"
 ];
