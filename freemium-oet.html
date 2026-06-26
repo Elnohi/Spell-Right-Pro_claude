@@ -6,22 +6,22 @@
   <meta name="theme-color" content="#3a0087"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Free OET Spelling Practice — 1,511 Medical Words | SpellRightPro</title>
-  <meta name="description" content="Practice OET medical spelling with 1,511 curated healthcare words. Real-time marking, British/Australian/American accents, exam simulation mode. Free — no signup needed." />
+  <title>Free OET Spelling Practice — 1,635 Medical Words | SpellRightPro</title>
+  <meta name="description" content="Practice OET medical spelling from a 1,635-word curated list. One free 24-word exam-style session per day, real-time marking, British/Australian/American accents. Free — no signup needed." />
   <meta name="keywords" content="OET spelling practice, OET medical vocabulary, occupational english test spelling, medical English spelling, OET preparation" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://spellrightpro.org/freemium-oet" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Free OET Spelling Practice — 1,511 Medical Words" />
-  <meta property="og:description" content="1,511 OET medical words with real-time spelling feedback. Prepare for the Occupational English Test with our free spelling trainer." />
+  <meta property="og:title"       content="Free OET Spelling Practice — 1,635 Medical Words" />
+  <meta property="og:description" content="One free 24-word exam-style OET spelling session per day, drawn from 1,635 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
   <meta property="og:url"         content="https://spellrightpro.org/freemium-oet" />
   <meta property="og:image"       content="https://spellrightpro.org/assets/og-image.png" />
   <meta property="og:site_name"   content="SpellRightPro" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:title"       content="Free OET Spelling Practice — 1,511 Medical Words" />
-  <meta name="twitter:description" content="1,511 OET medical words with real-time spelling feedback. Prepare for the Occupational English Test with our free spelling trainer." />
+  <meta name="twitter:title"       content="Free OET Spelling Practice — 1,635 Medical Words" />
+  <meta name="twitter:description" content="One free 24-word exam-style OET spelling session per day, drawn from 1,635 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
   <meta name="twitter:image"       content="https://spellrightpro.org/assets/og-image.png" />
 
   <link rel="stylesheet" href="/css/styles.css" />
@@ -29,6 +29,7 @@
   
   <!-- FIREBASE SDKs -->
   <script src="/js/config.js"></script>
+  <script src="/js/oet_word_list.js"></script>
   <script src="/js/hw-canvas.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -734,7 +735,7 @@
           <button class="source-btn active" id="btnUseApp" onclick="selectSource('app')">
             <i class="fa fa-book-open"></i>
             <strong>Use App Words</strong>
-            <small>1,511 built-in words</small>
+            <small>24 random exam words/day</small>
           </button>
           <button class="source-btn" id="btnUseCustom" onclick="selectSource('custom')">
             <i class="fa fa-pen"></i>
@@ -746,7 +747,7 @@
         <!-- App words hint (shown when app words selected) -->
         <div class="app-word-hint" id="appWordHint">
           <i class="fa fa-check-circle"></i>
-          <span>Full OET medical word list ready — just press <strong>Start</strong> below.</span>
+          <span>24 random exam-style words from our 1,635-word OET list — your one free practice today. <strong>Press Start below.</strong></span>
         </div>
 
         <!-- Custom words panel (hidden until user chooses "Add My Words") -->
@@ -954,10 +955,10 @@ const firebaseConfig = {
     applyFreemiumLimitations: function() {
       // Freemium limitations for OET
       const maxCustomWords = 50; // Freemium limit
-      const maxSessionWords = 100; // Freemium limit
-      
-      console.log(`🎯 Freemium mode: Max ${maxCustomWords} custom words, ${maxSessionWords} words per session`);
-      
+      const examWords = 24; // Built-in word list is always a 24-word random exam, once/day
+
+      console.log(`🎯 Freemium mode: Max ${maxCustomWords} custom words, ${examWords}-word exam once per day`);
+
       // Apply word count limitations
       this.limitCustomWords(maxCustomWords);
     },
@@ -984,36 +985,10 @@ const firebaseConfig = {
       premiumFeatures.forEach(feature => {
         feature.style.display = 'none';
       });
-      
-      // Add upgrade prompts
-      this.addUpgradePrompts();
-    },
-    
-    addUpgradePrompts: function() {
-      // Add upgrade message after summary
-      const summaryArea = document.getElementById('summaryArea');
-      if (summaryArea) {
-        const upgradeHTML = `
-          <div style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #7b2ff7, #f72585); border-radius: 10px; color: white;">
-            <h4 style="margin: 0 0 10px 0;">🚀 Want More Features?</h4>
-            <p style="margin: 0 0 15px 0; font-size: 0.9em;">
-              Upgrade to Premium for:<br>
-              • Unlimited custom words<br>
-              • No ads<br>
-              • Progress tracking<br>
-              • Advanced analytics<br>
-              • All accents unlocked
-            </p>
-            <button onclick="window.location.href='/premium'" 
-              style="background: white; color: #7b2ff7; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
-              <i class="fa fa-crown"></i> Upgrade Now
-            </button>
-          </div>
-        `;
-        
-        // Store the HTML to add later
-        window.premiumUpgradeHTML = upgradeHTML;
-      }
+      // Note: the upgrade prompt is built by endSession() once the user
+      // actually completes their free 24-word exam — not here on page load,
+      // which previously caused a duplicate banner to appear in the hidden
+      // summaryArea before any session had even started.
     },
     
     initializeAds: function() {
@@ -1050,8 +1025,6 @@ const firebaseConfig = {
       progress: document.getElementById('progress'),
       feedback: document.getElementById('feedback'),
       summaryArea: document.getElementById('summaryArea'),
-      tabExam: document.getElementById('tabExam'),
-      tabPractice: document.getElementById('tabPractice'),
       accentSelect: document.getElementById('oetAccent'),
       customBox: document.getElementById('customWords'),
       useCustom: document.getElementById('useCustomList'),
@@ -1059,33 +1032,19 @@ const firebaseConfig = {
       revealedWord: document.getElementById('revealedWord')
     };
     
-    // Full OET Medical Words List (100+ words)
-    const OET_WORDS = [
-      'abdomen', 'anemia', 'antibiotic', 'artery', 'asthma', 'biopsy', 'catheter', 
-      'diagnosis', 'embolism', 'fracture', 'gastroenterology', 'hemorrhage', 'intravenous', 
-      'jaundice', 'kidney', 'laceration', 'membrane', 'neurology', 'obstetrics', 'pulmonary',
-      // Additional medical terms
-      'abdominal', 'acute', 'allergy', 'antibody', 'antigen', 'arthritis', 'bacteria',
-      'benign', 'bronchitis', 'carcinoma', 'cardiology', 'cerebral', 'chronic',
-      'clinical', 'complication', 'congenital', 'contagious', 'contusion', 'cortex',
-      'dementia', 'dermatology', 'diabetes', 'diagnostic', 'dialysis', 'diarrhea',
-      'dislocation', 'dysfunction', 'dyspnea', 'eczema', 'edema', 'encephalitis',
-      'endocarditis', 'endoscopy', 'epidemic', 'epilepsy', 'erosion', 'excision',
-      'febrile', 'fistula', 'gastritis', 'genetics', 'geriatrics', 'gynecology',
-      'hematology', 'hepatitis', 'hernia', 'hormone', 'hypertension', 'hypotension',
-      'immunity', 'incision', 'infarction', 'inflammation', 'influenza', 'injection',
-      'ischemia', 'lesion', 'leukemia', 'ligament', 'malignant', 'meningitis',
-      'metabolism', 'metastasis', 'microbiology', 'migraine', 'morbidity', 'mortality',
-      'myocardial', 'nausea', 'neonatal', 'nephrology', 'neural', 'neuropathy',
-      'nutrition', 'obesity', 'oncology', 'ophthalmology', 'orthopedics', 'osteoporosis',
-      'otolaryngology', 'palliative', 'pancreas', 'paralysis', 'pathology', 'pediatrics',
-      'pharmacology', 'pharynx', 'physiology', 'pneumonia', 'prognosis', 'prophylaxis',
-      'psychiatry', 'pulmonary', 'radiology', 'rehabilitation', 'remission', 'resection',
-      'respiratory', 'rheumatology', 'sarcoma', 'sepsis', 'symptom', 'syndrome',
-      'therapy', 'thrombosis', 'trachea', 'trauma', 'tumor', 'ulcer', 'urinary',
-      'vaccine', 'vascular', 'ventricle', 'vertebra', 'virology', 'virus', 'vital'
+    // Word list comes from the shared /js/oet_word_list.js (window.OET_WORDS,
+    // 1,635 words) — loaded as a <script> tag above, not duplicated here.
+    // Falls back to a small built-in list only if that file fails to load.
+    const FALLBACK_OET_WORDS = [
+      'abdomen', 'anemia', 'antibiotic', 'artery', 'asthma', 'biopsy', 'catheter',
+      'diagnosis', 'embolism', 'fracture', 'hemorrhage', 'intravenous', 'jaundice',
+      'kidney', 'laceration', 'membrane', 'neurology', 'obstetrics', 'pulmonary',
+      'hypertension', 'inflammation', 'prognosis', 'symptom', 'syndrome', 'therapy'
     ];
-    
+    const OET_WORDS = (typeof window.OET_WORDS !== 'undefined' && window.OET_WORDS.length > 0)
+      ? window.OET_WORDS
+      : FALLBACK_OET_WORDS;
+
     // Remove duplicates
     const UNIQUE_OET_WORDS = [...new Set(OET_WORDS)];
     
@@ -1097,7 +1056,6 @@ const firebaseConfig = {
       incorrect: [],
       flags: new Set(),
       isActive: false,
-      isExam: false,
       history: [],
       currentWord: ''
     };
@@ -1331,14 +1289,11 @@ const firebaseConfig = {
           updateFeedback(`Using custom list: ${words.length} words`);
         }
       } else {
-        if (state.isExam) {
-          const shuffled = [...UNIQUE_OET_WORDS].sort(() => Math.random() - 0.5);
-          state.words = shuffled.slice(0, 24);
-          updateFeedback(`✅ Exam mode: ${state.words.length} random words`);
-        } else {
-          state.words = [...UNIQUE_OET_WORDS].slice(0, 100); // Freemium limit
-          updateFeedback(`Practice mode: ${state.words.length} words (freemium limit)`);
-        }
+        // Freemium OET is always 24 random exam-style words, once per day.
+        // The old 100-word "practice mode" path has been removed.
+        const shuffled = [...UNIQUE_OET_WORDS].sort(() => Math.random() - 0.5);
+        state.words = shuffled.slice(0, 24);
+        updateFeedback(`✅ ${state.words.length} random exam-style words — today's free practice`);
       }
       
       if (state.words.length === 0) {
@@ -1473,22 +1428,24 @@ const firebaseConfig = {
         </div>
       `;
       
-      // Add premium upgrade prompt
+      // Add premium upgrade prompt — explicitly tied to completing today's
+      // 24-word free exam, since that's now the only thing freemium offers
       summaryHTML += `
-        <div style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #7b2ff7, #f72585); border-radius: 10px; color: white;">
-          <h4 style="margin: 0 0 10px 0;">🚀 Want More Features?</h4>
-          <p style="margin: 0 0 15px 0; font-size: 0.9em;">
-            Upgrade to Premium for:<br>
-            • Unlimited custom words<br>
-            • No ads<br>
-            • Progress tracking<br>
-            • Advanced analytics<br>
-            • All accents unlocked
+        <div style="margin-top: 20px; padding: 18px; background: linear-gradient(135deg, #7b2ff7, #f72585); border-radius: 10px; color: white; text-align: center;">
+          <h4 style="margin: 0 0 8px 0; font-size: 1.1rem;">🎉 You've completed today's free 24-word exam!</h4>
+          <p style="margin: 0 0 15px 0; font-size: 0.92em; opacity: 0.95;">
+            Subscribe to Premium for <strong>unlimited practice, every day</strong> — drawn from all
+            1,635 OET medical words, not just 24:<br>
+            • Unlimited daily sessions • Full 1,635-word list • No ads<br>
+            • Progress tracking &amp; mistake review • All accents unlocked
           </p>
-          <button onclick="window.location.href='/premium'" 
-            style="background: white; color: #7b2ff7; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
-            <i class="fa fa-crown"></i> Upgrade Now
+          <button onclick="window.location.href='/premium'"
+            style="background: white; color: #7b2ff7; border: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer;">
+            <i class="fa fa-crown"></i> Subscribe Now — Unlock Unlimited Practice
           </button>
+          <p style="margin: 12px 0 0; font-size: 0.78rem; opacity: 0.85;">
+            Come back tomorrow for another free 24-word exam, or upgrade now for unlimited access today.
+          </p>
         </div>
       `;
       
@@ -1517,7 +1474,6 @@ const firebaseConfig = {
         correct: state.correct,
         incorrect: state.incorrect,
         flags: Array.from(state.flags),
-        isExam: state.isExam,
         timestamp: Date.now()
       };
       localStorage.setItem('oet_progress', JSON.stringify(progress));
@@ -1542,8 +1498,7 @@ const firebaseConfig = {
         state.correct = progress.correct || [];
         state.incorrect = progress.incorrect || [];
         state.flags = new Set(progress.flags || []);
-        state.isExam = progress.isExam || false;
-        
+
         if (state.words.length > 0 && state.currentIndex < state.words.length) {
           const resume = confirm(`You have an incomplete session.\nResume from word ${state.currentIndex + 1} of ${state.words.length}?`);
           if (resume) {
@@ -1727,25 +1682,7 @@ const firebaseConfig = {
           }
         });
       }
-      
-      if (elements.tabExam) {
-        elements.tabExam.addEventListener('click', () => {
-          state.isExam = true;
-          elements.tabExam.classList.add('active');
-          if (elements.tabPractice) elements.tabPractice.classList.remove('active');
-          updateFeedback('Exam mode selected - 24 random words');
-        });
-      }
-      
-      if (elements.tabPractice) {
-        elements.tabPractice.addEventListener('click', () => {
-          state.isExam = false;
-          elements.tabPractice.classList.add('active');
-          if (elements.tabExam) elements.tabExam.classList.remove('active');
-          updateFeedback('Practice mode selected - all words');
-        });
-      }
-      
+
       if (elements.useCustom) {
         elements.useCustom.addEventListener('click', () => {
           const customText = elements.customBox ? elements.customBox.value.trim() : '';
@@ -2131,26 +2068,25 @@ const firebaseConfig = {
 
 <script>
 // ── Daily session limit system ───────────────────────────────────────────────
-// Shared across all freemium pages via localStorage
-// Keys:
-//   srp_daily_date     — today's date string (YYYY-MM-DD)
-//   srp_daily_count    — sessions completed today
-//   srp_daily_module   — which module (school/oet/bee)
+// localStorage keys are scoped per-module (srp_daily_count_oet, _school, _bee)
+// so a session on one freemium page never counts against another's daily limit.
 
 window.srpLimit = (function() {
 
-  var FREE_SESSIONS_PER_DAY = 3;
+  var MODULE = 'oet';
+  var FREE_SESSIONS_PER_DAY = 1; // OET freemium: exactly one 24-word exam per day
 
-  // Word counts per module
+  // Word counts — reflects the real oet_word_list.js (1,635 words) and the
+  // fixed 24-word random exam given per free session (no more "100 words").
   var TOTAL_WORDS = {
     school: 1200,
-    oet:    1627,
+    oet:    1635,
     bee:    500
   };
 
   var FREE_WORDS = {
     school: 50,
-    oet:    50,
+    oet:    24,
     bee:    25
   };
 
@@ -2158,18 +2094,21 @@ window.srpLimit = (function() {
     return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   }
 
+  function countKey() { return 'srp_daily_count_' + MODULE; }
+  function dateKey()  { return 'srp_daily_date_'  + MODULE; }
+
   function getCount() {
-    if (localStorage.getItem('srp_daily_date') !== todayStr()) {
+    if (localStorage.getItem(dateKey()) !== todayStr()) {
       // New day — reset counter
-      localStorage.setItem('srp_daily_date',  todayStr());
-      localStorage.setItem('srp_daily_count', '0');
+      localStorage.setItem(dateKey(),  todayStr());
+      localStorage.setItem(countKey(), '0');
     }
-    return parseInt(localStorage.getItem('srp_daily_count') || '0');
+    return parseInt(localStorage.getItem(countKey()) || '0');
   }
 
   function increment() {
     var n = getCount() + 1;
-    localStorage.setItem('srp_daily_count', n);
+    localStorage.setItem(countKey(), n);
     return n;
   }
 
@@ -2270,7 +2209,7 @@ window.srpLimit = (function() {
 
       // Small print
       '<p style="font-size:0.72rem;color:var(--muted,#7b6f8a);margin:12px 0 0;">' +
-      '3 free sessions per day &nbsp;&#183;&nbsp; Resets at midnight' +
+      '1 free 24-word exam per day &nbsp;&#183;&nbsp; Resets at midnight' +
       '</p>' +
 
       '</div></div>';
