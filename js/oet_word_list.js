@@ -2112,5 +2112,16 @@ window.OET_WORDS = [
   "Wrist splint",
   "Yoga glasses",
   "Zika",
-  "Zolpidem tartrate"
+  "Zolpidem tartrate",
+  "Aqueous cream",
+  "Bleeding",
+  "Change germs",
+  "Cracked and dry",
+  "Full",
+  "Gassy",
+  "Hepatitis B",
+  "High-fat",
+  "Highly strung",
+  "Paint factory",
+  "School breaks"
 ];
