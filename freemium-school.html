@@ -857,7 +857,7 @@ const firebaseConfig = {
       firebase.initializeApp(firebaseConfig);
       
       const consent = localStorage.getItem('cookieConsent');
-      if (consent === 'true') {
+      if (consent === 'true' && typeof firebase.analytics === 'function') {
         firebase.analytics();
         console.log('📊 Firebase Analytics initialized');
       }
@@ -1635,7 +1635,17 @@ const firebaseConfig = {
       setTimeout(() => {
         showCookieBanner();
       }, 1500);
-      
+
+      // Warm up speech synthesis voices early — see freemium-oet.html for
+      // the full explanation. Prevents getVoices() returning an empty
+      // array on the very first speakWord() call.
+      if (window.speechSynthesis) {
+        speechSynthesis.getVoices();
+        speechSynthesis.onvoiceschanged = () => {
+          console.log('Voices loaded:', speechSynthesis.getVoices().length);
+        };
+      }
+
       updateFeedback('Ready! Click "Start" to begin your school spelling practice.');
       console.log('✅ School Spelling Practice initialized successfully');
     }
@@ -1750,19 +1760,11 @@ const firebaseConfig = {
       });
     }
   });
-  
+
   // Monitor errors
   window.addEventListener('error', function(e) {
-  if (typeof gtag !== 'undefined' && e.error)
-    gtag('event', 'exception', { description: e.error.message, fatal: false });
-});
-    
-    // Send to error tracking service
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'exception', {
-        description: e.error.message,
-        fatal: false
-      });
+    if (typeof gtag !== 'undefined' && e.error) {
+      gtag('event', 'exception', { description: e.error.message, fatal: false });
     }
   });
 </script>
@@ -1824,7 +1826,7 @@ const firebaseConfig = {
   <a href="/freemium-bee" class=""><i class="fa fa-deaf"></i>Bee</a>
   <a href="/premium" class=""><i class="fa fa-crown"></i>Premium</a>
 </nav>
-  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
+  <script src="/js/sw-register.js"></script>
 
 <script>
   // ── Word source selector ────────────────────────────────────────────────────

@@ -267,9 +267,7 @@
       document.getElementById('cookieConsentBanner').style.display = 'none';
     }
     document.addEventListener('DOMContentLoaded', showCookieBanner);
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
   </script>
+  <script src="/js/sw-register.js"></script>
 </body>
 </html>
