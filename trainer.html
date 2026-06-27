@@ -1224,10 +1224,8 @@
     apply();
   })();
 
-  // ── Service Worker ───────────────────────────────────────────────────────
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  }
+  <!-- ── Service Worker registration + update handling — see /js/sw-register.js ── -->
+  <script src="/js/sw-register.js"></script>
 
   // ── OET mode buttons — direct listeners (bypass onclick reliability issues)
   document.addEventListener('DOMContentLoaded', function() {
