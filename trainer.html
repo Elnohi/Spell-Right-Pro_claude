@@ -1223,10 +1223,12 @@
     });
     apply();
   })();
+</script>
 
-  <!-- ── Service Worker registration + update handling — see /js/sw-register.js ── -->
-  <script src="/js/sw-register.js"></script>
+<!-- ── Service Worker registration + update handling — see /js/sw-register.js ── -->
+<script src="/js/sw-register.js"></script>
 
+<script>
   // ── OET mode buttons — direct listeners (bypass onclick reliability issues)
   document.addEventListener('DOMContentLoaded', function() {
     var testBtn      = document.getElementById('oetModeTest');
