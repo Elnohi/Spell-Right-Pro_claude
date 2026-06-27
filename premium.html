@@ -1072,9 +1072,11 @@
   })();
   </script>
 
-  <script src="/js/sw-register.js"></script>
-
   <script>
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
     // Plan data attributes for tracking
     document.querySelectorAll('.btn-choose[data-plan]').forEach(btn => {
       const prices = { monthly: '5.00', annual: '45.00' };

@@ -181,14 +181,14 @@ window.HW = (function () {
       if (hwWrap) { hwWrap.style.display = 'block'; hwWrap.classList.add('visible'); }
       if (kbBtn)  kbBtn.classList.remove('active');
       if (hwBtn)  hwBtn.classList.add('active');
-      if (label)  label.textContent = '✍️ Write your spelling here';
+      if (label)  label.innerHTML = '<i class="fa fa-pen-nib"></i> Write your spelling here';
       init(id);
     } else {
       if (kbWrap) kbWrap.style.display = '';
       if (hwWrap) { hwWrap.style.display = 'none'; hwWrap.classList.remove('visible'); }
       if (kbBtn)  kbBtn.classList.add('active');
       if (hwBtn)  hwBtn.classList.remove('active');
-      if (label)  label.textContent = '✏️ Type your spelling here';
+      if (label)  label.innerHTML = '<i class="fa fa-keyboard"></i> Type your spelling here';
     }
   }
 

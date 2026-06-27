@@ -395,6 +395,6 @@ auth.onAuthStateChanged(async function(user){
 });
 })();
 </script>
-<script src="/js/sw-register.js"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){})}</script>
 </body>
 </html>

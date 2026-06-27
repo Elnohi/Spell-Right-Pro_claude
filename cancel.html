@@ -58,8 +58,10 @@
     </div>
   </main>
 
-  <script src="/js/sw-register.js"></script>
   <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    }
     window.addEventListener('beforeunload', () => {
       try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch(e){}
     });

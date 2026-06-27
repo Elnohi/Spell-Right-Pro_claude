@@ -272,7 +272,11 @@
   </div>
 
   <!-- Service worker -->
-  <script src="/js/sw-register.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
 
   <script>
     // ── Dark mode ──────────────────────────────────────────────────────────────

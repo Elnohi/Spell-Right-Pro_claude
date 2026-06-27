@@ -1825,7 +1825,7 @@
   <a href="/freemium-bee" class="active"><i class="fa fa-deaf"></i>Bee</a>
   <a href="/premium" class=""><i class="fa fa-crown"></i>Premium</a>
 </nav>
-  <script src="/js/sw-register.js"></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
 
 <script>
   // ── Word source selector ────────────────────────────────────────────────────

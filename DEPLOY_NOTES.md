@@ -483,3 +483,68 @@ The synthesis-failed fallback now says `🔇 Audio failed — tap "Say Again" to
 
 ## What to test
 - [ ] Force a TTS failure (e.g. block network requests in DevTools, or test in a restrictive private browsing session) — confirm the feedback message no longer reveals the word, and tapping "Say Again" successfully retries the audio
+
+---
+
+## Phase 2t — CRITICAL: fatal syntax error breaking freemium-oet.html and freemium-school.html
+
+### Root cause #1: fatal JavaScript syntax error (the main bug behind "sound doesn't work")
+Confirmed via Node's own parser, matching your screenshot's exact error message (`Uncaught SyntaxError: Unexpected token '}'`): both `freemium-oet.html` and `freemium-school.html` had a corrupted, duplicated error-tracking script block — an orphaned second copy of the same `window.addEventListener('error', ...)` handler with mismatched braces, left over from an earlier edit that concatenated two versions instead of replacing one. A syntax error fatally breaks the entire `<script>` block it's in, and depending on browser timing, can disrupt initialization in ways that go beyond just that one block — consistent with seeing this affect speech on a page where the TTS code itself lives in a separate, earlier script block. Removed the orphaned duplicate in both files; confirmed by individually re-parsing every single inline `<script>` block on all three freemium pages with Node, all now pass cleanly.
+
+### Root cause #2: missing speech-voice warm-up (freemium-oet.html, freemium-school.html)
+Chrome and Edge load their voice list asynchronously after page load — calling `getVoices()` immediately returns an empty array if called too early. `main-premium.js` (premium trainer) and `freemium-bee.html` already correctly warm this up by calling `getVoices()` on page load and listening for `onvoiceschanged`. `freemium-oet.html` and `freemium-school.html` had no such warm-up — `getVoices()` was only ever called cold, inside `speakWord()`, on the user's first interaction — exactly the scenario most likely to hit the empty-array race condition. Added the same warm-up pattern to both pages.
+
+### Root cause #3: unguarded `firebase.analytics()` call (all three freemium pages)
+All three pages only load `firebase-app.js`, `firebase-auth.js`, and `firebase-firestore.js` — never `firebase-analytics.js`. Calling `firebase.analytics()` directly (without checking it exists first) throws `TypeError: firebase.analytics is not a function` whenever a returning user has previously accepted cookies. `js/config.js` (used elsewhere) already guards this correctly; these three pages didn't. Added `typeof firebase.analytics === 'function'` checks to all three.
+
+## What to test
+- [ ] Open `freemium-oet.html` and `freemium-school.html` in Chrome and Edge, in both regular and InPrivate/incognito windows — confirm no "Uncaught SyntaxError" in console, and Start → speech plays correctly
+- [ ] Accept cookies on a freemium page, reload — confirm no "firebase.analytics is not a function" error
+- [ ] Confirm `freemium-bee.html` is unaffected by these changes (it didn't have either of the first two bugs)
+
+---
+
+## Phase 2u — freemium OET: replaced 100-word repeating practice with 1 free 24-word exam/day
+
+### What changed, as requested
+1. **Word source**: Now loads the shared `js/oet_word_list.js` (1,635 words) via a `<script>` tag, instead of a separate inline ~100-word list this page maintained on its own. Falls back to a small built-in list only if that script fails to load.
+2. **Always 24 random words**: The old 100-word "practice mode" path is removed entirely. Every free session is now exactly 24 randomly-shuffled words, exam-style — `shuffled.slice(0, 24)`.
+3. **1 session/day**: Changed `FREE_SESSIONS_PER_DAY` from 3 to 1 for this page specifically.
+4. **Upgrade popup after completing the 24 words**: `endSession()`'s summary screen now leads with "🎉 You've completed today's free 24-word exam!" and a prominent "Subscribe Now — Unlock Unlimited Practice" button linking to `/premium`.
+
+### Bonus fixes found while making this change
+- **Cross-contamination bug**: the daily session counter (`srp_daily_count`) was a single shared localStorage key used identically by the OET, School, and Bee freemium pages — a session on one page silently counted against another's daily limit. Scoped OET's counter to its own key (`srp_daily_count_oet`) so this page's 1/day limit is reliable and independent. School and Bee's pages were not touched and keep their existing shared-key behavior (a separate, pre-existing issue you didn't ask me to fix this round).
+- **Duplicate upgrade banner**: a second, separate upgrade-prompt function (`addUpgradePrompts()`) was running on every page load — before any session even started — silently injecting a duplicate banner into the hidden summary area. Removed; the upgrade prompt is now built exactly once, by `endSession()`, only after the exam is actually completed.
+- **Dead code removed**: the `isExam` state, `tabExam`/`tabPractice` element references and their click handlers were all referencing HTML elements that never existed on this page (the toggle UI shown in earlier versions of the file was never actually rendered) — removed cleanly rather than left as confusing dead code.
+- Updated on-page copy ("24 random exam words/day" instead of "1,511 built-in words") and page `<title>`/meta description to accurately describe the new daily-exam format instead of unlimited repeated practice.
+
+## What to test
+- [ ] Visit `/freemium-oet`, click Start → confirm exactly 24 words, randomly selected (different order/words each visit)
+- [ ] Complete the 24-word session → confirm the new "Subscribe Now" prompt appears, linking correctly to `/premium`
+- [ ] Try to start a second session same day → confirm the daily gate now appears after just 1 session, not 3
+- [ ] Do a session on `/freemium-school` first, then visit `/freemium-oet` → confirm OET's daily count is unaffected by the School session (was previously shared/contaminated)
+
+---
+
+## Phase 2v — CRITICAL FIX: score, daily limit, and gate all broken by one wrong selector
+
+### Root cause (confirmed)
+`elements.summaryArea` was looked up with `document.getElementById('summaryArea')` — but no element with that ID exists anywhere on the page. The actual element has `class="summary-area"` (no ID at all), exactly matching how `freemium-school.html` and `freemium-bee.html` correctly reference theirs via `document.querySelector('.summary-area')`.
+
+Because every `if (elements.summaryArea)` check silently evaluated to false, **three things failed simultaneously with no visible error**:
+1. The score/results screen was never written or shown
+2. `srpLimit.recordSession('oet')` — which lives inside that same `if` block — never ran, so the daily-session counter never incremented
+3. Since the counter never incremented, `canStart('oet')` always returned true, so the gate never blocked a second (or third, fourth...) session — exactly what you observed when a second session was allowed to open after completing the first
+
+This explains all three symptoms you reported as one single bug, not three separate ones.
+
+### Fix
+Changed the lookup to `document.querySelector('.summary-area')`, matching the actual HTML and the same correct pattern already used on the School and Bee pages.
+
+### Setup panel toggle — removed as requested
+The "▼ Show setup / ▲ Hide" button has been removed entirely. The setup panel (accent info, word source, Start button) still auto-collapses once a session begins, exactly as before — there is just no longer a way to manually reopen it. It returns to expanded only on page reload. Removed the now-dead `setupToggleBtn` element, the `.setup-toggle` CSS, and simplified `toggleSetup()` to a one-way collapse function. Cleaned up the now-unused `cursor:pointer` styling on the setup header too, since it's no longer clickable.
+
+## What to test
+- [ ] Complete a full 24-word session → confirm the score summary (Score: X/24 correct, %) now appears
+- [ ] Try to start a second session same day → confirm the daily gate now correctly blocks it after exactly 1 completed session
+- [ ] Confirm the setup panel still auto-collapses once Start is pressed, and that there's no "Show setup" button visible anywhere afterward
