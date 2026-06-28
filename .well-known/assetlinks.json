@@ -3,6 +3,9 @@
       "target": {
         "namespace": "android_app",
         "package_name": "org.spellrightpro.www.twa",
-        "sha256_cert_fingerprints": ["4B:4F:C2:C9:2B:36:DF:F8:FF:D5:BE:F4:BC:58:CE:C4:03:7E:66:BA:41:1C:C7:1D:AA:F5:D5:6F:7E:AB:EF:EA"]
+        "sha256_cert_fingerprints": [
+          "49:C6:28:36:0B:E8:C3:E5:DF:93:8B:70:D2:DD:32:D9:4A:CE:AF:C6:73:53:6B:90:1A:25:C9:E3:5F:1F:02:A6",
+          "4B:4F:C2:C9:2B:36:DF:F8:FF:D5:BE:F4:BC:58:CE:C4:03:7E:66:BA:41:1C:C7:1D:AA:F5:D5:6F:7E:AB:EF:EA"
+        ]
       }
     }]
