@@ -1620,7 +1620,7 @@ function speakWord(word) {
               voices[0];
     }
 
-    const utter = new SpeechSynthesisUtterance(word);
+    const utter = new window.SpeechSynthesisUtterance(word);
     utter.lang  = match ? match.lang : accent;
     if (match) utter.voice = match;
     utter.rate  = (currentMode === 'bee') ? getBeeDifficulty().rate : 0.85;
@@ -1674,7 +1674,12 @@ function speakWord(word) {
     showFeedback("Listen carefully...", "info");
 
   } catch (error) {
+    // Previously this only logged to console — on devices where speech APIs
+    // throw unexpectedly (see SpeechSynthesisUtterance / speechSynthesis bare
+    // global ReferenceError bug), the user saw a button that looked active
+    // but nothing happened, with zero on-screen indication anything failed.
     console.error("Speech error:", error);
+    showFeedback("Audio error — tap \"Say Again\" to retry, or continue typing from memory", "warning");
   }
 }
 
