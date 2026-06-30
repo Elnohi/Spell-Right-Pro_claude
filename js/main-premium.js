@@ -1442,7 +1442,15 @@ function resetTraining() {
   // Hide the badge until next Bee session shows it
   const _bbadge = document.getElementById('beeDifficultyBadge');
   if (_bbadge) _bbadge.classList.remove('visible');
-  window.speechSynthesis.cancel();
+  // Stop any in-progress speech on whichever path is active. Guarded with
+  // window.speechSynthesis && — calling .cancel() on undefined is exactly
+  // what threw "Cannot read properties of undefined (reading 'cancel')"
+  // inside the Android app, where speechSynthesis doesn't exist at all.
+  if (window.AndroidTTS && typeof window.AndroidTTS.stop === 'function') {
+    window.AndroidTTS.stop();
+  } else if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
   
   if (recognition && isListening) {
     recognition.stop();
@@ -1591,6 +1599,44 @@ async function loadOETWords() {
 // trust chain intact — async gaps cause synthesis-failed errors.
 function speakWord(word) {
   if (window.srpDlog) window.srpDlog('speakWord() called, word=' + word);
+
+  // Native Android TTS bridge — present only inside the SpellRightPro Android
+  // app (added via a WebView JavascriptInterface in MainActivity.java).
+  // Android's WebView does not implement window.speechSynthesis at all (a
+  // long-standing, unresolved Chromium limitation — see
+  // https://issues.chromium.org/issues/40339640), confirmed on-device via
+  // debug logging showing window.speechSynthesis as undefined inside the
+  // installed app while the exact same page works fine in regular mobile
+  // Chrome. AndroidTTS routes speech through Android's native TextToSpeech
+  // engine instead, restoring real audio inside the app. This path is
+  // checked first and, when present, used exclusively — desktop and regular
+  // browser tabs never have window.AndroidTTS defined, so they fall through
+  // unchanged to the speechSynthesis logic below.
+  if (window.AndroidTTS && typeof window.AndroidTTS.speak === 'function') {
+    if (window.srpDlog) window.srpDlog('Using AndroidTTS native bridge');
+    try {
+      window.AndroidTTS.speak(word);
+      showFeedback("Listen carefully...", "info");
+
+      // The native bridge has no "speech finished" callback, so estimate
+      // completion instead: average reading pace plus a small buffer. This
+      // only drives the Bee mode's auto-mic-activation convenience feature —
+      // worst case the mic starts a little early or late, never breaking
+      // anything.
+      if (currentMode === 'bee') {
+        const estimatedMs = Math.max(900, word.length * 90);
+        setTimeout(() => {
+          if (typeof startVoiceRecognition === 'function') startVoiceRecognition();
+        }, estimatedMs);
+      }
+    } catch (error) {
+      if (window.srpDlog) window.srpDlog('AndroidTTS.speak() threw: ' + error.message, true);
+      console.error('AndroidTTS error:', error);
+      showFeedback("Audio error — tap \"Say Again\" to retry, or continue typing from memory", "warning");
+    }
+    return;
+  }
+
   if (!window.speechSynthesis) {
     if (window.srpDlog) window.srpDlog('window.speechSynthesis is falsy!', true);
     showFeedback("Text-to-speech not supported in this browser", "error");
