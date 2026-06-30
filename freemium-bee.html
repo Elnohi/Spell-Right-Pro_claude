@@ -1208,7 +1208,7 @@
       await new Promise(r => setTimeout(r, 150));
 
       const voices = await getVoices();
-      const utter  = new SpeechSynthesisUtterance(word);
+      const utter  = new window.SpeechSynthesisUtterance(word);
       // Adaptive speech rate based on current difficulty level
       const _difficulty = getDifficultyForWord(state);
       utter.rate   = _difficulty.rate;

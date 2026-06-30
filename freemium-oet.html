@@ -1095,7 +1095,7 @@ const firebaseConfig = {
       try {
         window.speechSynthesis.cancel();
         
-        const utterance = new SpeechSynthesisUtterance(word);
+        const utterance = new window.SpeechSynthesisUtterance(word);
         utterance.rate = 0.85;
         utterance.pitch = 1;
         utterance.volume = 1;

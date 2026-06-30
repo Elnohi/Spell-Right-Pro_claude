@@ -1083,7 +1083,7 @@ const firebaseConfig = {
       try {
         window.speechSynthesis.cancel();
         
-        const utterance = new SpeechSynthesisUtterance(word);
+        const utterance = new window.SpeechSynthesisUtterance(word);
         utterance.rate = 0.9; // Slightly faster for school
         utterance.pitch = 1;
         utterance.volume = 1;
