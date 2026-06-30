@@ -1460,12 +1460,15 @@ document.querySelectorAll(".start-btn").forEach(btn => {
 });
 
 function startTraining(mode) {
+  if (window.srpDlog) window.srpDlog('startTraining() called, mode=' + mode);
   currentMode = mode;
   resetTraining();
+  if (window.srpDlog) window.srpDlog('resetTraining() completed OK');
 
   // Activate training phase — hide setup, show training area
   const area = document.getElementById(mode + '-area');
   if (area) area.classList.add('training-active');
+  if (window.srpDlog) window.srpDlog('area found: ' + !!area + ', training-active added');
 
   // Init HW canvas now that the training area has real dimensions
   if (mode === 'practice' && window.HW) {
@@ -1538,11 +1541,13 @@ function backToSetup(mode) {
 // OET words loading
 async function loadOETWords() {
   console.log('📚 loadOETWords called — examType:', document.querySelector('input[name="examType"]:checked')?.value);
+  if (window.srpDlog) window.srpDlog('loadOETWords() called, OET_WORDS defined=' + (typeof window.OET_WORDS !== 'undefined'));
   try {
     if (typeof window.OET_WORDS !== 'undefined') {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === "test";
       currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : window.OET_WORDS;
       showFeedback(`OET ${isTest ? 'Test' : 'Practice'} mode: ${currentList.length} words loaded`, "success");
+      if (window.srpDlog) window.srpDlog('OET list ready, length=' + currentList.length + ', calling nextWord()');
       nextWord();
       return;
     }
@@ -1566,6 +1571,7 @@ async function loadOETWords() {
     }
   } catch (err) {
     console.error("OET list load error:", err);
+    if (window.srpDlog) window.srpDlog('loadOETWords ERROR: ' + err.message, true);
     // If OET_WORDS partially loaded, use a real subset rather than a tiny hardcoded list
     if (typeof window.OET_WORDS !== 'undefined' && window.OET_WORDS.length > 0) {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === 'test';
@@ -1584,7 +1590,9 @@ async function loadOETWords() {
 // NOTE: Must remain synchronous (no async/await) so Edge keeps the user-gesture
 // trust chain intact — async gaps cause synthesis-failed errors.
 function speakWord(word) {
+  if (window.srpDlog) window.srpDlog('speakWord() called, word=' + word);
   if (!window.speechSynthesis) {
+    if (window.srpDlog) window.srpDlog('window.speechSynthesis is falsy!', true);
     showFeedback("Text-to-speech not supported in this browser", "error");
     return;
   }
@@ -1593,6 +1601,7 @@ function speakWord(word) {
 
   try {
     const voices = window.speechSynthesis.getVoices();
+    if (window.srpDlog) window.srpDlog('voices.length=' + voices.length);
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect ? accentSelect.value : 'en-GB';
 
@@ -1679,12 +1688,14 @@ function speakWord(word) {
     // global ReferenceError bug), the user saw a button that looked active
     // but nothing happened, with zero on-screen indication anything failed.
     console.error("Speech error:", error);
+    if (window.srpDlog) window.srpDlog('CAUGHT ERROR in speakWord: ' + error.message + ' | stack: ' + (error.stack || '').substring(0,200), true);
     showFeedback("Audio error — tap \"Say Again\" to retry, or continue typing from memory", "warning");
   }
 }
 
 // ENHANCED NEXTWORD FUNCTION WITH REAL-TIME MARKING
 function nextWord() {
+    if (window.srpDlog) window.srpDlog('nextWord() called, currentIndex=' + currentIndex + ', currentList.length=' + (currentList ? currentList.length : 'undefined'));
     if (currentIndex >= currentList.length) {
         showSummary();
         return;
