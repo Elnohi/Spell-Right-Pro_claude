@@ -1081,7 +1081,7 @@ const firebaseConfig = {
       }
       
       try {
-        speechSynthesis.cancel();
+        window.speechSynthesis.cancel();
         
         const utterance = new SpeechSynthesisUtterance(word);
         utterance.rate = 0.9; // Slightly faster for school
@@ -1089,7 +1089,7 @@ const firebaseConfig = {
         utterance.volume = 1;
         utterance.lang = 'en-US';
         
-        const voices = speechSynthesis.getVoices();
+        const voices = window.speechSynthesis.getVoices();
         if (voices.length > 0) {
           // Prefer local (on-device) voices — avoids Chrome's known
           // synthesis-failed bug with network-dependent voices
@@ -1108,7 +1108,7 @@ const firebaseConfig = {
           updateFeedback('Error speaking word', true);
         };
         
-        speechSynthesis.speak(utterance);
+        window.speechSynthesis.speak(utterance);
         updateFeedback('Listen carefully and type the word...');
         
       } catch (error) {
@@ -1250,7 +1250,7 @@ const firebaseConfig = {
     // End session and show summary
     function endSession() {
       state.isActive = false;
-      speechSynthesis.cancel();
+      window.speechSynthesis.cancel();
       if (typeof deactivateSessionUI === 'function') deactivateSessionUI();
       
       const correctCount = state.correct.length;
@@ -1640,9 +1640,9 @@ const firebaseConfig = {
       // the full explanation. Prevents getVoices() returning an empty
       // array on the very first speakWord() call.
       if (window.speechSynthesis) {
-        speechSynthesis.getVoices();
-        speechSynthesis.onvoiceschanged = () => {
-          console.log('Voices loaded:', speechSynthesis.getVoices().length);
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+          console.log('Voices loaded:', window.speechSynthesis.getVoices().length);
         };
       }
 

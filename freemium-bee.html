@@ -1127,10 +1127,10 @@
     // ── BUG 1 FIX: voice loading guard ──────────────────────────────────────
     function getVoices() {
       return new Promise(resolve => {
-        const v = speechSynthesis.getVoices();
+        const v = window.speechSynthesis.getVoices();
         if (v.length > 0) return resolve(v);
-        speechSynthesis.onvoiceschanged = () => resolve(speechSynthesis.getVoices());
-        setTimeout(() => resolve(speechSynthesis.getVoices()), 1200);
+        window.speechSynthesis.onvoiceschanged = () => resolve(window.speechSynthesis.getVoices());
+        setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1200);
       });
     }
 
@@ -1204,7 +1204,7 @@
       state.isWaiting = true;   // block any stale recognition results
 
       // Cancel previous utterance without relying on its onend event
-      speechSynthesis.cancel();
+      window.speechSynthesis.cancel();
       await new Promise(r => setTimeout(r, 150));
 
       const voices = await getVoices();
@@ -1257,7 +1257,7 @@
         setTimeout(() => proceedToMic('onerror'), 600);
       };
 
-      speechSynthesis.speak(utter);
+      window.speechSynthesis.speak(utter);
 
       // BUG FIX (Chrome onend silent failure): watchdog timer.
       // If onend never fires within (rate-adjusted estimate + 4s buffer), force the mic open.
@@ -1504,7 +1504,7 @@
       state.isActive = false;
       state.wordToken++;
       abortRecognition();
-      speechSynthesis.cancel();
+      window.speechSynthesis.cancel();
       deactivateBeeSessionUI();
 
       const correct = state.correct.length;
