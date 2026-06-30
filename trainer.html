@@ -1315,6 +1315,52 @@
 </script>
 
 
+<!-- ── TEMPORARY DEBUG PANEL ── remove after diagnosing Start button issue ── -->
+<div id="srpDebugPanel" style="position:fixed;bottom:0;left:0;right:0;max-height:45vh;overflow-y:auto;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;border-top:2px solid #0f0;">
+  <div style="color:#fff;font-weight:bold;margin-bottom:4px;">DEBUG LOG (pick a mode, tap Start, then read below)</div>
+  <div id="srpDebugLog"></div>
+</div>
+<script>
+(function() {
+  var logEl = document.getElementById('srpDebugLog');
+  function dlog(msg, isError) {
+    var row = document.createElement('div');
+    row.style.color = isError ? '#f55' : '#0f0';
+    row.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  window.srpDlog = dlog;
+
+  dlog('Debug panel loaded');
+  dlog('startTraining function exists: ' + (typeof startTraining === 'function'));
+  dlog('speakWord function exists: ' + (typeof speakWord === 'function'));
+
+  window.addEventListener('error', function(e) {
+    dlog('JS ERROR: ' + e.message + ' (' + e.filename + ':' + e.lineno + ')', true);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    dlog('PROMISE REJECTED: ' + e.reason, true);
+  });
+
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.start-btn, .mode-btn');
+    if (btn) {
+      dlog('CLICK detected on: ' + (btn.className || btn.tagName) + ' data-mode=' + btn.dataset.mode);
+    }
+  }, true);
+
+  setTimeout(function() {
+    dlog('--- 2s after load ---');
+    dlog('overlay display: ' + (document.getElementById('loginOverlay') ? document.getElementById('loginOverlay').style.display : 'NOT FOUND'));
+    dlog('main display: ' + (document.querySelector('main') ? document.querySelector('main').style.display : 'NOT FOUND'));
+    dlog('start buttons found: ' + document.querySelectorAll('.start-btn').length);
+    dlog('mode buttons found: ' + document.querySelectorAll('.mode-btn').length);
+  }, 2000);
+})();
+</script>
+<!-- ── END TEMPORARY DEBUG PANEL ── -->
+
 <!-- ── Service Worker registration + update handling — see /js/sw-register.js ── -->
 <script src="/js/sw-register.js"></script>
 </body>

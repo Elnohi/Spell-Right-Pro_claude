@@ -1087,7 +1087,9 @@ const firebaseConfig = {
     
     // Speak word with selected accent
     function speakWord(word) {
+      if (window.srpDlog) window.srpDlog('speakWord() called, word=' + word);
       if (!window.speechSynthesis) {
+        if (window.srpDlog) window.srpDlog('window.speechSynthesis is falsy!', true);
         updateFeedback('Speech synthesis not supported', true);
         return;
       }
@@ -1096,6 +1098,7 @@ const firebaseConfig = {
         window.speechSynthesis.cancel();
         
         const utterance = new window.SpeechSynthesisUtterance(word);
+        if (window.srpDlog) window.srpDlog('Utterance created OK');
         utterance.rate = 0.85;
         utterance.pitch = 1;
         utterance.volume = 1;
@@ -1136,6 +1139,7 @@ const firebaseConfig = {
         
       } catch (error) {
         console.error('Speech error:', error);
+        if (window.srpDlog) window.srpDlog('CAUGHT ERROR: ' + error.message, true);
         updateFeedback('Could not speak word', true);
       }
     }
@@ -1255,8 +1259,10 @@ const firebaseConfig = {
     
     // Start session
     function startSession() {
+      if (window.srpDlog) window.srpDlog('startSession() called');
       // ── Daily session limit check ──────────────────────────────
       if (!srpLimit.canStart('oet')) {
+        if (window.srpDlog) window.srpDlog('BLOCKED by srpLimit.canStart() — daily limit reached', true);
         srpLimit.showGate('oet');
         return;
       }
@@ -2223,5 +2229,43 @@ window.srpLimit = (function() {
 })();
 
 </script>
+
+<!-- ── TEMPORARY DEBUG PANEL — remove after diagnosing issue ── -->
+<div id="srpDebugPanel" style="position:fixed;bottom:0;left:0;right:0;max-height:45vh;overflow-y:auto;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;border-top:2px solid #0f0;">
+  <div style="color:#fff;font-weight:bold;margin-bottom:4px;">DEBUG LOG (tap Start, then read below)</div>
+  <div id="srpDebugLog"></div>
+</div>
+<script>
+(function() {
+  var logEl = document.getElementById('srpDebugLog');
+  function dlog(msg, isError) {
+    var row = document.createElement('div');
+    row.style.color = isError ? '#f55' : '#0f0';
+    row.textContent = new Date().toLocaleTimeString() + ' \u2014 ' + msg;
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  window.srpDlog = dlog;
+
+  dlog('Debug panel loaded');
+  dlog('speechSynthesis exists: ' + (!!window.speechSynthesis));
+
+  window.addEventListener('error', function(e) {
+    dlog('JS ERROR: ' + e.message + ' (' + e.filename + ':' + e.lineno + ')', true);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    dlog('PROMISE REJECTED: ' + e.reason, true);
+  });
+
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('button, .btn-start-training, [id*="tart"]');
+    if (btn) {
+      dlog('CLICK detected on: ' + (btn.id || btn.className || btn.tagName));
+    }
+  }, true);
+})();
+</script>
+<!-- ── END TEMPORARY DEBUG PANEL ── -->
+
 </body>
 </html>
