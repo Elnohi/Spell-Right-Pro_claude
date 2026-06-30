@@ -1442,7 +1442,7 @@ function resetTraining() {
   // Hide the badge until next Bee session shows it
   const _bbadge = document.getElementById('beeDifficultyBadge');
   if (_bbadge) _bbadge.classList.remove('visible');
-  speechSynthesis.cancel();
+  window.speechSynthesis.cancel();
   
   if (recognition && isListening) {
     recognition.stop();
@@ -1592,7 +1592,7 @@ function speakWord(word) {
   if (!speakWord._retries) speakWord._retries = 0;
 
   try {
-    const voices = speechSynthesis.getVoices();
+    const voices = window.speechSynthesis.getVoices();
     const accentSelect = document.getElementById(`${currentMode}Accent`);
     const accent = accentSelect ? accentSelect.value : 'en-GB';
 
@@ -1663,13 +1663,13 @@ function speakWord(word) {
     };
 
     // Cancel then wait 50ms before speaking — Edge needs this gap
-    if (speechSynthesis.speaking || speechSynthesis.pending) {
-      speechSynthesis.cancel();
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
       setTimeout(() => {
-        speechSynthesis.speak(utter);
+        window.speechSynthesis.speak(utter);
       }, 50);
     } else {
-      speechSynthesis.speak(utter);
+      window.speechSynthesis.speak(utter);
     }
     showFeedback("Listen carefully...", "info");
 
@@ -1999,9 +1999,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize speech synthesis and recognition
 function initializeSpeechSynthesis() {
   if ('speechSynthesis' in window) {
-    speechSynthesis.getVoices();
+    window.speechSynthesis.getVoices();
     window.speechSynthesis.onvoiceschanged = function() {
-      console.log("Voices loaded:", speechSynthesis.getVoices().length);
+      console.log("Voices loaded:", window.speechSynthesis.getVoices().length);
     };
   }
   
