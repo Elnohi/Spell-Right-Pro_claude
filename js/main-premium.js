@@ -368,20 +368,51 @@ function hideOverlay() {
 }
 
 // Safety net: if Firebase auth hasn't resolved within 8 seconds (slow network,
-// CDN blocked, etc.), stop showing the spinner and show the login form anyway.
+// CDN blocked, etc.), stop showing the spinner and unblock the user.
 // Without this, a slow connection leaves the user staring at a full-screen
 // overlay with no way to interact with the page and no indication anything
 // is wrong — taps on what looks like the practice screen are silently
 // swallowed by this overlay sitting at z-index 9999.
+//
+// Three cases handled at the 8s mark:
+// 1. Auth + premium check both resolved → hideOverlay() already called; spinner
+//    is gone; this timeout is a no-op (loadingCard already hidden).
+// 2. Auth resolved (currentUser set, userIsPremium true) but this timeout fires
+//    before hideOverlay() ran (e.g. slow async Firestore check) → call hideOverlay()
+//    now so the user isn't stuck waiting any longer.
+// 3. Auth hasn't resolved at all (Firebase SDK slow on Android/TWA cold start) →
+//    use the localStorage srpPremium hint. If a valid, non-expired record exists
+//    the user is almost certainly still premium; dismiss the overlay optimistically.
+//    If no localStorage hint, fall back to showing the login form.
 setTimeout(() => {
     const loadingCard = document.getElementById("authLoadingCard");
     const formCard = document.getElementById("authCardContent");
-    if (loadingCard && loadingCard.style.display !== "none") {
-        console.warn('⏱️ Auth check timed out after 8s — showing login form');
-        loadingCard.style.display = "none";
-        if (formCard) formCard.style.display = "block";
-        showFeedback('Taking longer than usual — please sign in or check your connection', 'info');
+    if (!loadingCard || loadingCard.style.display === "none") return; // case 1 — already resolved
+
+    console.warn('⏱️ Auth check timed out after 8s');
+
+    // Case 2: onAuthStateChanged already confirmed user + premium — just unblock
+    if (currentUser && userIsPremium) {
+        console.warn('⏱️ Auth resolved but overlay still up — calling hideOverlay()');
+        hideOverlay();
+        return;
     }
+
+    // Case 3: Auth never fired — check localStorage hint
+    if (window._srpLocalPremium) {
+        console.warn('⏱️ Firebase slow — dismissing overlay via localStorage hint');
+        hideOverlay();
+        showFeedback('Signed in (offline cache) — syncing in background…', 'info');
+        // Keep trying to complete Firebase auth in the background so Firestore
+        // sync and real premium verification still happen once the SDK is ready.
+        return;
+    }
+
+    // No hint and no auth — show the login form so the user isn't stuck
+    console.warn('⏱️ No auth, no hint — showing login form');
+    loadingCard.style.display = "none";
+    if (formCard) formCard.style.display = "block";
+    showFeedback('Taking longer than usual — please sign in or check your connection', 'info');
 }, 8000);
 
 function showFeedback(message, type = "info") {
