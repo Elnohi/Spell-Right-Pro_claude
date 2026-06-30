@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpellRightPro Diagnostics</title>
+<style>
+  body { font-family: monospace; background:#111; color:#0f0; padding:14px; font-size:13px; line-height:1.5; }
+  h2 { color:#fff; border-bottom:1px solid #444; padding-bottom:4px; margin-top:20px; }
+  .ok   { color:#0f0; }
+  .fail { color:#f55; font-weight:bold; }
+  .warn { color:#fa0; }
+  .row  { margin:4px 0; word-break:break-all; }
+  button { background:#7b2ff7; color:#fff; border:none; padding:14px 20px; border-radius:8px; font-size:15px; margin:10px 0; width:100%; }
+  #clickResult { font-size:16px; padding:10px; background:#222; border-radius:6px; margin-top:8px; }
+  textarea { width:100%; height:120px; background:#000; color:#0f0; font-family:monospace; font-size:11px; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<h2>1. Basic Environment</h2>
+<div id="env"></div>
+
+<h2>2. Speech Synthesis</h2>
+<div id="speech"></div>
+
+<h2>3. localStorage</h2>
+<div id="storage"></div>
+
+<h2>4. Firebase SDK</h2>
+<div id="firebase"></div>
+
+<h2>5. Click Test (does a tap register at all?)</h2>
+<button id="clickBtn">TAP ME</button>
+<div id="clickResult">Not tapped yet</div>
+
+<h2>6. Captured Errors</h2>
+<div id="errors">None yet</div>
+
+<h2>7. Raw Log (copy this)</h2>
+<textarea id="rawLog" readonly></textarea>
+
+<script>
+const log = [];
+function add(sectionId, text, cls) {
+  const div = document.getElementById(sectionId);
+  const row = document.createElement('div');
+  row.className = 'row ' + (cls || '');
+  row.textContent = text;
+  div.appendChild(row);
+  log.push('[' + sectionId + '] ' + text);
+  document.getElementById('rawLog').value = log.join('\n');
+}
+
+// 1. Environment
+add('env', 'User Agent: ' + navigator.userAgent);
+add('env', 'Location: ' + window.location.href);
+add('env', 'Is TWA (referrer check): ' + (document.referrer === '' ? 'likely yes (no referrer)' : document.referrer));
+add('env', 'Display mode standalone: ' + (window.matchMedia('(display-mode: standalone)').matches));
+
+// 2. Speech Synthesis
+if (window.speechSynthesis) {
+  add('speech', 'window.speechSynthesis EXISTS', 'ok');
+  try {
+    const voices = window.speechSynthesis.getVoices();
+    add('speech', 'getVoices() returned: ' + voices.length + ' voices', voices.length > 0 ? 'ok' : 'warn');
+    if (voices.length > 0) {
+      add('speech', 'First voice: ' + voices[0].name + ' (' + voices[0].lang + ')');
+    }
+    // try speaking
+    try {
+      const u = new SpeechSynthesisUtterance('test');
+      window.speechSynthesis.speak(u);
+      add('speech', 'speak() called without throwing', 'ok');
+    } catch (e) {
+      add('speech', 'speak() threw: ' + e.message, 'fail');
+    }
+  } catch (e) {
+    add('speech', 'getVoices() threw: ' + e.message, 'fail');
+  }
+} else {
+  add('speech', 'window.speechSynthesis is UNDEFINED — Web Speech API not available in this context', 'fail');
+}
+
+// 3. localStorage
+try {
+  const srpPremium = localStorage.getItem('srpPremium');
+  add('storage', 'srpPremium: ' + (srpPremium || '(not set)'), srpPremium ? 'ok' : 'warn');
+  add('storage', 'localStorage keys: ' + Object.keys(localStorage).join(', '));
+  add('storage', 'localStorage accessible: YES', 'ok');
+} catch (e) {
+  add('storage', 'localStorage THREW: ' + e.message, 'fail');
+}
+
+// 4. Firebase SDK
+add('firebase', 'firebase global defined: ' + (typeof firebase !== 'undefined'), typeof firebase !== 'undefined' ? 'ok' : 'fail');
+
+let fbScript = document.createElement('script');
+fbScript.src = 'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js';
+fbScript.onload = () => {
+  add('firebase', 'firebase-app.js loaded successfully', 'ok');
+  add('firebase', 'firebase object after load: ' + (typeof firebase !== 'undefined' ? 'defined' : 'still undefined'), typeof firebase !== 'undefined' ? 'ok' : 'fail');
+};
+fbScript.onerror = () => {
+  add('firebase', 'firebase-app.js FAILED TO LOAD (network blocked?)', 'fail');
+};
+document.head.appendChild(fbScript);
+
+// 5. Click test
+document.getElementById('clickBtn').addEventListener('click', function() {
+  document.getElementById('clickResult').textContent = '✅ Click registered at ' + new Date().toLocaleTimeString();
+  document.getElementById('clickResult').style.color = '#0f0';
+});
+
+// 6. Error capture
+window.addEventListener('error', function(e) {
+  add('errors', 'ERROR: ' + e.message + ' at ' + e.filename + ':' + e.lineno, 'fail');
+});
+window.addEventListener('unhandledrejection', function(e) {
+  add('errors', 'UNHANDLED PROMISE REJECTION: ' + e.reason, 'fail');
+});
+</script>
+
+</body>
+</html>
