@@ -1,3 +1,18 @@
+# ─── .html → clean URL redirects (prevents duplicate content) ────────
+# Bing (and Google) crawl both /contact and /contact.html via 200 rewrites,
+# causing duplicate title/description warnings. These 301s ensure search
+# engines always see only the canonical clean URL version.
+/contact.html         /contact              301
+/pricing.html         /pricing              301
+/terms.html           /terms                301
+/privacy.html         /privacy              301
+/refund-policy.html   /refund-policy        301
+/security.html        /security             301
+/premium.html         /premium              301
+/about.html           /about                301
+/blog.html            /blog                 301
+/login.html           /login                301
+
 # ─── Trailing slash redirects ────────────────────────────────────────
 /freemium-bee/        /freemium-bee        301
 /freemium-oet/        /freemium-oet        301
