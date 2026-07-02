@@ -1468,6 +1468,11 @@ document.querySelectorAll(".start-btn").forEach(btn => {
 });
 
 function startTraining(mode) {
+  // Starting fresh — clear any saved state so the resume prompt doesn't
+  // reappear after the user has chosen to begin a new session.
+  clearSessionState();
+  document.getElementById('srpResumePrompt')?.remove();
+
   currentMode = mode;
   resetTraining();
 
@@ -1535,12 +1540,25 @@ function startTraining(mode) {
 
 // Back to setup — hide training phase, show setup phase
 function backToSetup(mode) {
+  // Save progress BEFORE resetting, so the resume prompt can offer to continue.
+  // saveSessionState() guards against saving when there's nothing worth saving
+  // (index===0 or empty list), so calling it here is always safe.
+  saveSessionState();
+
   const area = document.getElementById(mode + '-area');
   if (area) area.classList.remove('training-active');
   resetTraining();
   // Reset summary
   const summary = document.getElementById(mode + 'Summary');
   if (summary) { summary.style.display = 'none'; summary.innerHTML = ''; }
+
+  // Show resume prompt immediately on the setup panel so the user can pick up
+  // where they left off without waiting for a page reload. Only show for the
+  // mode they just left — ignore saved state for a different mode.
+  setTimeout(() => {
+    const saved = loadSessionState();
+    if (saved && saved.mode === mode) showResumePrompt(saved);
+  }, 300); // brief delay so the UI transition completes first
 }
 
 // OET words loading
@@ -1879,9 +1897,16 @@ function checkAnswer() {
 }
 
 // Summary function
-function showSummary() {
-  // Session completed — clear the saved state so resume prompt doesn't appear
-  clearSessionState();
+function showSummary(earlyExit = false) {
+  if (earlyExit) {
+    // User ended manually mid-session — save progress so the resume prompt
+    // can offer to continue when they return to this mode.
+    saveSessionState();
+  } else {
+    // Session completed naturally (all words done) — clear saved state so
+    // the resume prompt doesn't appear for a finished session.
+    clearSessionState();
+  }
 
   const summaryElement = document.getElementById(`${currentMode}Summary`);
   if (!summaryElement) return;
@@ -2032,7 +2057,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // End buttons
   document.querySelectorAll('[id$="End"]').forEach(btn => {
-    btn.addEventListener('click', showSummary);
+    btn.addEventListener('click', () => {
+      // earlyExit=true → showSummary saves state instead of clearing it,
+      // so the resume prompt appears when user returns to the same mode.
+      showSummary(true);
+    });
   });
   
   // Input field enter key support
