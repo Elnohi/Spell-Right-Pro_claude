@@ -34,7 +34,10 @@ let currentCustomList = null;
 
 // ── Session save / resume ──────────────────────────────────────────────────
 const SESSION_SAVE_KEY = 'srp_session_state';
-const SESSION_MAX_AGE  = 24 * 60 * 60 * 1000; // 24 hours
+// No time-based expiry — session state persists until the user explicitly
+// cancels via the ✕ button on the resume prompt, or until they start a
+// fresh session (startTraining clears it). A 24-hour limit meant progress
+// was silently lost overnight, defeating the purpose of session saving.
 
 function saveSessionState() {
   if (!currentMode || !currentList.length || currentIndex === 0) return;
@@ -64,7 +67,9 @@ function loadSessionState() {
     const raw = localStorage.getItem(SESSION_SAVE_KEY);
     if (!raw) return null;
     const state = JSON.parse(raw);
-    if (!state.savedAt || Date.now() - state.savedAt > SESSION_MAX_AGE) {
+    // No time-based expiry — state persists until explicitly cancelled.
+    // Validate the minimum fields needed to resume safely.
+    if (!state.mode || !Array.isArray(state.list) || !state.list.length || state.index == null) {
       clearSessionState();
       return null;
     }
@@ -81,6 +86,19 @@ function showResumePrompt(state) {
                     state.examType === 'test' ? 'OET Exam (24 words)' : 'OET Full List';
   const pct = Math.round((state.index / state.list.length) * 100);
 
+  // Human-readable "saved X ago" so the user knows how old their progress is
+  let savedAgo = '';
+  if (state.savedAt) {
+    const ms = Date.now() - state.savedAt;
+    const mins = Math.floor(ms / 60000);
+    const hrs  = Math.floor(ms / 3600000);
+    const days = Math.floor(ms / 86400000);
+    if (days >= 1)       savedAgo = ` · saved ${days} day${days > 1 ? 's' : ''} ago`;
+    else if (hrs >= 1)   savedAgo = ` · saved ${hrs}h ago`;
+    else if (mins >= 1)  savedAgo = ` · saved ${mins}m ago`;
+    else                 savedAgo = ` · just saved`;
+  }
+
   const banner = document.createElement('div');
   banner.id = 'srpResumePrompt';
   banner.style.cssText = `
@@ -93,15 +111,16 @@ function showResumePrompt(state) {
   banner.innerHTML = `
     <div style="flex:1">
       <strong>Resume last session?</strong><br>
-      <span style="opacity:0.85">${modeLabel} — ${state.index}/${state.list.length} words (${pct}% done)</span>
+      <span style="opacity:0.85">${modeLabel} — ${state.index}/${state.list.length} words (${pct}% done)${savedAgo}</span>
     </div>
     <button onclick="resumeSession()" style="background:#fff;color:#7b2ff7;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;white-space:nowrap">Resume</button>
     <button onclick="this.closest('#srpResumePrompt').remove();clearSessionState();" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:8px;padding:8px 10px;cursor:pointer">✕</button>
   `;
   document.body.appendChild(banner);
 
-  // Auto-dismiss after 12s
-  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+  // Auto-dismiss after 20s (increased from 12s — session may be days old
+  // and the user deserves time to read and decide)
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 20000);
 }
 
 function resumeSession() {
@@ -2127,6 +2146,14 @@ function simulatePremiumAccess() {
   var SESSIONS_KEY = 'srp_sessions_count';
   var DONE_KEY     = 'srp_rating_done';
   var GOOGLE_URL   = 'https://g.page/r/CcXpShfGcR9GEAE/review';
+  var PLAY_URL     = 'https://play.google.com/store/apps/details?id=org.spellrightpro.www.twa&reviewId=0';
+  // Detect whether we're running inside the installed Android app.
+  // window.AndroidTTS is only defined when the native TTS JavascriptInterface
+  // bridge is present — i.e. exclusively inside MainActivity's WebView.
+  // Web users (desktop, mobile browser) never have this defined.
+  var IS_ANDROID_APP = !!(window.AndroidTTS && typeof window.AndroidTTS.speak === 'function');
+  var REVIEW_URL = IS_ANDROID_APP ? PLAY_URL : GOOGLE_URL;
+  var REVIEW_LABEL = IS_ANDROID_APP ? '⭐ Rate on Google Play' : '⭐ Leave a Google review';
 
   if (!window.srpRating || !window.srpRating.selectStar) {
     window.srpRating = {
@@ -2184,9 +2211,9 @@ function simulatePremiumAccess() {
         if (val >= 4) {
           prompt.innerHTML =
             '<div class="rating-thanks">Thank you! &#127881;</div>' +
-            '<p style="font-size:0.82rem;color:var(--muted);margin:8px 0 12px;">Would you take 30 seconds to leave a Google review?</p>' +
+            '<p style="font-size:0.82rem;color:var(--muted);margin:8px 0 12px;">Would you take 30 seconds to leave a review?</p>' +
             '<div class="rating-actions">' +
-            '<a href="' + GOOGLE_URL + '" target="_blank" rel="noopener" class="rating-action-btn primary" style="text-decoration:none;">&#11088; Leave a Google review</a>' +
+            '<a href="' + REVIEW_URL + '" target="_blank" rel="noopener" class="rating-action-btn primary" style="text-decoration:none;">' + REVIEW_LABEL + '</a>' +
             '<button class="rating-action-btn secondary" onclick="document.getElementById(\'srpRatingPrompt\').style.display=\'none\'">No thanks</button>' +
             '</div>';
         } else {
