@@ -150,6 +150,7 @@ function resumeSession() {
   if (area) area.classList.add('training-active');
 
   showFeedback(`Resumed — word ${currentIndex + 1} of ${currentList.length}`, 'info');
+  if (typeof updateNavButtons === 'function') updateNavButtons(currentMode);
   nextWord();
 }
 // Mirrors the freemium Bee progression: starts gentle, speeds up only after
@@ -1558,6 +1559,70 @@ function startTraining(mode) {
 }
 
 // Back to setup — hide training phase, show setup phase
+/**
+ * navigateWord(mode, direction)
+ * Handles the Previous / Next / Jump navigation controls in the training phase.
+ *
+ * direction = 'prev'  → go back one word (re-hear it, not counted in score)
+ * direction = 'next'  → skip forward one word (not counted in score)
+ * direction = 'jump'  → jump to the number typed in the jump input
+ *
+ * Navigation does NOT alter correctWords / incorrectWords — it simply
+ * repositions the cursor and re-speaks the target word.  The score only
+ * changes when the user actually submits an answer via checkAnswer().
+ *
+ * The Previous button is disabled at word 1; Next is disabled at the last word.
+ */
+function navigateWord(mode, direction) {
+  if (!currentList || !currentList.length) return;
+
+  // Stop any in-progress speech before moving
+  if (window.AndroidTTS && typeof window.AndroidTTS.stop === 'function') {
+    window.AndroidTTS.stop();
+  } else if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+
+  const total = currentList.length;
+
+  if (direction === 'prev') {
+    if (currentIndex <= 0) return;            // already at first word
+    currentIndex = Math.max(0, currentIndex - 1);
+
+  } else if (direction === 'next') {
+    if (currentIndex >= total - 1) return;   // already at last word
+    currentIndex = Math.min(total - 1, currentIndex + 1);
+
+  } else if (direction === 'jump') {
+    const input = document.getElementById(mode + 'JumpInput');
+    if (!input) return;
+    const n = parseInt(input.value, 10);
+    if (isNaN(n) || n < 1 || n > total) {
+      showFeedback(`Enter a number between 1 and ${total}`, 'warning');
+      input.focus();
+      return;
+    }
+    currentIndex = n - 1;          // UI is 1-based, array is 0-based
+    input.value = '';              // clear after jump
+  }
+
+  // Update nav button disabled states
+  updateNavButtons(mode);
+
+  // Re-use nextWord() which updates progress text, clears input,
+  // resets canvas, and speaks the word — all the right side-effects.
+  nextWord();
+}
+
+/** Keep Previous / Next buttons visually disabled at the list boundaries. */
+function updateNavButtons(mode) {
+  const prevBtn = document.getElementById(mode + 'Prev');
+  const nextBtn = document.getElementById(mode + 'Next');
+  if (!currentList) return;
+  if (prevBtn) prevBtn.disabled = currentIndex <= 0;
+  if (nextBtn) nextBtn.disabled = currentIndex >= currentList.length - 1;
+}
+
 function backToSetup(mode) {
   // Save progress BEFORE resetting, so the resume prompt can offer to continue.
   // saveSessionState() guards against saving when there's nothing worth saving
@@ -1811,6 +1876,9 @@ function nextWord() {
     const beeRT = document.getElementById('beeRecognizedText');
     if (beeRT) beeRT.style.display = 'none';
     
+    // Keep nav buttons (Previous/Next) in sync with current position
+    if (typeof updateNavButtons === 'function') updateNavButtons(currentMode);
+
     // Speak immediately — delay breaks Edge's user-gesture trust chain
     speakWord(word);
 }
