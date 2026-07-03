@@ -313,6 +313,50 @@
     }
     .btn-end:hover { background:rgba(255,69,96,.14); }
 
+    /* ── Word navigation row (Previous / Next / Jump) ── */
+    .nav-row {
+      display:flex; align-items:center; gap:8px;
+      margin-bottom:10px; flex-wrap:wrap;
+    }
+    .btn-nav {
+      background:var(--surface2); color:var(--brand);
+      border:1.5px solid var(--border); border-radius:10px;
+      padding:9px 14px; font-size:0.85rem; font-weight:600;
+      font-family:'DM Sans',sans-serif; cursor:pointer;
+      display:inline-flex; align-items:center; gap:6px; transition:all .2s;
+      white-space:nowrap;
+    }
+    .btn-nav:hover { background:rgba(123,47,247,.1); }
+    .btn-nav:disabled { opacity:.35; cursor:not-allowed; }
+    .jump-wrap {
+      display:flex; align-items:center; gap:6px;
+      margin-left:auto;
+    }
+    .jump-input {
+      width:56px; padding:8px 8px; border-radius:9px;
+      border:1.5px solid var(--border); font-size:0.88rem;
+      font-family:'DM Sans',sans-serif; text-align:center;
+      background:var(--surface2); color:var(--text);
+      outline:none;
+    }
+    .jump-input:focus { border-color:var(--brand); }
+    .btn-jump {
+      padding:9px 13px; border-radius:9px; font-size:0.85rem;
+      font-weight:700; font-family:'DM Sans',sans-serif;
+      background:var(--brand); color:#fff; border:none; cursor:pointer;
+      transition:all .2s;
+    }
+    .btn-jump:hover { background:#5b1ec4; }
+    @media (max-width:520px) {
+      .nav-row { gap:5px; }
+      .btn-nav { padding:9px 10px; font-size:0; gap:0; }
+      .btn-nav i { font-size:15px; display:block; margin:0; }
+      .jump-wrap { margin-left:auto; }
+      .jump-input { width:46px; font-size:0.82rem; padding:7px 5px; }
+      .btn-jump { padding:8px 10px; font-size:0.8rem; }
+    }
+
+
     /* ── Summary ── */
     .summary-panel { margin-top:24px; }
     .summary-panel h3 { color:var(--brand); font-size:1.2rem; margin:0 0 12px; }
@@ -979,6 +1023,23 @@
         </button>
         <div id="practiceProgress" class="progress-text"></div>
         <div class="progress-track"><div class="progress-fill" id="practiceProgressFill"></div></div>
+
+        <!-- Word navigation: Previous · Next · Jump to # -->
+        <div class="nav-row" id="practiceNavRow">
+          <button class="btn-nav" id="practicePrev" onclick="navigateWord('practice','prev')" title="Previous word">
+            <i class="fa fa-step-backward"></i> Previous
+          </button>
+          <button class="btn-nav" id="practiceNext" onclick="navigateWord('practice','next')" title="Skip to next word">
+            <i class="fa fa-step-forward"></i> Next
+          </button>
+          <div class="jump-wrap">
+            <input class="jump-input" id="practiceJumpInput" type="number" min="1" placeholder="#"
+              title="Jump to word number"
+              onkeydown="if(event.key==='Enter')navigateWord('practice','jump')">
+            <button class="btn-jump" onclick="navigateWord('practice','jump')" title="Go to word number">Go</button>
+          </div>
+        </div>
+
         <div id="practiceFeedback" class="feedback-pill">
           Listen carefully and type the word…
         </div>
@@ -1098,6 +1159,23 @@
         <!-- Progress -->
         <div id="beeProgress" class="progress-text"></div>
         <div class="progress-track"><div class="progress-fill" id="beeProgressFill"></div></div>
+
+        <!-- Word navigation: Previous · Next · Jump to # -->
+        <div class="nav-row" id="beeNavRow">
+          <button class="btn-nav" id="beePrev" onclick="navigateWord('bee','prev')" title="Previous word">
+            <i class="fa fa-step-backward"></i> Previous
+          </button>
+          <button class="btn-nav" id="beeNext" onclick="navigateWord('bee','next')" title="Skip to next word">
+            <i class="fa fa-step-forward"></i> Next
+          </button>
+          <div class="jump-wrap">
+            <input class="jump-input" id="beeJumpInput" type="number" min="1" placeholder="#"
+              title="Jump to word number"
+              onkeydown="if(event.key==='Enter')navigateWord('bee','jump')">
+            <button class="btn-jump" onclick="navigateWord('bee','jump')" title="Go to word number">Go</button>
+          </div>
+        </div>
+
 
         <!-- Feedback -->
         <div id="beeFeedback" class="feedback-pill">
