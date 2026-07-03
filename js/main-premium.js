@@ -109,7 +109,7 @@ function showResumePrompt(state) {
   banner.style.cssText = `
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
     background:#7b2ff7;color:#fff;border-radius:14px;padding:14px 20px;
-    box-shadow:0 8px 32px rgba(0,0,0,0.25);z-index:9999;
+    box-shadow:0 8px 32px rgba(0,0,0,0.25);z-index:10001;
     display:flex;align-items:center;gap:14px;font-size:0.9rem;
     max-width:480px;width:90%;
   `;
@@ -414,6 +414,16 @@ function hideOverlay() {
     const mainContent = document.querySelector("main");
     if (overlay) overlay.style.display = "none";
     if (mainContent) mainContent.style.display = "block";
+
+    // Show resume prompt now that auth is confirmed and the main UI is visible.
+    // Doing this here (instead of the blind 1500ms DOMContentLoaded timer) means
+    // the prompt always appears AFTER the overlay has cleared, so it's never
+    // hidden behind the login screen. The DOMContentLoaded timer is kept as a
+    // fallback for rare cases where auth resolves before DOMContentLoaded fires.
+    setTimeout(() => {
+      const saved = loadSessionState();
+      if (saved) showResumePrompt(saved);
+    }, 400);
 }
 
 // Safety net: if Firebase auth hasn't resolved within 8 seconds (slow network,
@@ -2344,11 +2354,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // are called from initializePremiumFeatures() only — NOT here — to avoid duplicates.
     console.log('SpellRightPro Premium initialized');
 
-    // Show resume prompt if user has a mid-session saved state
+    // Fallback resume prompt — fires only if hideOverlay() hasn't already shown it
+    // (e.g. when auth resolves very fast, before this timer). showResumePrompt()
+    // removes any existing prompt before creating a new one, so it's safe to call
+    // twice — but we skip if the prompt is already visible to avoid a flicker.
     setTimeout(() => {
+      if (document.getElementById('srpResumePrompt')) return; // already shown by hideOverlay
       const saved = loadSessionState();
       if (saved) showResumePrompt(saved);
-    }, 1500); // slight delay so page renders first
+    }, 1500);
 });
 
 // Enhanced function to handle premium access simulation for testing
