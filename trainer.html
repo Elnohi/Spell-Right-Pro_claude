@@ -234,6 +234,13 @@
     .real-time-hint {
       text-align:center; font-size:0.72rem; color:var(--muted); margin-top:6px;
     }
+    /* Hint text colour tokens — match the JS feedback colours for each mode */
+    .rt-ok   { font-weight:600; color:#007048; }
+    .rt-warn { font-weight:600; color:#7a5200; }
+    .rt-fail { font-weight:600; color:#c8002a; }
+    body.dark-mode .rt-ok   { color:#00c57a; }
+    body.dark-mode .rt-warn { color:#ffb800; }
+    body.dark-mode .rt-fail { color:#ff4560; }
 
     /* ── Input mode toggle (keyboard / write) ── */
     .input-mode-toggle { display:flex; gap:8px; margin-bottom:10px; }
@@ -322,14 +329,17 @@
     }
     .btn-nav {
       background:var(--surface2); color:var(--brand);
-      border:1.5px solid var(--border); border-radius:10px;
+      border:1.5px solid rgba(123,47,247,0.35); border-radius:10px;
       padding:9px 14px; font-size:0.85rem; font-weight:600;
       font-family:'DM Sans',sans-serif; cursor:pointer;
       display:inline-flex; align-items:center; gap:6px; transition:all .2s;
       white-space:nowrap;
     }
-    .btn-nav:hover { background:rgba(123,47,247,.1); }
-    .btn-nav:disabled { opacity:.35; cursor:not-allowed; }
+    .btn-nav:hover { background:rgba(123,47,247,.12); border-color:var(--brand); }
+    .btn-nav:disabled { opacity:.45; cursor:not-allowed; filter:grayscale(30%); }
+    /* btn-end sits in its own full-width row below the nav row */
+    .btn-end-row { margin-top:8px; }
+    .btn-end-row .btn-end { width:100%; }
     .jump-wrap {
       display:flex; align-items:center; gap:6px;
       margin-left:auto;
@@ -1056,7 +1066,7 @@
                 autocapitalize="off" spellcheck="false"
                 rows="2"></textarea>
             </div>
-            <p class="real-time-hint">Real-time feedback — <span style="color:var(--ok);font-weight:600;">green</span> = correct · <span style="color:var(--warn);font-weight:600;">amber</span> = on track · <span style="color:var(--fail);font-weight:600;">red</span> = wrong</p>
+            <p class="real-time-hint">Real-time feedback — <span class="rt-ok">green</span> = correct · <span class="rt-warn">amber</span> = on track · <span class="rt-fail">red</span> = wrong</p>
           </div>
 
           <!-- Handwriting canvas (hidden until Write mode selected) -->
@@ -1085,9 +1095,6 @@
           <button class="btn-sec" id="practiceFlag">
             <i class="fa fa-flag"></i> Flag
           </button>
-          <button class="btn-end" id="practiceEnd">
-            <i class="fa fa-stop"></i> End Session
-          </button>
         </div>
 
         <!-- Word navigation: Previous · Next · Jump to # -->
@@ -1104,6 +1111,12 @@
               onkeydown="if(event.key==='Enter')navigateWord('practice','jump')">
             <button class="btn-jump" onclick="navigateWord('practice','jump')" title="Go to word number">Go</button>
           </div>
+        </div>
+
+        <div class="btn-end-row">
+          <button class="btn-end" id="practiceEnd">
+            <i class="fa fa-stop"></i> End Session
+          </button>
         </div>
       </div><!-- /.training-phase -->
 
@@ -1204,9 +1217,6 @@
           <button class="btn-sec" id="beeFlag">
             <i class="fa fa-flag"></i> Flag
           </button>
-          <button class="btn-end" id="beeEnd">
-            <i class="fa fa-stop"></i> End Session
-          </button>
         </div>
 
         <!-- Word navigation: Previous · Next · Jump to # -->
@@ -1223,6 +1233,12 @@
               onkeydown="if(event.key==='Enter')navigateWord('bee','jump')">
             <button class="btn-jump" onclick="navigateWord('bee','jump')" title="Go to word number">Go</button>
           </div>
+        </div>
+
+        <div class="btn-end-row">
+          <button class="btn-end" id="beeEnd">
+            <i class="fa fa-stop"></i> End Session
+          </button>
         </div>
 
       </div><!-- /.training-phase -->
