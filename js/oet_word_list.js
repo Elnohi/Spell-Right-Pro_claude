@@ -85,7 +85,6 @@ window.OET_WORDS = [
   "Japan",
   "events manager",
   "fuzzy",
-  "some sort of food",
   "magazine editor",
   "lung expansion",
   "asking",
