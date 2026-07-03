@@ -946,31 +946,39 @@ function initializeRealTimeValidation() {
             const userInput = this.value.trim().toLowerCase();
             const correctWord = currentWord.toLowerCase();
             
-            // Real-time visual feedback
-            if (userInput === correctWord) {
-                this.style.borderColor = '#4CAF50';
-                this.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-                this.style.color = '#4CAF50';
+            // Real-time visual feedback.
+            // Colours use the CSS custom properties --ok / --warn / --fail so they
+            // automatically adapt in dark mode. Background uses 0.18 opacity —
+            // enough to be clearly visible on both the light answer-zone and the
+            // dark-mode surface, without overpowering the text.
+            if (userInput === '') {
+                // Empty — remove all inline overrides so CSS defaults restore
+                this.style.removeProperty('border-color');
+                this.style.removeProperty('background-color');
+                this.style.removeProperty('color');
+                this.style.removeProperty('font-weight');
+                this.style.removeProperty('text-decoration');
+            } else if (userInput === correctWord) {
+                // Exact match — green
+                this.style.borderColor = 'var(--ok)';
+                this.style.backgroundColor = 'rgba(0,197,122,0.12)';
+                this.style.color = 'var(--ok)';
                 this.style.fontWeight = 'bold';
                 this.style.textDecoration = 'none';
-            } else if (userInput && correctWord.startsWith(userInput)) {
-                this.style.borderColor = '#FFC107';
-                this.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
-                this.style.color = '#FFC107';
+            } else if (correctWord.startsWith(userInput)) {
+                // Valid prefix — amber (on track)
+                this.style.borderColor = 'var(--warn)';
+                this.style.backgroundColor = 'rgba(255,184,0,0.12)';
+                this.style.color = 'var(--warn)';
                 this.style.fontWeight = 'normal';
                 this.style.textDecoration = 'none';
-            } else if (userInput) {
-                this.style.borderColor = '#f44336';
-                this.style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
-                this.style.color = '#f44336';
+            } else {
+                // Mismatch — red
+                this.style.borderColor = 'var(--fail)';
+                this.style.backgroundColor = 'rgba(255,69,96,0.10)';
+                this.style.color = 'var(--fail)';
                 this.style.fontWeight = 'normal';
                 this.style.textDecoration = 'line-through';
-            } else {
-                this.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                this.style.color = 'white';
-                this.style.fontWeight = 'normal';
-                this.style.textDecoration = 'none';
             }
         });
         
@@ -989,12 +997,16 @@ function initializeRealTimeValidation() {
 function clearRealTimeFeedback() {
     const inputElement = document.getElementById(`${currentMode}Input`);
     if (inputElement) {
-        inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-        inputElement.style.color = 'white';
-        inputElement.style.fontWeight = 'normal';
-        inputElement.style.textDecoration = 'none';
-        inputElement.style.boxShadow = 'none';
+        // Remove inline style overrides entirely so the stylesheet's
+        // color:var(--text) and background:transparent take back over.
+        // Previously this hardcoded color:'white', making typed text
+        // invisible in light mode.
+        inputElement.style.removeProperty('border-color');
+        inputElement.style.removeProperty('background-color');
+        inputElement.style.removeProperty('color');
+        inputElement.style.removeProperty('font-weight');
+        inputElement.style.removeProperty('text-decoration');
+        inputElement.style.removeProperty('box-shadow');
     }
 }
 
@@ -1588,6 +1600,11 @@ function navigateWord(mode, direction) {
     window.speechSynthesis.cancel();
   }
 
+  // Clear stale real-time colour from previous word
+  clearRealTimeFeedback();
+  const jumpInput = document.getElementById(mode + 'Input');
+  if (jumpInput) jumpInput.value = '';
+
   const total = currentList.length;
 
   if (direction === 'prev') {
@@ -1860,15 +1877,10 @@ function nextWord() {
         feedbackElement.style.fontWeight = '';
     }
     
-    // Reset input styling
+    // Reset input for next word — clears real-time colour and value
     if (inputElement) {
-        inputElement.value = "";
-        inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-        inputElement.style.color = 'white';
-        inputElement.style.fontWeight = 'normal';
-        inputElement.style.textDecoration = 'none';
-        inputElement.style.boxShadow = 'none';
+        inputElement.value = '';
+        clearRealTimeFeedback();
     }
     
     // Reset handwriting canvas between words
@@ -1965,15 +1977,9 @@ function checkAnswer() {
     
     // Auto-advance with delay
     setTimeout(() => {
-        // Reset input styling for next word
-        if (inputElement) {
-            inputElement.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            inputElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            inputElement.style.color = 'white';
-            inputElement.style.fontWeight = 'normal';
-            inputElement.style.textDecoration = 'none';
-            inputElement.value = "";
-        }
+        // nextWord() clears the input and resets styling via clearRealTimeFeedback()
+        if (inputElement) inputElement.value = '';
+        clearRealTimeFeedback();
         
         if (feedbackElement) {
             feedbackElement.style.color = '';
