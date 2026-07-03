@@ -316,7 +316,9 @@
     /* ── Word navigation row (Previous / Next / Jump) ── */
     .nav-row {
       display:flex; align-items:center; gap:8px;
-      margin-bottom:10px; flex-wrap:wrap;
+      margin-top:12px; padding-top:12px;
+      border-top:1px solid var(--border);
+      flex-wrap:wrap;
     }
     .btn-nav {
       background:var(--surface2); color:var(--brand);
@@ -348,12 +350,12 @@
     }
     .btn-jump:hover { background:#5b1ec4; }
     @media (max-width:520px) {
-      .nav-row { gap:5px; }
-      .btn-nav { padding:9px 10px; font-size:0; gap:0; }
+      .nav-row { gap:5px; flex-wrap:nowrap; }
+      .btn-nav { padding:9px 10px; font-size:0; gap:0; flex-shrink:0; }
       .btn-nav i { font-size:15px; display:block; margin:0; }
-      .jump-wrap { margin-left:auto; }
+      .jump-wrap { margin-left:auto; flex-shrink:0; }
       .jump-input { width:46px; font-size:0.82rem; padding:7px 5px; }
-      .btn-jump { padding:8px 10px; font-size:0.8rem; }
+      .btn-jump { padding:8px 10px; font-size:0.8rem; white-space:nowrap; }
     }
 
 
@@ -1024,21 +1026,6 @@
         <div id="practiceProgress" class="progress-text"></div>
         <div class="progress-track"><div class="progress-fill" id="practiceProgressFill"></div></div>
 
-        <!-- Word navigation: Previous · Next · Jump to # -->
-        <div class="nav-row" id="practiceNavRow">
-          <button class="btn-nav" id="practicePrev" onclick="navigateWord('practice','prev')" title="Previous word">
-            <i class="fa fa-step-backward"></i> Previous
-          </button>
-          <button class="btn-nav" id="practiceNext" onclick="navigateWord('practice','next')" title="Skip to next word">
-            <i class="fa fa-step-forward"></i> Next
-          </button>
-          <div class="jump-wrap">
-            <input class="jump-input" id="practiceJumpInput" type="number" min="1" placeholder="#"
-              title="Jump to word number"
-              onkeydown="if(event.key==='Enter')navigateWord('practice','jump')">
-            <button class="btn-jump" onclick="navigateWord('practice','jump')" title="Go to word number">Go</button>
-          </div>
-        </div>
 
         <div id="practiceFeedback" class="feedback-pill">
           Listen carefully and type the word…
@@ -1069,7 +1056,7 @@
                 autocapitalize="off" spellcheck="false"
                 rows="2"></textarea>
             </div>
-            <p class="real-time-hint">Real-time feedback — green = correct, red = wrong</p>
+            <p class="real-time-hint">Real-time feedback — <span style="color:var(--ok);font-weight:600;">green</span> = correct · <span style="color:var(--warn);font-weight:600;">amber</span> = on track · <span style="color:var(--fail);font-weight:600;">red</span> = wrong</p>
           </div>
 
           <!-- Handwriting canvas (hidden until Write mode selected) -->
@@ -1101,6 +1088,22 @@
           <button class="btn-end" id="practiceEnd">
             <i class="fa fa-stop"></i> End Session
           </button>
+        </div>
+
+        <!-- Word navigation: Previous · Next · Jump to # -->
+        <div class="nav-row" id="practiceNavRow">
+          <button class="btn-nav" id="practicePrev" onclick="navigateWord('practice','prev')" title="Previous word">
+            <i class="fa fa-step-backward"></i> Previous
+          </button>
+          <button class="btn-nav" id="practiceNext" onclick="navigateWord('practice','next')" title="Skip to next word">
+            <i class="fa fa-step-forward"></i> Next
+          </button>
+          <div class="jump-wrap">
+            <input class="jump-input" id="practiceJumpInput" type="number" min="1" placeholder="#"
+              title="Jump to word number"
+              onkeydown="if(event.key==='Enter')navigateWord('practice','jump')">
+            <button class="btn-jump" onclick="navigateWord('practice','jump')" title="Go to word number">Go</button>
+          </div>
         </div>
       </div><!-- /.training-phase -->
 
@@ -1160,22 +1163,6 @@
         <div id="beeProgress" class="progress-text"></div>
         <div class="progress-track"><div class="progress-fill" id="beeProgressFill"></div></div>
 
-        <!-- Word navigation: Previous · Next · Jump to # -->
-        <div class="nav-row" id="beeNavRow">
-          <button class="btn-nav" id="beePrev" onclick="navigateWord('bee','prev')" title="Previous word">
-            <i class="fa fa-step-backward"></i> Previous
-          </button>
-          <button class="btn-nav" id="beeNext" onclick="navigateWord('bee','next')" title="Skip to next word">
-            <i class="fa fa-step-forward"></i> Next
-          </button>
-          <div class="jump-wrap">
-            <input class="jump-input" id="beeJumpInput" type="number" min="1" placeholder="#"
-              title="Jump to word number"
-              onkeydown="if(event.key==='Enter')navigateWord('bee','jump')">
-            <button class="btn-jump" onclick="navigateWord('bee','jump')" title="Go to word number">Go</button>
-          </div>
-        </div>
-
 
         <!-- Feedback -->
         <div id="beeFeedback" class="feedback-pill">
@@ -1220,6 +1207,22 @@
           <button class="btn-end" id="beeEnd">
             <i class="fa fa-stop"></i> End Session
           </button>
+        </div>
+
+        <!-- Word navigation: Previous · Next · Jump to # -->
+        <div class="nav-row" id="beeNavRow">
+          <button class="btn-nav" id="beePrev" onclick="navigateWord('bee','prev')" title="Previous word">
+            <i class="fa fa-step-backward"></i> Previous
+          </button>
+          <button class="btn-nav" id="beeNext" onclick="navigateWord('bee','next')" title="Skip to next word">
+            <i class="fa fa-step-forward"></i> Next
+          </button>
+          <div class="jump-wrap">
+            <input class="jump-input" id="beeJumpInput" type="number" min="1" placeholder="#"
+              title="Jump to word number"
+              onkeydown="if(event.key==='Enter')navigateWord('bee','jump')">
+            <button class="btn-jump" onclick="navigateWord('bee','jump')" title="Go to word number">Go</button>
+          </div>
         </div>
 
       </div><!-- /.training-phase -->
