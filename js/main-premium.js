@@ -39,8 +39,13 @@ const SESSION_SAVE_KEY = 'srp_session_state';
 // fresh session (startTraining clears it). A 24-hour limit meant progress
 // was silently lost overnight, defeating the purpose of session saving.
 
-function saveSessionState() {
-  if (!currentMode || !currentList.length || currentIndex === 0) return;
+function saveSessionState(forceIndex0 = false) {
+  // Guard: don't save if there's nothing meaningful to save.
+  // forceIndex0 = true is passed by showSummary(earlyExit) so that tapping
+  // "End Session" at word 1 (index 0) still persists the position.
+  // Without it the user would lose their place if they quit immediately.
+  if (!currentMode || !currentList.length) return;
+  if (currentIndex === 0 && !forceIndex0) return;
   try {
     const state = {
       mode:             currentMode,
@@ -1625,9 +1630,9 @@ function updateNavButtons(mode) {
 
 function backToSetup(mode) {
   // Save progress BEFORE resetting, so the resume prompt can offer to continue.
-  // saveSessionState() guards against saving when there's nothing worth saving
-  // (index===0 or empty list), so calling it here is always safe.
-  saveSessionState();
+  // forceIndex0=true ensures we save even if the user is still at word 1
+  // (currentIndex===0) — without it, quitting immediately would lose position.
+  saveSessionState(true);
 
   const area = document.getElementById(mode + '-area');
   if (area) area.classList.remove('training-active');
@@ -1988,12 +1993,19 @@ function showSummary(earlyExit = false) {
   if (earlyExit) {
     // User ended manually mid-session — save progress so the resume prompt
     // can offer to continue when they return to this mode.
-    saveSessionState();
+    // forceIndex0=true ensures we save even if they quit at the very first word.
+    saveSessionState(true);
   } else {
     // Session completed naturally (all words done) — clear saved state so
     // the resume prompt doesn't appear for a finished session.
     clearSessionState();
   }
+
+  // Hide the training UI (Submit, Say Again, Flag, End buttons) so they don't
+  // sit above the summary panel. training-active is what makes .training-phase
+  // visible — removing it collapses it, leaving only the summary below.
+  const area = document.getElementById(currentMode + '-area');
+  if (area) area.classList.remove('training-active');
 
   const summaryElement = document.getElementById(`${currentMode}Summary`);
   if (!summaryElement) return;
