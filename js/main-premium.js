@@ -141,18 +141,42 @@ function resumeSession() {
   incorrectWords      = state.incorrectWords || [];
   flaggedWords        = new Set(state.flaggedWords || []);
 
-  // Activate the correct mode tab
+  // Switch to the correct mode tab WITHOUT calling modeBtn.click() —
+  // clicking the button triggers startTraining() → resetTraining() which
+  // wipes currentIndex back to 0 immediately after we restored it from state.
+  // Instead we do exactly what the click handler does, minus the reset.
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   const modeBtn = document.querySelector(`.mode-btn[data-mode="${currentMode}"]`);
-  if (modeBtn) modeBtn.click();
+  if (modeBtn) modeBtn.classList.add('active');
 
-  // Restore word list selection for practice mode
-  if (currentMode === 'practice' && typeof selectWordList === 'function') {
-    selectWordList(state.selectedWordList || 'oet');
+  document.querySelectorAll('.trainer-area').forEach(a => {
+    a.style.display = 'none';
+    a.classList.remove('active');
+  });
+  const area = document.getElementById(currentMode + '-area');
+  if (area) {
+    area.style.display = 'block';
+    area.classList.add('active');
+    area.classList.add('training-active'); // show training phase, not setup
   }
 
-  // Show training area and start from saved position
-  const area = document.getElementById(currentMode + '-area');
-  if (area) area.classList.add('training-active');
+  // Restore word list selection label for practice mode (visual only — no reset)
+  if (currentMode === 'practice' && state.selectedWordList &&
+      typeof selectWordList === 'function') {
+    // selectWordList resets currentList so we call it first, then re-restore
+    selectWordList(state.selectedWordList);
+    currentList  = state.list;
+    currentIndex = state.index;
+    score        = state.score;
+    correctWords        = state.correctWords || [];
+    incorrectWords      = state.incorrectWords || [];
+    flaggedWords        = new Set(state.flaggedWords || []);
+  }
+
+  // Sync the tab bar if present
+  document.querySelectorAll('.trainer-tab-bar a').forEach(a => a.classList.remove('active'));
+  const tabLink = document.getElementById(`tab-${currentMode}`);
+  if (tabLink) tabLink.classList.add('active');
 
   showFeedback(`Resumed — word ${currentIndex + 1} of ${currentList.length}`, 'info');
   if (typeof updateNavButtons === 'function') updateNavButtons(currentMode);
@@ -911,10 +935,10 @@ function checkBeeAnswer(spokenText) {
 function initializeRealTimeValidation() {
     // Add real-time marking toggle
     const realTimeToggleHTML = `
-        <div class="real-time-marking-toggle" style="margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="realTimeMarkingToggle" checked>
-                <span>Real-time Spelling Check</span>
+        <div class="real-time-marking-toggle" style="margin: 12px 0 4px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; background:var(--surface2); border:1.5px solid rgba(123,47,247,0.3); border-radius:8px; padding:7px 14px;">
+                <input type="checkbox" id="realTimeMarkingToggle" checked style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;">
+                <span style="font-size:0.85rem;font-weight:600;color:var(--brand);">Real-time Spelling Check</span>
             </label>
         </div>
     `;
@@ -945,12 +969,19 @@ function initializeRealTimeValidation() {
             const currentWord = currentList[currentIndex];
             const userInput = this.value.trim().toLowerCase();
             const correctWord = currentWord.toLowerCase();
-            
-            // Real-time visual feedback.
-            // Colours use the CSS custom properties --ok / --warn / --fail so they
-            // automatically adapt in dark mode. Background uses 0.18 opacity —
-            // enough to be clearly visible on both the light answer-zone and the
-            // dark-mode surface, without overpowering the text.
+
+            // Detect dark mode — trainer.html uses body.dark-mode class
+            const dark = document.body.classList.contains('dark-mode');
+
+            // Text colours: darker shades pass WCAG AA in light mode (#f5f0fe bg);
+            // bright shades pass WCAG AA in dark mode (#1d0a37 bg).
+            // Borders/backgrounds use the bright CSS vars in both modes.
+            const c = {
+                ok:   dark ? '#00c57a' : '#007048',
+                warn: dark ? '#ffb800' : '#7a5200',
+                fail: dark ? '#ff4560' : '#c8002a',
+            };
+
             if (userInput === '') {
                 // Empty — remove all inline overrides so CSS defaults restore
                 this.style.removeProperty('border-color');
@@ -959,24 +990,21 @@ function initializeRealTimeValidation() {
                 this.style.removeProperty('font-weight');
                 this.style.removeProperty('text-decoration');
             } else if (userInput === correctWord) {
-                // Exact match — green
                 this.style.borderColor = 'var(--ok)';
                 this.style.backgroundColor = 'rgba(0,197,122,0.12)';
-                this.style.color = 'var(--ok)';
+                this.style.color = c.ok;
                 this.style.fontWeight = 'bold';
                 this.style.textDecoration = 'none';
             } else if (correctWord.startsWith(userInput)) {
-                // Valid prefix — amber (on track)
                 this.style.borderColor = 'var(--warn)';
                 this.style.backgroundColor = 'rgba(255,184,0,0.12)';
-                this.style.color = 'var(--warn)';
+                this.style.color = c.warn;
                 this.style.fontWeight = 'normal';
                 this.style.textDecoration = 'none';
             } else {
-                // Mismatch — red
                 this.style.borderColor = 'var(--fail)';
                 this.style.backgroundColor = 'rgba(255,69,96,0.10)';
-                this.style.color = 'var(--fail)';
+                this.style.color = c.fail;
                 this.style.fontWeight = 'normal';
                 this.style.textDecoration = 'line-through';
             }
