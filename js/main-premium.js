@@ -1499,6 +1499,11 @@ function resetTraining() {
   correctWords = [];
   incorrectWords = [];
   flaggedWords = new Set();
+  // Reset flag button colour so it doesn't carry over amber from previous session
+  ['practiceFlag','beeFlag'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.style.color = ''; btn.title = 'Flag this word'; }
+  });
   // Reset Bee adaptive-difficulty tracking — fresh chance each session
   beeBeginnerEndIndex     = null;
   beeIntermediateEndIndex = null;
@@ -1540,6 +1545,11 @@ function startTraining(mode) {
 
   currentMode = mode;
   resetTraining();
+
+  // Clear any lingering summary from a previous session so it doesn't
+  // remain visible behind the new training phase.
+  const prevSummary = document.getElementById(mode + 'Summary');
+  if (prevSummary) { prevSummary.style.display = 'none'; prevSummary.innerHTML = ''; }
 
   // Activate training phase — hide setup, show training area
   const area = document.getElementById(mode + '-area');
@@ -1924,6 +1934,14 @@ function nextWord() {
     // Keep nav buttons (Previous/Next) in sync with current position
     if (typeof updateNavButtons === 'function') updateNavButtons(currentMode);
 
+    // Update flag button to reflect whether the current word is already flagged
+    const flagBtn = document.getElementById(currentMode + 'Flag');
+    if (flagBtn) {
+      const isFlagged = flaggedWords.has(currentList[currentIndex]);
+      flagBtn.style.color = isFlagged ? '#f59e0b' : '';
+      flagBtn.title = isFlagged ? 'Unflag this word' : 'Flag this word';
+    }
+
     // Speak immediately — delay breaks Edge's user-gesture trust chain
     speakWord(word);
 }
@@ -2044,59 +2062,104 @@ function showSummary(earlyExit = false) {
   const summaryElement = document.getElementById(`${currentMode}Summary`);
   if (!summaryElement) return;
   
+  const total     = currentList.length;
+  const pct       = total > 0 ? Math.round((score / total) * 100) : 0;
+  const barColour = pct >= 80 ? '#00c57a' : pct >= 50 ? '#ffb800' : '#ff4560';
+
   let summaryHTML = `
     <div class="summary-header">
       <h3>Session Complete</h3>
-      <div class="score">Score: ${score}/${currentList.length}</div>
+      <div class="score">Score: ${score}/${total}</div>
+    </div>
+
+    <!-- Progress chart: horizontal bar showing accuracy -->
+    <div style="margin:16px 0 20px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.8rem;
+                  color:var(--muted);margin-bottom:6px;">
+        <span>Accuracy</span><span style="font-weight:700;color:${barColour};">${pct}%</span>
+      </div>
+      <div style="background:var(--border);border-radius:99px;height:12px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${barColour};
+                    border-radius:99px;transition:width .8s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;
+                  color:var(--muted);margin-top:5px;">
+        <span>✅ ${score} correct</span>
+        <span>❌ ${incorrectWords.length} incorrect</span>
+        ${flaggedWords.size > 0 ? `<span>🚩 ${flaggedWords.size} flagged</span>` : ''}
+      </div>
     </div>
   `;
-  
+
+  // Incorrect words with corrections
   if (incorrectWords.length > 0) {
     summaryHTML += `
-      <div class="incorrect-words">
-        <h4>❌ Incorrect Words (${incorrectWords.length})</h4>
+      <div class="incorrect-words" style="margin-bottom:14px;">
+        <h4 style="margin:0 0 8px;font-size:0.9rem;color:var(--fail);">
+          ❌ Incorrect Words (${incorrectWords.length})
+        </h4>
         <div class="word-list">
     `;
-    
     incorrectWords.forEach(item => {
       summaryHTML += `
-        <div class="word-item">
-          <strong>${item.word}</strong> - You said: "${item.answer}"
+        <div class="word-item" style="display:flex;justify-content:space-between;
+             align-items:center;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--fail);text-decoration:line-through;font-size:0.88rem;">
+            ${item.answer || '—'}
+          </span>
+          <span style="font-size:0.75rem;color:var(--muted);">→</span>
+          <span style="color:var(--ok);font-weight:700;font-size:0.92rem;">${item.word}</span>
         </div>
       `;
     });
-    
-    summaryHTML += `</div></div>`;
+    summaryHTML += `</div>`;
+
+    // Retry incorrect words button
+    summaryHTML += `
+      <button onclick="retryIncorrectWords()" style="
+        margin-top:12px;width:100%;padding:10px;border-radius:10px;
+        background:rgba(255,69,96,0.08);color:var(--fail);
+        border:1.5px solid rgba(255,69,96,0.3);font-size:0.88rem;
+        font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        🔁 Practice Incorrect Words (${incorrectWords.length})
+      </button>
+    </div>`;
   }
-  
+
+  // Flagged words section
   if (flaggedWords.size > 0) {
     summaryHTML += `
-      <div class="flagged-words">
-        <h4>🚩 Flagged Words (${flaggedWords.size})</h4>
-        <div class="word-list">
+      <div class="flagged-words" style="margin-bottom:14px;">
+        <h4 style="margin:0 0 8px;font-size:0.9rem;color:#f59e0b;">
+          🚩 Flagged Words (${flaggedWords.size})
+        </h4>
+        <div class="word-list" style="display:flex;flex-wrap:wrap;gap:6px;">
     `;
-    
+    const dark = document.body.classList.contains('dark-mode');
+    const flagTextColour = dark ? '#f59e0b' : '#7a5200';
     flaggedWords.forEach(word => {
-      summaryHTML += `<div class="word-item">${word}</div>`;
+      summaryHTML += `
+        <span style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);
+              border-radius:6px;padding:3px 10px;font-size:0.85rem;font-weight:600;
+              color:${flagTextColour};">${word}</span>
+      `;
     });
-    
     summaryHTML += `</div></div>`;
   }
-  
-  if (correctWords.length > 0 && incorrectWords.length === 0) {
+
+  // Perfect score — only show if at least one word was actually answered
+  if (incorrectWords.length === 0 && flaggedWords.size === 0 && score > 0) {
     summaryHTML += `
-      <div class="correct-words">
-        <h4>✅ Correct Words (${correctWords.length})</h4>
-        <div class="word-list">
+      <div style="text-align:center;padding:12px;background:rgba(0,197,122,0.08);
+           border-radius:10px;border:1.5px solid rgba(0,197,122,0.25);margin-top:4px;">
+        <div style="font-size:1.5rem;margin-bottom:4px;">🎉</div>
+        <div style="font-weight:700;color:#007048;font-size:0.95rem;">
+          Perfect score! Every word correct.
+        </div>
+      </div>
     `;
-    
-    correctWords.forEach(word => {
-      summaryHTML += `<div class="word-item">${word}</div>`;
-    });
-    
-    summaryHTML += `</div></div>`;
   }
-  
+
   summaryElement.innerHTML = summaryHTML;
   summaryElement.style.display = "block";
 
@@ -2143,16 +2206,65 @@ function showSummary(earlyExit = false) {
   }
 }
 
+function retryIncorrectWords() {
+  if (!incorrectWords.length) return;
+
+  // Build a word list from just the incorrect words, then start a fresh session
+  const wordsToRetry = incorrectWords.map(item => item.word);
+  const summaryElement = document.getElementById(currentMode + 'Summary');
+  if (summaryElement) { summaryElement.style.display = 'none'; summaryElement.innerHTML = ''; }
+
+  // Reset state with the subset list
+  currentIndex   = 0;
+  score          = 0;
+  correctWords   = [];
+  incorrectWords = [];
+  flaggedWords   = new Set();
+  currentList    = wordsToRetry;
+  clearSessionState();
+
+  // Reactivate the training phase
+  const area = document.getElementById(currentMode + '-area');
+  if (area) area.classList.add('training-active');
+
+  showFeedback(`Retrying ${wordsToRetry.length} incorrect word${wordsToRetry.length > 1 ? 's' : ''}`, 'info');
+  updateNavButtons(currentMode);
+  nextWord();
+}
+
 function flagCurrentWord() {
-  if (currentIndex >= currentList.length) return;
+  if (!currentList || currentIndex >= currentList.length) return;
   
   const word = currentList[currentIndex];
+  const btn  = document.getElementById(currentMode + 'Flag');
+
+  // Use the inline feedback pill (visible in the training area) rather than
+  // the toast (which appends below the fold on the glass-card).
+  const pill = document.getElementById(currentMode + 'Feedback');
+  const showInlineFeedback = (msg, isError) => {
+    if (pill) {
+      const originalText = pill.textContent;
+      pill.textContent = msg;
+      pill.style.color = isError ? 'var(--fail)' : 'var(--ok)';
+      pill.style.fontWeight = '600';
+      setTimeout(() => {
+        pill.textContent = originalText;
+        pill.style.color = '';
+        pill.style.fontWeight = '';
+      }, 2500);
+    } else {
+      showFeedback(msg, isError ? 'warning' : 'success');
+    }
+  };
+
   if (flaggedWords.has(word)) {
     flaggedWords.delete(word);
-    showFeedback(`🚩 Removed flag from "${word}"`, "info");
+    if (btn) { btn.style.color = ''; btn.title = 'Flag this word'; }
+    showInlineFeedback(`🚩 Removed flag from "${word}"`, false);
   } else {
     flaggedWords.add(word);
-    showFeedback(`🚩 Flagged "${word}" for review`, "success");
+    if (btn) { btn.style.color = '#f59e0b'; btn.title = 'Unflag this word'; }
+    showInlineFeedback(`🚩 "${word}" flagged for review`, false);
   }
 }
 
