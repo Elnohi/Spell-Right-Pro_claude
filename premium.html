@@ -412,6 +412,24 @@
     body.dark-mode .srp-survey-text{background:rgba(255,255,255,.05);color:#f0e8ff;border-color:rgba(255,255,255,.1);}
 
   </style>
+  <!-- Meta Pixel Base Code -->
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1501239791188475');
+  fbq('track', 'PageView');
+  fbq('track', 'ViewContent', {content_name: 'SpellRightPro Premium', content_category: 'Premium', content_type: 'product', value: 5.00, currency: 'CAD'});
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1501239791188475&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Base Code -->
 </head>
 <body>
   <div class="container">
@@ -1011,6 +1029,17 @@
         return;
       }
       errorEl.style.display = 'none';
+
+      // Fire InitiateCheckout before redirecting to Stripe
+      if (typeof fbq !== 'undefined') {
+        fbq('track', 'InitiateCheckout', {
+          content_name: 'SpellRightPro Premium',
+          content_category: 'Premium',
+          value: selectedPlanKey === 'annual' ? 45.00 : selectedPlanKey === 'sixmonth' ? 27.00 : 5.00,
+          currency: 'CAD',
+          num_items: 1
+        });
+      }
 
       // Show spinner
       const originalHTML = submitBtn.innerHTML;
