@@ -261,23 +261,23 @@
       } catch(_) {}
     }
 
-    // Analytics
-    if (typeof gtag !== 'undefined') {
+    // Analytics — only fire purchase events when a real Stripe session exists
+    if (sessionId && typeof gtag !== 'undefined') {
       // Facebook Pixel Purchase event
       if (typeof fbq !== 'undefined') {
-        const planValues = {annual: 45.00, sixmonth: 27.00, monthly: 5.00, premium: 5.00};
+        const planValues = {annual: 45.00, sixmonth: 26.00, monthly: 5.00, premium: 5.00};
         const purchaseValue = planValues[planParam] || 5.00;
         fbq('track', 'Purchase', {
           value: purchaseValue,
           currency: 'CAD',
           content_name: 'SpellRightPro ' + planParam,
           content_type: 'product',
-          transaction_id: sessionId || ('TXN_' + Date.now())
+          transaction_id: sessionId
         });
       }
 
       gtag('event', 'purchase', {
-        transaction_id: sessionId || ('TXN_' + Date.now()),
+        transaction_id: sessionId,
         currency: 'CAD',
         items: [{ item_id: planParam, item_name: 'SpellRightPro ' + planParam }]
       });
