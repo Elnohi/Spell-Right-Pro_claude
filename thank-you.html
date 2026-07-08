@@ -262,8 +262,8 @@
     }
 
     // Analytics — only fire purchase events when a real Stripe session exists
-    if (sessionId && typeof gtag !== 'undefined') {
-      // Facebook Pixel Purchase event
+    if (sessionId) {
+      // Facebook Pixel Purchase event — fires independently of GA4
       if (typeof fbq !== 'undefined') {
         const planValues = {annual: 45.00, sixmonth: 26.00, monthly: 5.00, premium: 5.00};
         const purchaseValue = planValues[planParam] || 5.00;
@@ -276,11 +276,14 @@
         });
       }
 
-      gtag('event', 'purchase', {
-        transaction_id: sessionId,
-        currency: 'CAD',
-        items: [{ item_id: planParam, item_name: 'SpellRightPro ' + planParam }]
-      });
+      // GA4 purchase event — only if gtag is available
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'purchase', {
+          transaction_id: sessionId,
+          currency: 'CAD',
+          items: [{ item_id: planParam, item_name: 'SpellRightPro ' + planParam }]
+        });
+      }
     }
   })();
   </script>
