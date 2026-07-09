@@ -1927,7 +1927,7 @@ const firebaseConfig = {
       <i class="fa fa-book-open"></i>
       Free OET Preparation Guides — Spelling, Writing &amp; More
     </a>
-    <p style="font-size:0.78rem; color:#999; margin:8px 0 0;">7 articles · Written by a doctor · Updated 2026</p>
+    <p style="font-size:0.78rem; color:#999; margin:8px 0 0;">5 articles · Written by a doctor · Updated 2026</p>
   </div>
 
 <footer style="text-align: center; margin-top: 40px; padding: 20px; color: var(--muted); border-top: 1px solid rgba(255,255,255,0.1);">
@@ -2161,7 +2161,6 @@ window.srpLimit = (function() {
       '</div>';
   }
 
-  // Build the soft gate screen shown after 3rd session
   function getGateHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
     var total = TOTAL_WORDS[module] || 1627;
@@ -2172,6 +2171,9 @@ window.srpLimit = (function() {
     var moduleIcon  = module === 'oet'    ? '&#128138;'
                     : module === 'school' ? '&#127979;'
                     : '&#127881;';
+    var doctorLine  = module === 'oet'
+                    ? '<p style="font-size:0.78rem;color:var(--muted,#7b6f8a);margin:8px 0 0;">&#129657; Built by a doctor who passed the OET</p>'
+                    : '';
 
     // Midnight reset countdown
     var now       = new Date();
@@ -2191,44 +2193,47 @@ window.srpLimit = (function() {
       // Icon + title
       '<div style="font-size:2.5rem;margin-bottom:12px;">' + moduleIcon + '</div>' +
       '<h3 style="font-size:1.2rem;font-weight:800;color:var(--text,#1a0533);margin:0 0 8px;">' +
-      'You\'ve completed today\'s free practice!</h3>' +
-
-      // Word count context — the key message
-      '<div style="background:rgba(123,47,247,0.07);border-radius:12px;padding:14px;margin:16px 0;">' +
-      '<p style="font-size:0.92rem;color:var(--text,#1a0533);margin:0 0 6px;">' +
-      'You\'ve mastered <strong>' + free + ' ' + moduleLabel + ' words</strong> today.' +
+      'You\'ve used today\'s free session</h3>' +
+      '<p style="font-size:0.88rem;color:var(--muted,#7b6f8a);margin:0 0 16px;">' +
+      'You practised <strong>' + free + ' words</strong> today — great start.' +
       '</p>' +
-      '<p style="font-size:0.85rem;color:var(--muted,#7b6f8a);margin:0;">' +
-      'Premium unlocks <strong>' + remaining_words.toLocaleString() + ' more words</strong> — ' +
-      'the full ' + total.toLocaleString() + '-word list.' +
+
+      // Word count context
+      '<div style="background:rgba(123,47,247,0.07);border-radius:12px;padding:14px;margin:0 0 16px;text-align:left;">' +
+      '<p style="font-size:0.88rem;color:var(--text,#1a0533);margin:0 0 6px;font-weight:700;">' +
+      '&#128274; ' + remaining_words.toLocaleString() + ' words still locked</p>' +
+      '<p style="font-size:0.82rem;color:var(--muted,#7b6f8a);margin:0;">' +
+      'Premium gives you the full ' + total.toLocaleString() + '-word list, unlimited daily sessions, session resume, and progress tracking.' +
       '</p>' +
       '</div>' +
 
-      // Premium CTA
+      // Price anchor + CTA
+      '<div style="margin-bottom:10px;">' +
+      '<div style="font-size:0.75rem;color:var(--muted,#7b6f8a);margin-bottom:6px;">Less than a coffee a month</div>' +
       '<a href="/premium" style="' +
       'display:block;padding:15px;background:linear-gradient(135deg,#7b2ff7,#f72585);' +
       'color:#fff;border-radius:12px;font-weight:700;font-size:1rem;' +
-      'text-decoration:none;margin-bottom:12px;">' +
-      '&#128081; Unlock full ' + total.toLocaleString() + '-word list' +
+      'text-decoration:none;">' +
+      '&#128081; Unlock everything — CAD $5/month' +
       '</a>' +
+      doctorLine +
+      '</div>' +
 
-      // Come back tomorrow
+      // Come back tomorrow — de-emphasised
       '<button onclick="srpLimit.dismissGate()" style="' +
-      'width:100%;padding:12px;background:transparent;' +
-      'border:1px solid rgba(123,47,247,0.2);border-radius:12px;' +
-      'color:var(--muted,#7b6f8a);font-size:0.88rem;font-weight:600;' +
-      'cursor:pointer;font-family:inherit;">' +
-      '&#8987; Come back in ' + resetTime + ' for more free practice' +
-      '</button>' +
+      'width:100%;padding:10px;background:transparent;' +
+      'border:none;' +
+      'color:var(--muted,#7b6f8a);font-size:0.78rem;font-weight:400;' +
+      'cursor:pointer;font-family:inherit;text-decoration:underline;">' +
+      'No thanks — come back in ' + resetTime + '</button>' +
 
-      // Small print
-      '<p style="font-size:0.72rem;color:var(--muted,#7b6f8a);margin:12px 0 0;">' +
-      '1 free 24-word exam per day &nbsp;&#183;&nbsp; Resets at midnight' +
+      // Cancel anytime
+      '<p style="font-size:0.68rem;color:var(--muted,#7b6f8a);margin:8px 0 0;">' +
+      'Cancel anytime &nbsp;&#183;&nbsp; No card stored &nbsp;&#183;&nbsp; Resets free session at midnight' +
       '</p>' +
 
       '</div></div>';
   }
-
   function dismissGate() {
     var gate = document.getElementById('srpDailyGate');
     if (gate) gate.remove();
