@@ -5,7 +5,7 @@ window.OET_WORDS = [
   "Bruise",
   "Clingy",
   "Bruising",
-  "Bad constipation",
+  "Bad constipation"
   "Headaches",
   "Dairy issue",
   "Constipated",
@@ -423,7 +423,6 @@ window.OET_WORDS = [
   "shin of tibia",
   "daptomycin",
   "Heparin",
-  "high-fibre diet",
   "deteriorate",
   "transvaginal ultrasound",
   "Transfusion",
