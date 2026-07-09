@@ -679,6 +679,9 @@
       <button class="nav-btn" onclick="window.location.href='/'">
         <i class="fa fa-home"></i> Home
       </button>
+      <button class="nav-btn" onclick="window.location.href='/blog'">
+        <i class="fa fa-book-open"></i> Guides
+      </button>
       <button class="nav-btn" id="toggleDark">
         <i class="fa fa-moon"></i> Dark Mode
       </button>
@@ -1806,7 +1809,7 @@ const firebaseConfig = {
 
   <!-- Blog / Resources Banner -->
   <div style="text-align:center; margin: 28px auto 8px; max-width: 600px; padding: 0 16px;">
-    <a href="/blog" style="
+    <a href="/school-spelling-guide" style="
       display: inline-flex; align-items: center; gap: 10px;
       background: linear-gradient(135deg, #7b2ff7, #a855f7);
       color: #fff; text-decoration: none;
@@ -1818,9 +1821,9 @@ const firebaseConfig = {
     " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(123,47,247,0.4)'"
        onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(123,47,247,0.3)'">
       <i class="fa fa-book-open"></i>
-      Free OET Preparation Guides — Spelling, Writing &amp; More
+      Spelling Practice Guide for Parents &amp; Teachers
     </a>
-    <p style="font-size:0.78rem; color:#999; margin:8px 0 0;">5 articles · Written by a doctor · Updated 2026</p>
+    <p style="font-size:0.78rem; color:#999; margin:8px 0 0;">How schools test spelling &amp; a weekly routine · Written by a doctor</p>
   </div>
 
 <footer style="text-align: center; margin-top: 40px; padding: 20px; color: var(--muted); border-top: 1px solid rgba(255,255,255,0.1);">
@@ -2052,9 +2055,10 @@ window.srpLimit = (function() {
       '</div>';
   }
 
+  // Build the soft gate screen shown after 3rd session
   function getGateHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
-    var total = TOTAL_WORDS[module] || 1627;
+    var total = TOTAL_WORDS[module] || 1511;
     var remaining_words = total - free;
     var moduleLabel = module === 'oet'    ? 'OET Medical'
                     : module === 'school' ? 'School'
@@ -2062,9 +2066,9 @@ window.srpLimit = (function() {
     var moduleIcon  = module === 'oet'    ? '&#128138;'
                     : module === 'school' ? '&#127979;'
                     : '&#127881;';
-    var doctorLine  = module === 'oet'
-                    ? '<p style="font-size:0.78rem;color:var(--muted,#7b6f8a);margin:8px 0 0;">&#129657; Built by a doctor who passed the OET</p>'
-                    : '';
+    var moduleCred  = module === 'oet'    ? 'Built by a doctor who passed the OET.'
+                    : module === 'school' ? 'Built by a doctor, matched to how teachers test spelling.'
+                    : 'Voice practice with 500+ competition-level words.';
 
     // Midnight reset countdown
     var now       = new Date();
@@ -2084,47 +2088,50 @@ window.srpLimit = (function() {
       // Icon + title
       '<div style="font-size:2.5rem;margin-bottom:12px;">' + moduleIcon + '</div>' +
       '<h3 style="font-size:1.2rem;font-weight:800;color:var(--text,#1a0533);margin:0 0 8px;">' +
-      'You\'ve used today\'s free session</h3>' +
-      '<p style="font-size:0.88rem;color:var(--muted,#7b6f8a);margin:0 0 16px;">' +
-      'You practised <strong>' + free + ' words</strong> today — great start.' +
-      '</p>' +
+      'You\'ve completed today\'s free practice!</h3>' +
 
-      // Word count context
-      '<div style="background:rgba(123,47,247,0.07);border-radius:12px;padding:14px;margin:0 0 16px;text-align:left;">' +
-      '<p style="font-size:0.88rem;color:var(--text,#1a0533);margin:0 0 6px;font-weight:700;">' +
-      '&#128274; ' + remaining_words.toLocaleString() + ' words still locked</p>' +
-      '<p style="font-size:0.82rem;color:var(--muted,#7b6f8a);margin:0;">' +
-      'Premium gives you the full ' + total.toLocaleString() + '-word list, unlimited daily sessions, session resume, and progress tracking.' +
+      // Word count context — the key message
+      '<div style="background:rgba(123,47,247,0.07);border-radius:12px;padding:14px;margin:16px 0;">' +
+      '<p style="font-size:0.92rem;color:var(--text,#1a0533);margin:0 0 6px;">' +
+      'You\'ve mastered <strong>' + free + ' ' + moduleLabel + ' words</strong> today.' +
+      '</p>' +
+      '<p style="font-size:0.85rem;color:var(--muted,#7b6f8a);margin:0;">' +
+      'Premium unlocks <strong>' + remaining_words.toLocaleString() + ' more words</strong> — ' +
+      'the full ' + total.toLocaleString() + '-word list.' +
+      '</p>' +
+      '<p style="font-size:0.8rem;color:var(--muted,#7b6f8a);margin:8px 0 0;font-style:italic;">' +
+      moduleCred +
       '</p>' +
       '</div>' +
 
-      // Price anchor + CTA
-      '<div style="margin-bottom:10px;">' +
-      '<div style="font-size:0.75rem;color:var(--muted,#7b6f8a);margin-bottom:6px;">Less than a coffee a month</div>' +
+      // Premium CTA + honest price anchor
       '<a href="/premium" style="' +
       'display:block;padding:15px;background:linear-gradient(135deg,#7b2ff7,#f72585);' +
       'color:#fff;border-radius:12px;font-weight:700;font-size:1rem;' +
-      'text-decoration:none;">' +
-      '&#128081; Unlock everything — CAD $5/month' +
+      'text-decoration:none;margin-bottom:6px;">' +
+      '&#128081; Unlock the full ' + total.toLocaleString() + '-word list' +
       '</a>' +
-      doctorLine +
-      '</div>' +
+      '<p style="font-size:0.82rem;color:var(--text,#1a0533);margin:0 0 12px;font-weight:600;">' +
+      'From <strong>CAD $5/month</strong>, or $45/year' +
+      '</p>' +
 
-      // Come back tomorrow — de-emphasised
+      // Come back tomorrow
       '<button onclick="srpLimit.dismissGate()" style="' +
-      'width:100%;padding:10px;background:transparent;' +
-      'border:none;' +
-      'color:var(--muted,#7b6f8a);font-size:0.78rem;font-weight:400;' +
-      'cursor:pointer;font-family:inherit;text-decoration:underline;">' +
-      'No thanks — come back in ' + resetTime + '</button>' +
+      'width:100%;padding:12px;background:transparent;' +
+      'border:1px solid rgba(123,47,247,0.2);border-radius:12px;' +
+      'color:var(--muted,#7b6f8a);font-size:0.88rem;font-weight:600;' +
+      'cursor:pointer;font-family:inherit;">' +
+      '&#8987; Come back in ' + resetTime + ' for more free practice' +
+      '</button>' +
 
-      // Cancel anytime
-      '<p style="font-size:0.68rem;color:var(--muted,#7b6f8a);margin:8px 0 0;">' +
-      'Cancel anytime &nbsp;&#183;&nbsp; No card stored &nbsp;&#183;&nbsp; Resets free session at midnight' +
+      // Small print
+      '<p style="font-size:0.72rem;color:var(--muted,#7b6f8a);margin:12px 0 0;">' +
+      '3 free sessions per day &nbsp;&#183;&nbsp; Resets at midnight' +
       '</p>' +
 
       '</div></div>';
   }
+
   function dismissGate() {
     var gate = document.getElementById('srpDailyGate');
     if (gate) gate.remove();
