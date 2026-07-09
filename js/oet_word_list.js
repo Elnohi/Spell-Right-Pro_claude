@@ -279,7 +279,7 @@ window.OET_WORDS = [
   "bent knee",
   "ophthalmologist",
   "pre-eclampsia",
-  "crackling my knuckles",
+  "cracking my knuckles",
   "hacking",
   "Chiropractic",
   "Eczema",
