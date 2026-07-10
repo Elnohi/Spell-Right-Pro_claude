@@ -123,9 +123,11 @@ function showResumePrompt(state) {
   `;
   document.body.appendChild(banner);
 
-  // Auto-dismiss after 20s (increased from 12s — session may be days old
-  // and the user deserves time to read and decide)
-  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 20000);
+  // No auto-dismiss: the banner persists until the user explicitly acts —
+  // taps Resume, taps ✕ to discard, or starts a new session (which clears it).
+  // A timed auto-dismiss was hiding the prompt before the user could see it,
+  // because on reopen the 20s window was consumed by the auth/login overlay
+  // and page settling, so the banner vanished before it was ever visible.
 }
 
 function resumeSession() {
