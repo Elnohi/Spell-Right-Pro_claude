@@ -734,7 +734,7 @@
             placeholder="Paste your words here — one per line, or comma-separated&#10;&#10;Example:&#10;necessary&#10;accommodate&#10;rhythm"
           ></textarea>
           <div class="upload-row">
-            <input type="file" id="fileInput" accept=".txt,.json" style="display:none;" />
+            <input type="file" id="fileInput" accept=".txt,.csv,.json" style="display:none;" />
             <button class="nav-btn" onclick="document.getElementById('fileInput').click()">
               <i class="fa fa-upload"></i> Upload .txt file
             </button>
@@ -928,8 +928,8 @@ const firebaseConfig = {
     },
     
     applyFreemiumLimitations: function() {
-      const maxCustomWords = 30; // Lower limit for school freemium
-      const maxSessionWords = 50;
+      const maxCustomWords = 24; // Lower limit for school freemium
+      const maxSessionWords = 24;
       
       console.log(`🎯 School Freemium: Max ${maxCustomWords} custom words, ${maxSessionWords} words per session`);
       
@@ -1241,16 +1241,16 @@ const firebaseConfig = {
       
       if (customText) {
         const words = customText.split(/[\n,]+/).map(w => w.trim()).filter(w => w);
-        const limitedWords = words.slice(0, 30); // School freemium limit
+        const limitedWords = words.slice(0, 24); // School freemium limit
         state.words = limitedWords;
-        if (words.length > 30) {
-          updateFeedback(`School Freemium: Using first 30 of ${words.length} words`);
+        if (words.length > 24) {
+          updateFeedback(`School Freemium: Using first 24 of ${words.length} words`);
         } else {
           updateFeedback(`Using custom list: ${words.length} words`);
         }
       } else {
         const shuffled = [...SCHOOL_WORDS].sort(() => Math.random() - 0.5);
-        state.words = shuffled.slice(0, 50); // School freemium limit
+        state.words = shuffled.slice(0, 24); // School freemium limit
         updateFeedback(`Practice mode: ${state.words.length} school words (freemium limit)`);
       }
       
@@ -1605,8 +1605,8 @@ const firebaseConfig = {
             return;
           }
           const words = customText.split(/[\n,]+/).map(w => w.trim()).filter(w => w);
-          state.words = words.slice(0, 30); // School freemium limit
-          updateFeedback(`Custom list loaded: ${Math.min(words.length, 30)} words (school freemium limit)`);
+          state.words = words.slice(0, 24); // School freemium limit
+          updateFeedback(`Custom list loaded: ${Math.min(words.length, 24)} words (school freemium limit)`);
         });
       }
       

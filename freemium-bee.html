@@ -780,7 +780,7 @@
             placeholder="Paste your words here — one per line, or comma-separated&#10;&#10;Example:&#10;necessary&#10;accommodate&#10;rhythm"
           ></textarea>
           <div class="upload-row">
-            <input type="file" id="fileInput" accept=".txt,.json" style="display:none;" />
+            <input type="file" id="fileInput" accept=".txt,.csv,.json" style="display:none;" />
             <button class="nav-btn" onclick="document.getElementById('fileInput').click()">
               <i class="fa fa-upload"></i> Upload .txt file
             </button>
@@ -902,9 +902,9 @@
       if (!box) return;
       box.addEventListener('input', function() {
         const words = this.value.split(/[\n,]+/).filter(w => w.trim());
-        if (words.length > 40) {
-          this.value = words.slice(0, 40).join('\n');
-          document.getElementById('feedback').textContent = 'Freemium limit: using first 40 words';
+        if (words.length > 24) {
+          this.value = words.slice(0, 24).join('\n');
+          document.getElementById('feedback').textContent = 'Freemium limit: using first 24 words';
         }
       });
     },
@@ -1518,13 +1518,13 @@
 
       if (customText) {
         const words = customText.split(/[\n,]+/).map(w => w.trim()).filter(Boolean);
-        state.words = words.slice(0, 40);
-        setFeedback(words.length > 40
-          ? `Freemium limit: using first 40 of ${words.length} words`
+        state.words = words.slice(0, 24);
+        setFeedback(words.length > 24
+          ? `Freemium limit: using first 24 of ${words.length} words`
           : `Custom list: ${state.words.length} words loaded`);
       } else {
         const shuffled = [...BEE_WORDS].sort(() => Math.random() - 0.5);
-        state.words = shuffled.slice(0, 25);
+        state.words = shuffled.slice(0, 24);
         setFeedback(`Competition mode: ${state.words.length} words ready`);
       }
 
@@ -1736,7 +1736,7 @@
         const text = els.customBox?.value.trim() || '';
         if (!text) { setFeedback('Enter words in the custom box first.', true); return; }
         const words = text.split(/[\n,]+/).map(w => w.trim()).filter(Boolean);
-        state.words = words.slice(0, 40);
+        state.words = words.slice(0, 24);
         setFeedback(`Custom list ready: ${state.words.length} words — click Start`);
       });
 

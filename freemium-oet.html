@@ -760,7 +760,7 @@
             placeholder="Paste your words here — one per line, or comma-separated&#10;&#10;Example:&#10;necessary&#10;accommodate&#10;rhythm"
           ></textarea>
           <div class="upload-row">
-            <input type="file" id="fileInput" accept=".txt,.json" style="display:none;" />
+            <input type="file" id="fileInput" accept=".txt,.csv,.json" style="display:none;" />
             <button class="nav-btn" onclick="document.getElementById('fileInput').click()">
               <i class="fa fa-upload"></i> Upload .txt file
             </button>
@@ -957,7 +957,7 @@ const firebaseConfig = {
     
     applyFreemiumLimitations: function() {
       // Freemium limitations for OET
-      const maxCustomWords = 50; // Freemium limit
+      const maxCustomWords = 24; // Freemium limit
       const examWords = 24; // Built-in word list is always a 24-word random exam, once/day
 
       console.log(`🎯 Freemium mode: Max ${maxCustomWords} custom words, ${examWords}-word exam once per day`);
@@ -1300,10 +1300,10 @@ const firebaseConfig = {
       if (customText) {
         const words = customText.split(/[\n,]+/).map(w => w.trim()).filter(w => w);
         // Apply freemium limit
-        const limitedWords = words.slice(0, 50);
+        const limitedWords = words.slice(0, 24);
         state.words = limitedWords;
-        if (words.length > 50) {
-          updateFeedback(`Freemium: Using first 50 of ${words.length} words`);
+        if (words.length > 24) {
+          updateFeedback(`Freemium: Using first 24 of ${words.length} words`);
         } else {
           updateFeedback(`Using custom list: ${words.length} words`);
         }
@@ -1619,7 +1619,7 @@ const firebaseConfig = {
       
       const selectedWords = numbers.map(n => UNIQUE_OET_WORDS[n - 1]).filter(w => w);
       
-      state.words = selectedWords.slice(0, 50); // Freemium limit
+      state.words = selectedWords.slice(0, 24); // Freemium limit
       state.currentIndex = 0;
       state.correct = [];
       state.incorrect = [];
@@ -1710,8 +1710,8 @@ const firebaseConfig = {
             return;
           }
           const words = customText.split(/[\n,]+/).map(w => w.trim()).filter(w => w);
-          state.words = words.slice(0, 50); // Freemium limit
-          updateFeedback(`Custom list loaded: ${Math.min(words.length, 50)} words (freemium limit)`);
+          state.words = words.slice(0, 24); // Freemium limit
+          updateFeedback(`Custom list loaded: ${Math.min(words.length, 24)} words (freemium limit)`);
         });
       }
       
