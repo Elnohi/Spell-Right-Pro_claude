@@ -1837,8 +1837,11 @@
       gtag('event', 'view_item', { items: [{ item_id: 'bee', item_name: 'SpellRightPro bee', item_category: 'premium_plans' }] });
   });
   window.addEventListener('error', function(e) {
-    if (typeof gtag !== 'undefined' && e.error)
-      gtag('event', 'exception', { description: e.error.message, fatal: false });
+    if (typeof gtag !== 'undefined' && e.error) {
+      const msg = e.error.message || '';
+      if (msg.includes('Receiving end does not exist') || msg.includes('Extension context')) return;
+      gtag('event', 'exception', { description: msg, fatal: false });
+    }
   });
   </script>
 

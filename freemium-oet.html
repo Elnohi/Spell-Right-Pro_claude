@@ -1142,6 +1142,7 @@ const firebaseConfig = {
         };
         
         utterance.onerror = (e) => {
+          if (e.error === 'interrupted' || e.error === 'canceled') return;
           console.error('Speech error:', e);
           updateFeedback('Error speaking word', true);
         };
@@ -1886,7 +1887,9 @@ const firebaseConfig = {
   // Monitor errors
   window.addEventListener('error', function(e) {
     if (typeof gtag !== 'undefined' && e.error) {
-      gtag('event', 'exception', { description: e.error.message, fatal: false });
+      const msg = e.error.message || '';
+      if (msg.includes('Receiving end does not exist') || msg.includes('Extension context')) return;
+      gtag('event', 'exception', { description: msg, fatal: false });
     }
   });
 </script>
