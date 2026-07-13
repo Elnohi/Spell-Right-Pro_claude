@@ -47,25 +47,6 @@
     gtag('js', new Date());
     gtag('config', 'G-H09MF13297');
     
-    // Function to track premium clicks
-    function trackPremiumClick(source, plan) {
-      gtag('event', 'premium_click', {
-        event_category: 'premium_conversion',
-        event_label: source,
-        value: plan === 'complete' ? 8.99 : plan === 'school' ? 4.99 : 14.99
-      });
-    }
-    
-    // Function to track plan view
-    function trackPlanView(plan) {
-      gtag('event', 'view_item', {
-        items: [{
-          item_id: plan,
-          item_name: 'SpellRightPro ' + plan,
-          item_category: 'premium_plans'
-        }]
-      });
-    }
   </script>
 
   <style>
@@ -685,7 +666,7 @@
       <button class="nav-btn" id="toggleDark">
         <i class="fa fa-moon"></i> Dark Mode
       </button>
-      <button class="btn-premium" onclick="window.location.href='/premium'">
+      <button class="btn-premium" onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'school_nav'});window.location.href='/premium'">
         <i class="fa fa-crown"></i> Go Premium
       </button>
     </div>
@@ -975,7 +956,7 @@ const firebaseConfig = {
               • Export results<br>
               • No ads
             </p>
-            <button onclick="window.location.href='/premium'" 
+            <button onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'school_upsell'});window.location.href='/premium'" 
               style="background: white; color: #7b2ff7; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
               <i class="fa fa-crown"></i> Get School Premium
             </button>
@@ -1390,7 +1371,7 @@ const firebaseConfig = {
             • Export results<br>
             • No ads
           </p>
-          <button onclick="window.location.href='/premium'" 
+          <button onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'school_upsell'});window.location.href='/premium'" 
             style="background: white; color: #7b2ff7; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
             <i class="fa fa-crown"></i> Get School Premium
           </button>
@@ -1794,6 +1775,7 @@ const firebaseConfig = {
         page_title: document.title,
         page_path: window.location.pathname
       });
+      gtag('event', 'view_item', { items: [{ item_id: 'school', item_name: 'SpellRightPro school', item_category: 'premium_plans' }] });
     }
   });
 

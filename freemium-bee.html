@@ -732,7 +732,7 @@
       <button class="nav-btn" id="toggleDark">
         <i class="fa fa-moon"></i> Dark Mode
       </button>
-      <button class="btn-premium" onclick="window.location.href='/premium'">
+      <button class="btn-premium" onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'bee_nav'});window.location.href='/premium'">
         <i class="fa fa-crown"></i> Go Premium
       </button>
     </div>
@@ -1626,7 +1626,7 @@
           <div style="margin-top:20px;padding:15px;background:linear-gradient(135deg,#7b2ff7,#f72585);border-radius:10px;color:white;">
             <h4 style="margin:0 0 10px;">🐝 Become a Spelling Bee Champion!</h4>
             <p style="margin:0 0 15px;font-size:0.9em;">Unlimited competition words, leaderboard access, advanced levels and no ads.</p>
-            <button onclick="window.location.href='/premium'"
+            <button onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'bee_upsell'});window.location.href='/premium'"
               style="background:white;color:#7b2ff7;border:none;padding:8px 20px;border-radius:5px;font-weight:bold;cursor:pointer;">
               <i class="fa fa-crown"></i> Get Bee Premium
             </button>
@@ -1833,6 +1833,8 @@
     const ms = t.loadEventEnd - t.navigationStart;
     if (ms > 3000 && typeof gtag !== 'undefined')
       gtag('event', 'slow_load_time', { load_time: ms, page_path: window.location.pathname });
+    if (typeof gtag !== 'undefined')
+      gtag('event', 'view_item', { items: [{ item_id: 'bee', item_name: 'SpellRightPro bee', item_category: 'premium_plans' }] });
   });
   window.addEventListener('error', function(e) {
     if (typeof gtag !== 'undefined' && e.error)

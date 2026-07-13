@@ -47,25 +47,6 @@
     gtag('js', new Date());
     gtag('config', 'G-H09MF13297');
     
-    // Function to track premium clicks
-    function trackPremiumClick(source, plan) {
-      gtag('event', 'premium_click', {
-        event_category: 'premium_conversion',
-        event_label: source,
-        value: plan === 'complete' ? 8.99 : plan === 'school' ? 4.99 : 14.99
-      });
-    }
-    
-    // Function to track plan view
-    function trackPlanView(plan) {
-      gtag('event', 'view_item', {
-        items: [{
-          item_id: plan,
-          item_name: 'SpellRightPro ' + plan,
-          item_category: 'premium_plans'
-        }]
-      });
-    }
   </script>
 
 <style>
@@ -699,7 +680,7 @@
       <button class="nav-btn" id="toggleDark">
         <i class="fa fa-moon"></i> Dark Mode
       </button>
-      <button class="btn-premium" onclick="window.location.href='/premium'">
+      <button class="btn-premium" onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'oet_nav'});window.location.href='/premium'">
         <i class="fa fa-crown"></i> Go Premium
       </button>
     </div>
@@ -1458,7 +1439,7 @@ const firebaseConfig = {
             • Unlimited daily sessions • Full 1,635-word list • No ads<br>
             • Progress tracking &amp; mistake review • All accents unlocked
           </p>
-          <button onclick="window.location.href='/premium'"
+          <button onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'oet_upsell'});window.location.href='/premium'"
             style="background: white; color: #7b2ff7; border: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer;">
             <i class="fa fa-crown"></i> Subscribe Now — Unlock Unlimited Practice
           </button>
@@ -1898,6 +1879,7 @@ const firebaseConfig = {
         page_title: document.title,
         page_path: window.location.pathname
       });
+      gtag('event', 'view_item', { items: [{ item_id: 'oet', item_name: 'SpellRightPro oet', item_category: 'premium_plans' }] });
     }
   });
 
