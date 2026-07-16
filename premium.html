@@ -50,25 +50,12 @@
     gtag('js', new Date());
     gtag('config', 'G-H09MF13297');
     
-    // Function to track premium clicks
-    function trackPremiumClick(source, plan) {
-      gtag('event', 'premium_click', {
-        event_category: 'premium_conversion',
-        event_label: source,
-        value: plan === 'annual' ? 45 : 5
-      });
-    }
-    
-    // Function to track plan view
-    function trackPlanView(plan) {
-      gtag('event', 'view_item', {
-        items: [{
-          item_id: plan,
-          item_name: 'SpellRightPro ' + plan,
-          item_category: 'premium_plans'
-        }]
-      });
-    }
+  </script>
+  <script>
+  window.addEventListener('load', function() {
+    if (typeof gtag !== 'undefined')
+      gtag('event', 'view_item', { items: [{ item_id: 'premium', item_name: 'SpellRightPro Premium', item_category: 'premium_plans' }] });
+  });
   </script>
   <style>
     :root {
@@ -455,22 +442,8 @@
     <section class="hero">
       <h1>Master Spelling with Premium</h1>
       <p style="font-size: 1.2em; max-width: 600px; margin: 0 auto 30px;">
-        Join thousands of learners who transformed their spelling skills
+        Built by a doctor who passed the OET. Practice spelling the way it matters.
       </p>
-      <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-        <div style="text-align: center;">
-          <div style="font-size: 2em; font-weight: bold;">10,000+</div>
-          <div>Active Learners</div>
-        </div>
-        <div style="text-align: center;">
-          <div style="font-size: 2em; font-weight: bold;">4.9★</div>
-          <div>User Rating</div>
-        </div>
-        <div style="text-align: center;">
-          <div style="font-size: 2em; font-weight: bold;">98%</div>
-          <div>Success Rate</div>
-        </div>
-      </div>
     </section>
 
     <!-- Pricing Plans -->
@@ -512,6 +485,8 @@
         </div>
       </div>
 
+      <p style="text-align:center;font-size:0.82rem;opacity:0.6;margin:-20px 0 18px;">Select a plan above, then click the button below.</p>
+
       <div class="plans-grid" style="max-width:700px;margin:0 auto;
                                      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
 
@@ -540,10 +515,10 @@
             <li><i class="fa fa-check"></i> No ads</li>
             <li><i class="fa fa-check"></i> Priority support</li>
           </ul>
-          <a href="#checkout" class="btn-choose" data-plan="monthly" id="choosePlanBtn"
-             style="background:var(--accent);color:#333;">
+          <button class="btn-choose" data-plan="annual" id="choosePlanBtn"
+             style="background:var(--accent);color:#333;width:100%;border:none;cursor:pointer;">
             <i class="fa fa-bolt"></i> <span id="choosePlanLabel">Get Annual — CAD $45/yr</span>
-          </a>
+          </button>
         </div>
 
 
@@ -576,15 +551,9 @@
           </div>
           
           <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-            <div style="font-size: 2em; color: #7b2ff7;">99.9%</div>
-            <div style="font-weight: bold;">Uptime Guarantee</div>
-            <div style="font-size: 0.9em; opacity: 0.8;">Service reliability</div>
-          </div>
-          
-          <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-            <div style="font-size: 2em; color: #7b2ff7;">24/7</div>
-            <div style="font-weight: bold;">Support</div>
-            <div style="font-size: 0.9em; opacity: 0.8;">Email & chat support</div>
+            <div style="font-size: 2em; color: #7b2ff7;"><i class="fa fa-envelope"></i></div>
+            <div style="font-weight: bold;">Email Support</div>
+            <div style="font-size: 0.9em; opacity: 0.8;">spellrightpro@gmail.com</div>
           </div>
           
           <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
@@ -594,9 +563,7 @@
           </div>
         </div>
         
-        <p style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-          <i class="fa fa-star"></i> <strong>4.9/5 Rating</strong> from 1,200+ verified customers
-        </p>
+
       </div>
     </section>
 
@@ -606,15 +573,7 @@
       <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 30px 0;">
         <div style="padding: 15px 25px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; gap: 10px;">
           <i class="fa fa-credit-card" style="color: #7b2ff7; font-size: 1.5em;"></i>
-          <span>Visa, MasterCard, Amex</span>
-        </div>
-        <div style="padding: 15px 25px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; gap: 10px;">
-          <i class="fa fa-paypal" style="color: #7b2ff7; font-size: 1.5em;"></i>
-          <span>PayPal</span>
-        </div>
-        <div style="padding: 15px 25px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; gap: 10px;">
-          <i class="fa fa-university" style="color: #7b2ff7; font-size: 1.5em;"></i>
-          <span>Bank Transfer</span>
+          <span>Visa, MasterCard, Amex — via Stripe</span>
         </div>
       </div>
       <p style="opacity: 0.8; font-size: 0.9em;">
@@ -635,14 +594,9 @@
         <div style="font-size: 0.9em; opacity: 0.8;">No Lock-in</div>
       </div>
       <div class="trust-badge">
-        <i class="fa fa-headset"></i>
-        <div>24/7 Support</div>
-        <div style="font-size: 0.9em; opacity: 0.8;">Always Available</div>
-      </div>
-      <div class="trust-badge">
-        <i class="fa fa-globe"></i>
-        <div>Global</div>
-        <div style="font-size: 0.9em; opacity: 0.8;">Used Worldwide</div>
+        <i class="fa fa-envelope"></i>
+        <div>Email Support</div>
+        <div style="font-size: 0.9em; opacity: 0.8;">We reply promptly</div>
       </div>
     </section>
 
@@ -742,50 +696,7 @@
       </div>
     </section>
 
-        <!-- Testimonials -->
-    <section class="testimonials">
-      <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 20px;">What Our Learners Say</h2>
-      
-      <div class="testimonial-grid">
-        <div class="testimonial-card">
-          <div style="font-size: 1.2em; margin-bottom: 15px;">"Transformed my teaching!"</div>
-          <p>"As a teacher, the School Premium has been invaluable. My students' spelling improved by 40% in just 2 months."</p>
-          <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px;">
-            <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%;"></div>
-            <div>
-              <div style="font-weight: bold;">Sarah M.</div>
-              <div style="font-size: 0.9em; opacity: 0.8;">8th Grade Teacher</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="testimonial-card">
-          <div style="font-size: 1.2em; margin-bottom: 15px;">"Worth every penny!"</div>
-          <p>"The OET preparation with Premium helped me pass my medical English exam. The accent training was especially helpful."</p>
-          <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px;">
-            <div style="width: 40px; height: 40px; background: var(--secondary); border-radius: 50%;"></div>
-            <div>
-              <div style="font-weight: bold;">Dr. James K.</div>
-              <div style="font-size: 0.9em; opacity: 0.8;">Medical Resident</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="testimonial-card">
-          <div style="font-size: 1.2em; margin-bottom: 15px;">"Family learning made easy"</div>
-          <p>"With 3 kids at different grade levels, the Family Plan lets us all learn together. The group challenges are fantastic!"</p>
-          <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px;">
-            <div style="width: 40px; height: 40px; background: var(--accent); border-radius: 50%; color: #333; display: flex; align-items: center; justify-content: center;">
-              <i class="fa fa-users"></i>
-            </div>
-            <div>
-              <div style="font-weight: bold;">The Rodriguez Family</div>
-              <div style="font-size: 0.9em; opacity: 0.8;">Family Plan Users</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+
 
     <!-- FAQ -->
     <section class="faq-section">
@@ -827,7 +738,7 @@
           <i class="fa fa-chevron-down"></i>
         </div>
         <div class="faq-answer">
-          Yes! We offer special pricing for schools and educational institutions. Contact our sales team at <a href="mailto:spellrightpro@gmail.com" style="color:#7b2ff7;">spellrightpro@gmail.com</a> for more information.
+          Not at this time. The premium subscription is a single flat rate for all users. If you have a specific situation, feel free to reach out at <a href="mailto:spellrightpro@gmail.com" style="color:#7b2ff7;">spellrightpro@gmail.com</a>.
         </div>
       </div>
       
@@ -837,7 +748,7 @@
           <i class="fa fa-chevron-down"></i>
         </div>
         <div class="faq-answer">
-          We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. All payments are processed securely with 256-bit SSL encryption.
+          We accept all major credit cards (Visa, MasterCard, American Express) via Stripe. All payments are processed securely with SSL encryption.
         </div>
       </div>
     </section>
@@ -846,7 +757,7 @@
     <section style="text-align: center; margin: 80px 0; padding: 60px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 20px;">
       <h2 style="font-size: 2.5em; margin-bottom: 20px;">Ready to Transform Your Spelling Skills?</h2>
       <p style="font-size: 1.2em; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
-        Join 10,000+ successful learners today. Cancel anytime.
+        Start practicing today. Cancel anytime.
       </p>
       <a href="#pricing" class="btn-choose" style="background: white; color: var(--primary); max-width: 300px; margin: 0 auto;">
         <i class="fa fa-crown"></i> Choose Your Plan Now
@@ -1002,7 +913,8 @@
         checkoutEl.style.display = 'block';
         document.getElementById('selectedPlan').textContent = data.label;
         setTimeout(function() {
-          checkoutEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const emailEl = document.getElementById('emailInput');
+          (emailEl || checkoutEl).scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 50);
         if (typeof gtag !== 'undefined') {
           gtag('event', 'begin_checkout', {
