@@ -1200,6 +1200,17 @@ const firebaseConfig = {
       if (window.HW) HW.reset('school');
       
       state.currentIndex++;
+
+      // ── Auth wall after word 6 ─────────────────────────────────
+      if (state.currentIndex === 6 && !srpAuth.isLoggedIn()) {
+        srpAuth.showWall('school', function() {
+          updateProgress();
+          speakCurrentWord();
+        });
+        saveProgress();
+        return;
+      }
+      // ──────────────────────────────────────────────────────────────
       
       if (state.currentIndex < state.words.length) {
         updateProgress();
@@ -1213,6 +1224,11 @@ const firebaseConfig = {
     
     // Start session
     function startSession() {
+      // ── Auth check for returning users ────────────────────────
+      if (!srpAuth.isLoggedIn()) {
+        srpAuth.showWall('school', function() { startSession(); });
+        return;
+      }
       // ── Daily session limit check ──────────────────────────────
       if (!srpLimit.canStart('school')) {
         srpLimit.showGate('school');
@@ -1390,8 +1406,6 @@ const firebaseConfig = {
         srpRating.recordSession();
         var ratingHTML = srpRating.getPromptHTML();
         if (ratingHTML) elements.summaryArea.insertAdjacentHTML('beforeend', ratingHTML);
-        // Email capture
-        setTimeout(function() { srpLeadCapture.show('school'); }, 1200);
       }
       
       updateFeedback('Session completed! Check your results below.');
@@ -2148,59 +2162,177 @@ window.srpLimit = (function() {
 
 </script>
 <script>
-window.srpLeadCapture = (function() {
-  var STORAGE_KEY = 'srp_lead_email';
-  var MODAL_ID    = 'srpLeadModal';
-  function alreadyCaptured() { try { return !!localStorage.getItem(STORAGE_KEY); } catch(e) { return false; } }
-  function markCaptured(email) { try { localStorage.setItem(STORAGE_KEY, email); } catch(e) {} }
-  function dismiss() { var el = document.getElementById(MODAL_ID); if (el) el.remove(); }
-  function submit(audience) {
-    var input = document.getElementById('srpLeadEmail');
-    var btn   = document.getElementById('srpLeadBtn');
-    var msg   = document.getElementById('srpLeadMsg');
-    if (!input || !btn) return;
-    var email = input.value.trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      msg.textContent = 'Please enter a valid email address.'; msg.style.color = '#f72585'; return;
-    }
-    btn.disabled = true; btn.textContent = 'Saving\u2026'; msg.textContent = '';
-    fetch('/.netlify/functions/save-lead', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, audience: audience })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.ok) {
-        markCaptured(email);
-        msg.style.color = '#00c57a'; msg.textContent = 'Done! Check your inbox for a reminder.';
-        btn.textContent = 'Saved'; setTimeout(dismiss, 2200);
-      } else { throw new Error(data.error || 'Unknown error'); }
-    })
-    .catch(function() {
-      btn.disabled = false; btn.textContent = 'Save my spot';
-      msg.style.color = '#f72585'; msg.textContent = 'Something went wrong. Try again.';
+window.srpAuth = (function() {
+  var WALL_ID = 'srpAuthWall';
+
+  function isLoggedIn() {
+    try {
+      var fb = firebase.auth ? firebase.auth() : null;
+      return fb && !!fb.currentUser;
+    } catch(e) { return false; }
+  }
+
+  function showWall(audience, onSuccess) {
+    if (document.getElementById(WALL_ID)) return;
+
+    var labels = { oet: 'OET medical words', school: 'spelling words', bee: 'Spelling Bee words' };
+    var label  = labels[audience] || 'words';
+
+    var wall = document.createElement('div');
+    wall.id  = WALL_ID;
+    wall.style.cssText = 'position:fixed;inset:0;background:rgba(26,5,51,0.96);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit;';
+
+    wall.innerHTML = [
+      '<div style="background:#fff;border-radius:20px;padding:32px 28px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);">',
+
+      // Header
+      '<div style="font-size:2rem;margin-bottom:8px;">📋</div>',
+      '<h3 style="margin:0 0 6px;font-size:1.15rem;font-weight:800;color:#1a0533;">One free account — keep going</h3>',
+      '<p style="margin:0 0 20px;font-size:0.88rem;color:#7b6f8a;">Create your free account to unlock your daily 24 ' + label + '. Same account upgrades to Premium later.</p>',
+
+      // Tabs
+      '<div style="display:flex;border-radius:10px;overflow:hidden;border:1px solid rgba(123,47,247,0.2);margin-bottom:20px;">',
+        '<button id="srpTabSignup" onclick="srpAuth._switchTab(\'signup\')" style="flex:1;padding:10px;border:none;background:#7b2ff7;color:#fff;font-weight:700;font-size:0.9rem;cursor:pointer;">Sign Up</button>',
+        '<button id="srpTabLogin"  onclick="srpAuth._switchTab(\'login\')"  style="flex:1;padding:10px;border:none;background:transparent;color:#7b2ff7;font-weight:700;font-size:0.9rem;cursor:pointer;">Log In</button>',
+      '</div>',
+
+      // Fields
+      '<input id="srpAuthEmail" type="email" placeholder="your@email.com" style="width:100%;box-sizing:border-box;padding:11px 14px;border-radius:8px;border:1px solid #ddd;font-size:14px;margin-bottom:10px;outline:none;">',
+      '<input id="srpAuthPass"  type="password" placeholder="Password (min 6 characters)" style="width:100%;box-sizing:border-box;padding:11px 14px;border-radius:8px;border:1px solid #ddd;font-size:14px;margin-bottom:14px;outline:none;">',
+
+      // Submit
+      '<button id="srpAuthBtn" onclick="srpAuth._submit(\'' + audience + '\')" style="width:100%;padding:13px;border-radius:8px;border:none;background:linear-gradient(135deg,#7b2ff7,#f72585);color:#fff;font-size:15px;font-weight:700;cursor:pointer;">Create Free Account</button>',
+      '<p id="srpAuthMsg" style="margin:10px 0 0;font-size:13px;min-height:18px;color:#f72585;"></p>',
+
+      // Forgot password (hidden in signup mode)
+      '<p id="srpForgotRow" style="margin:8px 0 0;display:none;"><button onclick="srpAuth._forgot()" style="background:none;border:none;color:#7b2ff7;font-size:12px;cursor:pointer;text-decoration:underline;">Forgot password?</button></p>',
+
+      // Privacy note
+      '<p style="margin:14px 0 0;font-size:11px;color:#aaa;">No spam. Unsubscribe anytime. <a href="/privacy" style="color:#7b2ff7;">Privacy policy</a>.</p>',
+
+      '</div>'
+    ].join('');
+
+    document.body.appendChild(wall);
+
+    // Store callback
+    window._srpAuthCallback = onSuccess;
+
+    // Enter key on password submits
+    var passEl = document.getElementById('srpAuthPass');
+    if (passEl) passEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') srpAuth._submit(audience);
+    });
+    var emailEl = document.getElementById('srpAuthEmail');
+    if (emailEl) emailEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('srpAuthPass').focus();
     });
   }
-  function show(audience) {
-    if (alreadyCaptured()) return;
-    if (document.getElementById(MODAL_ID)) return;
-    var labels = { oet: 'OET', school: 'spelling', bee: 'Spelling Bee' };
-    var label  = labels[audience] || 'spelling';
-    var modal  = document.createElement('div');
-    modal.id   = MODAL_ID;
-    modal.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:#1a0533;border:1px solid rgba(123,47,247,0.5);border-radius:14px;padding:24px 24px 20px;box-shadow:0 8px 32px rgba(0,0,0,0.45);z-index:9999;font-family:inherit;';
-    modal.innerHTML = '<button onclick="window.srpLeadCapture.dismiss()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:20px;cursor:pointer;line-height:1;" aria-label="Close">\u00d7</button>'
-      + '<p style="margin:0 0 4px;font-size:16px;font-weight:700;color:#fff;">Get a reminder for tomorrow\'s free ' + label + ' session</p>'
-      + '<p style="margin:0 0 16px;font-size:13px;color:rgba(255,255,255,0.55);">Enter your email and we\'ll remind you to come back. No spam, unsubscribe anytime.</p>'
-      + '<input id="srpLeadEmail" type="email" placeholder="your@email.com" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid rgba(123,47,247,0.5);background:rgba(255,255,255,0.07);color:#fff;font-size:14px;outline:none;margin-bottom:10px;">'
-      + '<button id="srpLeadBtn" onclick="window.srpLeadCapture.submit(\'' + audience + '\')" style="width:100%;padding:11px;border-radius:8px;border:none;background:linear-gradient(135deg,#7b2ff7,#f72585);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Save my spot</button>'
-      + '<p id="srpLeadMsg" style="margin:8px 0 0;font-size:13px;min-height:18px;text-align:center;"></p>'
-      + '<p style="margin:10px 0 0;text-align:center;"><button onclick="window.srpLeadCapture.dismiss()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;cursor:pointer;">No thanks</button></p>';
-    document.body.appendChild(modal);
-    var inp = document.getElementById('srpLeadEmail');
-    if (inp) inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') window.srpLeadCapture.submit(audience); });
+
+  function _switchTab(tab) {
+    var isSignup = tab === 'signup';
+    document.getElementById('srpTabSignup').style.background = isSignup ? '#7b2ff7' : 'transparent';
+    document.getElementById('srpTabSignup').style.color      = isSignup ? '#fff'    : '#7b2ff7';
+    document.getElementById('srpTabLogin').style.background  = isSignup ? 'transparent' : '#7b2ff7';
+    document.getElementById('srpTabLogin').style.color       = isSignup ? '#7b2ff7' : '#fff';
+    document.getElementById('srpAuthBtn').textContent        = isSignup ? 'Create Free Account' : 'Log In';
+    document.getElementById('srpAuthMsg').textContent        = '';
+    document.getElementById('srpForgotRow').style.display    = isSignup ? 'none' : 'block';
+    document.getElementById('srpAuthBtn').onclick            = function() { srpAuth._submit(isSignup ? 'signup' : 'login'); };
+    window._srpAuthMode = tab;
   }
-  return { show: show, dismiss: dismiss, submit: submit };
+
+  function _submit(modeOrAudience) {
+    // modeOrAudience is audience when called from showWall, mode when called from tab switch
+    var mode     = window._srpAuthMode || 'signup';
+    var email    = (document.getElementById('srpAuthEmail').value || '').trim();
+    var password = (document.getElementById('srpAuthPass').value  || '').trim();
+    var btn      = document.getElementById('srpAuthBtn');
+    var msg      = document.getElementById('srpAuthMsg');
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      msg.textContent = 'Please enter a valid email address.'; return;
+    }
+    if (!password || password.length < 6) {
+      msg.textContent = 'Password must be at least 6 characters.'; return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = mode === 'signup' ? 'Creating account…' : 'Logging in…';
+    msg.textContent = '';
+
+    var auth = firebase.auth();
+    var promise = mode === 'signup'
+      ? auth.createUserWithEmailAndPassword(email, password)
+      : auth.signInWithEmailAndPassword(email, password);
+
+    promise.then(function(cred) {
+      // Also save lead to Firestore via save-lead function
+      fetch('/.netlify/functions/save-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, audience: window._srpAuthAudience || 'oet' })
+      }).catch(function() {});
+
+      // Remove wall
+      var wall = document.getElementById(WALL_ID);
+      if (wall) wall.remove();
+
+      // Fire callback
+      if (typeof window._srpAuthCallback === 'function') {
+        window._srpAuthCallback(cred.user);
+        window._srpAuthCallback = null;
+      }
+    }).catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = mode === 'signup' ? 'Create Free Account' : 'Log In';
+      var friendly = {
+        'auth/email-already-in-use':    'This email already has an account. Use Log In instead.',
+        'auth/invalid-email':           'Please enter a valid email address.',
+        'auth/weak-password':           'Password must be at least 6 characters.',
+        'auth/user-not-found':          'No account found. Please sign up first.',
+        'auth/wrong-password':          'Incorrect password. Try again or reset it.',
+        'auth/too-many-requests':       'Too many attempts. Please try again later.',
+        'auth/network-request-failed':  'Connection error. Check your internet and try again.'
+      };
+      msg.textContent = friendly[err.code] || err.message;
+    });
+  }
+
+  function _forgot() {
+    var email = (document.getElementById('srpAuthEmail').value || '').trim();
+    var msg   = document.getElementById('srpAuthMsg');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      msg.style.color = '#f72585';
+      msg.textContent = 'Enter your email above first.'; return;
+    }
+    firebase.auth().sendPasswordResetEmail(email).then(function() {
+      msg.style.color = '#00c57a';
+      msg.textContent = 'Reset email sent. Check your inbox.';
+    }).catch(function(err) {
+      msg.style.color = '#f72585';
+      msg.textContent = err.message;
+    });
+  }
+
+  // Init: if already logged in on page load, nothing to do
+  // Listen for auth state so wall is removed if user logs in from another tab
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        var wall = document.getElementById(WALL_ID);
+        if (wall) {
+          wall.remove();
+          if (typeof window._srpAuthCallback === 'function') {
+            window._srpAuthCallback(user);
+            window._srpAuthCallback = null;
+          }
+        }
+      }
+    });
+  }
+
+  return { isLoggedIn: isLoggedIn, showWall: showWall, _switchTab: _switchTab, _submit: _submit, _forgot: _forgot };
 })();
 </script>
 </body>
