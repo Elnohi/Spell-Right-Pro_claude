@@ -1287,11 +1287,6 @@ const firebaseConfig = {
     
     // Start session
     function startSession() {
-      // ── Auth check for returning users ────────────────────────
-      if (!srpAuth.isLoggedIn()) {
-        srpAuth.showWall('oet', function() { startSession(); });
-        return;
-      }
       // ── Daily session limit check ──────────────────────────────
       if (!srpLimit.canStart('oet')) {
         srpLimit.showGate('oet');
@@ -2281,6 +2276,7 @@ window.srpAuth = (function() {
 
   function isLoggedIn() {
     try {
+      if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return false;
       var fb = firebase.auth ? firebase.auth() : null;
       return fb && !!fb.currentUser;
     } catch(e) { return false; }
@@ -2375,6 +2371,11 @@ window.srpAuth = (function() {
     btn.textContent = mode === 'signup' ? 'Creating account…' : 'Logging in…';
     msg.textContent = '';
 
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) {
+      if (msg) { msg.textContent = 'Please accept cookies to enable sign-up.'; }
+      if (btn) { btn.disabled = false; btn.textContent = mode === 'signup' ? 'Create Free Account' : 'Log In'; }
+      return;
+    }
     var auth = firebase.auth();
     var promise = mode === 'signup'
       ? auth.createUserWithEmailAndPassword(email, password)
@@ -2420,6 +2421,9 @@ window.srpAuth = (function() {
       msg.style.color = '#f72585';
       msg.textContent = 'Enter your email above first.'; return;
     }
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) {
+      msg.style.color = '#f72585'; msg.textContent = 'Please accept cookies to enable password reset.'; return;
+    }
     firebase.auth().sendPasswordResetEmail(email).then(function() {
       msg.style.color = '#00c57a';
       msg.textContent = 'Reset email sent. Check your inbox.';
@@ -2429,9 +2433,9 @@ window.srpAuth = (function() {
     });
   }
 
-  // Init: if already logged in on page load, nothing to do
-  // Listen for auth state so wall is removed if user logs in from another tab
-  if (typeof firebase !== 'undefined' && firebase.auth) {
+  // Deferred init — waits for Firebase to be ready (initFirebase is called lazily after cookie consent)
+  function _initAuth() {
+    if (typeof firebase === 'undefined' || !firebase.auth) return;
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
         var wall = document.getElementById(WALL_ID);
@@ -2444,6 +2448,19 @@ window.srpAuth = (function() {
         }
       }
     });
+  }
+
+  // Hook into initFirebase so auth listener starts as soon as Firebase is ready
+  var _origInitFirebase = window.initFirebase;
+  window.initFirebase = function() {
+    var result = _origInitFirebase ? _origInitFirebase.apply(this, arguments) : undefined;
+    _initAuth();
+    return result;
+  };
+
+  // Also try immediately in case Firebase was already initialised
+  if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+    _initAuth();
   }
 
   return { isLoggedIn: isLoggedIn, showWall: showWall, _switchTab: _switchTab, _submit: _submit, _forgot: _forgot };
