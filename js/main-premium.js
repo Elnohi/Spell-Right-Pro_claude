@@ -550,7 +550,26 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
         }
         
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        
+
+        // Record acquisition data — which UTM/ad/referrer brought this signup in.
+        // This modal fires after word 6, so it's the highest-volume signup point in the app.
+        try {
+            const attribution = (typeof window.getAttribution === 'function') ? window.getAttribution() : {};
+            firebase.firestore().collection('users').doc(userCredential.user.uid).set({
+                email: email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                acquisition: {
+                    utm_source:   attribution.utm_source   || 'direct',
+                    utm_medium:   attribution.utm_medium   || 'none',
+                    utm_campaign: attribution.utm_campaign || 'none',
+                    utm_content:  attribution.utm_content  || null,
+                    landing_page: attribution.landing_page || null,
+                    signup_page:  'trainer_word6_wall',
+                    signed_up_at: firebase.firestore.FieldValue.serverTimestamp()
+                }
+            }, { merge: true }).catch((e) => console.warn('Acquisition write failed (non-critical):', e.message));
+        } catch (_) {}
+
         // NEW FIX: Redirect to pricing page after successful registration
         showFeedback('Account created! Redirecting to pricing...', 'success');
         

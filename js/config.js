@@ -18,6 +18,87 @@ window.firebaseConfig = {
 window.firebaseAnalytics = null;
 window.firebaseInitialized = false;
 
+// =============================================================================
+// ATTRIBUTION CAPTURE — records which UTM/ad brought a visitor in,
+// so it can be attached to signup and Stripe checkout later.
+//
+// PRIVACY: the site already gates Firebase Analytics + trackEvent() behind
+// localStorage.cookieConsent === 'true' (see acceptCookies()/declineCookies()
+// on index.html and the freemium-*.html pages). This capture follows the same
+// rule for anything persisted to localStorage. sessionStorage is used for the
+// same-session journey (ad click -> landing -> checkout) since it's cleared
+// when the tab closes and isn't treated as persistent tracking; it's written
+// unconditionally so attribution survives even if the person hasn't yet
+// answered the consent banner (or is on a page that doesn't show one, like
+// premium.html or trainer.html). It's promoted to localStorage only after
+// consent is explicitly granted, matching the rest of the site's behaviour.
+// =============================================================================
+(function captureAttribution() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    const hasUtm = utmKeys.some(k => params.has(k));
+
+    function buildAttribution() {
+      if (hasUtm) {
+        const attribution = {};
+        utmKeys.forEach(k => { if (params.has(k)) attribution[k] = params.get(k); });
+        attribution.landing_page = window.location.pathname;
+        attribution.first_seen = new Date().toISOString();
+        return attribution;
+      }
+      if (document.referrer) {
+        let refHost = 'unknown';
+        try { refHost = new URL(document.referrer).hostname; } catch (_) {}
+        return {
+          utm_source: 'referrer', utm_medium: refHost,
+          landing_page: window.location.pathname, first_seen: new Date().toISOString()
+        };
+      }
+      return {
+        utm_source: 'direct', utm_medium: 'none',
+        landing_page: window.location.pathname, first_seen: new Date().toISOString()
+      };
+    }
+
+    // sessionStorage: always write on a fresh UTM hit, or fill in once per session otherwise.
+    if (hasUtm || !sessionStorage.getItem('srp_attribution')) {
+      sessionStorage.setItem('srp_attribution', JSON.stringify(buildAttribution()));
+    }
+
+    // localStorage: only if consent already granted (persists across sessions/return visits).
+    if (localStorage.getItem('cookieConsent') === 'true') {
+      if (hasUtm || !localStorage.getItem('srp_attribution')) {
+        localStorage.setItem('srp_attribution', sessionStorage.getItem('srp_attribution'));
+      }
+    }
+
+    // If consent is granted later in the same session, promote what we have immediately.
+    document.addEventListener('cookieConsentGranted', function() {
+      const current = sessionStorage.getItem('srp_attribution');
+      if (current) localStorage.setItem('srp_attribution', current);
+    });
+  } catch (e) {
+    console.warn('Attribution capture failed:', e);
+  }
+})();
+
+// Reads attribution for the current session, preferring the freshest source.
+// sessionStorage wins because it reflects *this* visit's journey; if it's
+// empty (e.g. a brand-new tab after consent was granted earlier), fall back
+// to whatever localStorage has from a previous consented session.
+window.getAttribution = function() {
+  try {
+    const fromSession = sessionStorage.getItem('srp_attribution');
+    if (fromSession) return JSON.parse(fromSession);
+    const fromLocal = localStorage.getItem('srp_attribution');
+    if (fromLocal) return JSON.parse(fromLocal);
+    return {};
+  } catch (_) {
+    return {};
+  }
+};
+
 // Initialize Firebase safely with Analytics
 window.initFirebase = function() {
   // Prevent multiple initializations
