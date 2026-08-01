@@ -179,7 +179,7 @@ async function sendAdminNotification({ email, customerName, plan, planLabel, amo
 }
 
 // ── Helper: write premium record to Firestore ────────────────────────────────
-async function writePremiumRecord(uid, email, plan, sessionId, source) {
+async function writePremiumRecord(uid, email, plan, sessionId, source, acquisition = {}) {
   if (!db || !email) return;
   const expiry = new Date();
   if (plan === 'annual')        expiry.setFullYear(expiry.getFullYear() + 1);
@@ -192,6 +192,15 @@ async function writePremiumRecord(uid, email, plan, sessionId, source) {
     stripeSessionId: sessionId || "",
     source
   };
+  // Only attach acquisition data if we actually have it — avoids overwriting
+  // a real signup-time acquisition record with "unknown" on later writes.
+  if (acquisition.utm_source) {
+    record.acquisition = {
+      utm_source:   acquisition.utm_source,
+      utm_medium:   acquisition.utm_medium   || "none",
+      utm_campaign: acquisition.utm_campaign || "none"
+    };
+  }
   if (uid) {
     await db.collection("premiumUsers").doc(uid).set(record, { merge: true });
     console.log(`✅ Firestore premiumUsers/${uid} [${source}]`);
@@ -308,11 +317,15 @@ app.get("/api/health",(_, res) => res.json({
 app.post("/api/create-checkout-session", async (req, res) => {
   try {
     if (!stripe) return res.status(500).json({ error: "Stripe not configured on server" });
-    const { plan = "complete", email, firebaseUid = "" } = req.body;
+    const { plan = "complete", email, firebaseUid = "", attribution = {} } = req.body;
     const planInfo = PLANS[plan] || PLANS.complete;
     if (!email || !email.includes("@")) {
       return res.status(400).json({ error: "Valid email required" });
     }
+    // Attribution fields — Stripe metadata values must be strings, max 500 chars each
+    const utmSource   = String(attribution.utm_source   || "direct").slice(0, 500);
+    const utmMedium   = String(attribution.utm_medium   || "none").slice(0, 500);
+    const utmCampaign = String(attribution.utm_campaign || "none").slice(0, 500);
     const lineItems = planInfo.priceId
       ? [{ price: planInfo.priceId, quantity: 1 }]
       : [{
@@ -333,8 +346,8 @@ app.post("/api/create-checkout-session", async (req, res) => {
       payment_method_types: ["card"],
       customer_email:       email,
       line_items:           lineItems,
-      metadata:             { plan, email, firebaseUid },
-      subscription_data:    { metadata: { plan, email, firebaseUid } },
+      metadata:             { plan, email, firebaseUid, utm_source: utmSource, utm_medium: utmMedium, utm_campaign: utmCampaign },
+      subscription_data:    { metadata: { plan, email, firebaseUid, utm_source: utmSource, utm_medium: utmMedium, utm_campaign: utmCampaign } },
       success_url: `${SITE}/thank-you.html?session_id={CHECKOUT_SESSION_ID}&plan=${encodeURIComponent(planInfo.name)}`,
       cancel_url:  `${SITE}/premium.html?cancelled=1`,
       allow_promotion_codes: true
@@ -358,9 +371,14 @@ app.get("/api/verify-session", async (req, res) => {
     const email   = session.customer_email || (session.customer_details && session.customer_details.email) || "";
     const plan    = (session.metadata && session.metadata.plan) || "complete";
     const uid     = (session.metadata && session.metadata.firebaseUid) || "";
+    const acquisition = {
+      utm_source:   session.metadata && session.metadata.utm_source,
+      utm_medium:   session.metadata && session.metadata.utm_medium,
+      utm_campaign: session.metadata && session.metadata.utm_campaign
+    };
     console.log(`🔍 verify-session: ${session_id} paid=${paid} ${email}`);
     if (paid) {
-      await writePremiumRecord(uid, email, plan, session_id, "verify_session").catch(e =>
+      await writePremiumRecord(uid, email, plan, session_id, "verify_session", acquisition).catch(e =>
         console.error("Firestore write failed (non-critical):", e.message)
       );
     }
@@ -400,10 +418,15 @@ app.post("/api/stripe-webhook", async (req, res) => {
     const uid     = (session.metadata && session.metadata.firebaseUid) || "";
     const plan    = (session.metadata && session.metadata.plan) || "complete";
     const amount  = (session.amount_total || 0) / 100;
+    const acquisition = {
+      utm_source:   session.metadata && session.metadata.utm_source,
+      utm_medium:   session.metadata && session.metadata.utm_medium,
+      utm_campaign: session.metadata && session.metadata.utm_campaign
+    };
 
-    console.log(`💳 Webhook: ${event.type} | ${email} | ${plan} | $${amount}`);
+    console.log(`💳 Webhook: ${event.type} | ${email} | ${plan} | $${amount} | ${acquisition.utm_source || 'direct'}`);
 
-    await writePremiumRecord(uid, email, plan, session.id, "webhook").catch(e =>
+    await writePremiumRecord(uid, email, plan, session.id, "webhook", acquisition).catch(e =>
       console.error("Webhook Firestore write failed:", e.message)
     );
 

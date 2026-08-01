@@ -277,9 +277,13 @@
       }
 
       // GA4 purchase event — only if gtag is available
+      // NOTE: 'value' was previously missing, so every purchase logged as $0 revenue in GA4.
       if (typeof gtag !== 'undefined') {
+        const planValues = {annual: 45.00, sixmonth: 26.00, monthly: 5.00, premium: 5.00};
+        const purchaseValue = planValues[planParam] || 5.00;
         gtag('event', 'purchase', {
           transaction_id: sessionId,
+          value: purchaseValue,
           currency: 'CAD',
           items: [{ item_id: planParam, item_name: 'SpellRightPro ' + planParam }]
         });

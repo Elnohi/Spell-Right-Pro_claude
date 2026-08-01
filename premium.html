@@ -977,7 +977,8 @@
           body:    JSON.stringify({
             plan:        selectedPlanKey,
             email:       email,
-            firebaseUid: firebaseUid
+            firebaseUid: firebaseUid,
+            attribution: (typeof window.getAttribution === 'function') ? window.getAttribution() : {}
           })
         });
 

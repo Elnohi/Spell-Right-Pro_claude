@@ -463,7 +463,29 @@
       setLoading(btn, true);
 
       try {
-        await auth.createUserWithEmailAndPassword(email, password);
+        var cred = await auth.createUserWithEmailAndPassword(email, password);
+
+        // Record acquisition data — which UTM/ad/referrer brought this signup in.
+        // Non-blocking: never let a Firestore hiccup block account creation.
+        try {
+          var attribution = (typeof window.getAttribution === 'function') ? window.getAttribution() : {};
+          firebase.firestore().collection('users').doc(cred.user.uid).set({
+            email: email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            acquisition: {
+              utm_source:   attribution.utm_source   || 'direct',
+              utm_medium:   attribution.utm_medium   || 'none',
+              utm_campaign: attribution.utm_campaign || 'none',
+              utm_content:  attribution.utm_content  || null,
+              landing_page: attribution.landing_page || null,
+              signup_page:  'login.html',
+              signed_up_at: firebase.firestore.FieldValue.serverTimestamp()
+            }
+          }, { merge: true }).catch(function(e) {
+            console.warn('Acquisition write failed (non-critical):', e.message);
+          });
+        } catch (_) {}
+
         showMsg('Account created! Taking you to the app…', 'success');
         // New users land on trainer — they can try free features first
         // and upgrade when they're ready via the Go Premium button
