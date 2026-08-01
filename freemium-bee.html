@@ -10,7 +10,7 @@
   <meta name="description" content="Practice for spelling bee competitions with voice recognition spelling mode. Spell words aloud letter-by-letter and get instant automatic marking. Free online." />
   <meta name="keywords" content="spelling bee practice, spelling bee online, voice spelling practice, competitive spelling, spelling bee trainer" />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://www.spellrightpro.org/freemium-bee" />
+  <link rel="canonical" href="https://spellrightpro.org/freemium-bee" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
   <meta property="og:title"       content="Free Spelling Bee Practice — Voice Mode" />
@@ -2317,6 +2317,11 @@ window.srpAuth = (function() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, audience: window._srpAuthAudience || 'oet' })
       }).catch(function() {});
+
+      // Fire GA4 sign_up / login event
+      if (typeof gtag !== 'undefined') {
+        gtag('event', mode === 'signup' ? 'sign_up' : 'login', { method: 'email' });
+      }
 
       // Remove wall
       var wall = document.getElementById(WALL_ID);
