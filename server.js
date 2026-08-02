@@ -865,6 +865,133 @@ async function sendRenewalEmail(email, plan, expiryStr) {
 }
 
 // ── Daily email checks ────────────────────────────────────────────────────────
+// ── Nurture email sequence ───────────────────────────────────────────────────
+// Sends Day 3, Day 7, and Day 14 follow-up emails to free-tier users who signed
+// up via the word-6 auth wall (stored in the freeLeads collection by save-lead.js).
+// Each email is segment-aware (OET / School / Bee) and sends once per stage.
+app.post('/api/email/nurture', async (req, res) => {
+  const secret = req.headers['x-scheduler-secret'];
+  if (process.env.SCHEDULER_SECRET && secret !== process.env.SCHEDULER_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (!db) return res.json({ success: false, message: 'Firestore not available', sent: 0 });
+
+  const siteUrl = 'https://www.spellrightpro.org';
+  const now = new Date();
+  let sent = 0;
+
+  try {
+    const leadsSnap = await db.collection('freeLeads').limit(200).get();
+
+    for (const doc of leadsSnap.docs) {
+      const lead = doc.data();
+      if (!lead.email || !lead.signedUpAt) continue;
+
+      const signedUp = lead.signedUpAt.toDate();
+      const daysSince = Math.floor((now - signedUp) / 86400000);
+      const audience = lead.audience || 'oet';
+      const name = lead.email.split('@')[0];
+      const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+
+      // Determine which email to send (if any)
+      let stage = null;
+      if (daysSince >= 3 && daysSince < 7 && !lead.nurture_day3) stage = 'day3';
+      else if (daysSince >= 7 && daysSince < 14 && !lead.nurture_day7) stage = 'day7';
+      else if (daysSince >= 14 && !lead.nurture_day14) stage = 'day14';
+
+      if (!stage) continue;
+
+      // Check if they already converted to premium — skip if so
+      const safeEmail = lead.email.replace(/[.#$[\]/]/g, '_');
+      try {
+        const premSnap = await db.collection('premiumByEmail').doc(safeEmail).get();
+        if (premSnap.exists && premSnap.data().active) continue;
+      } catch (_) {}
+
+      const landingUrl = audience === 'bee' ? siteUrl + '/freemium-bee'
+                       : audience === 'school' ? siteUrl + '/freemium-school'
+                       : siteUrl + '/freemium-oet';
+
+      try {
+        await sendNurtureEmail(lead.email, displayName, audience, stage, landingUrl, siteUrl);
+        await db.collection('freeLeads').doc(doc.id).update({ [`nurture_${stage}`]: true });
+        sent++;
+      } catch (e) {
+        console.error(`Nurture ${stage} failed for ${lead.email}:`, e.message);
+      }
+    }
+
+    res.json({ success: true, sent });
+  } catch (err) {
+    console.error('❌ Nurture endpoint error:', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+async function sendNurtureEmail(email, displayName, audience, stage, landingUrl, siteUrl) {
+  if (!transporter) throw new Error('Email not configured');
+
+  const segmentLabel = audience === 'bee' ? 'Spelling Bee' : audience === 'school' ? 'School' : 'OET';
+
+  const templates = {
+    day3: {
+      subject: `${displayName}, quick spelling tip for your ${segmentLabel} practice`,
+      heading: `A quick tip for your ${segmentLabel} practice`,
+      body: audience === 'oet'
+        ? `Many OET candidates lose easy marks on commonly misspelled medical terms — words like <em>haemorrhage</em>, <em>ophthalmology</em>, and <em>diarrhoea</em>. Even 5 minutes of daily practice makes a measurable difference on test day.`
+        : audience === 'school'
+        ? `The best spellers aren't born — they practise little and often. Even 5 minutes a day builds the kind of automatic recall that makes spelling tests feel easy.`
+        : `Competition-level spelling comes down to pattern recognition. The more unusual words you practise hearing and writing, the more your brain starts to recognise roots and letter patterns automatically.`,
+      cta: 'Practice now — free →',
+      ctaUrl: landingUrl
+    },
+    day7: {
+      subject: `Your ${segmentLabel} spelling is improving, ${displayName}`,
+      heading: `One week in — here's what consistent practice looks like`,
+      body: audience === 'oet'
+        ? `SpellRightPro was built by a doctor who went through OET prep. The 1,635-word medical list isn't random — it's curated from real OET exam patterns. Consistency beats cramming: short daily sessions build the muscle memory that holds up under exam pressure.`
+        : audience === 'school'
+        ? `Teachers consistently say that students who practise spelling regularly — even briefly — outperform those who cram before a test. SpellRightPro's built-in word lists are matched to how schools actually test spelling.`
+        : `A week of consistent practice builds real pattern recognition. SpellRightPro's curated competition word lists are designed to stretch your range systematically, not just test what you already know.`,
+      cta: 'Keep your streak going →',
+      ctaUrl: landingUrl
+    },
+    day14: {
+      subject: `Ready to go further, ${displayName}?`,
+      heading: `You've been practising for two weeks`,
+      body: audience === 'oet'
+        ? `Two weeks of practice puts you ahead of most OET candidates on spelling. Premium unlocks unlimited daily sessions, mistake review drills, adaptive difficulty, and all three accents (British, American, Australian) — the tools that turn good spelling into exam-day confidence.`
+        : audience === 'school'
+        ? `Two weeks in, and your spelling muscles are warmed up. Premium unlocks unlimited sessions, mistake review (so you drill the words you actually got wrong), and progress tracking that shows real improvement over time.`
+        : `Two weeks of competition prep is a strong foundation. Premium gives you unlimited sessions, adaptive drills that focus on your weak spots, and mistake review — the tools serious competitors use to push past plateaus.`,
+      cta: 'See what Premium includes →',
+      ctaUrl: siteUrl + '/premium'
+    }
+  };
+
+  const t = templates[stage];
+  const premiumNote = stage === 'day14' ? '' : `
+      <div style="margin-top:28px;padding:16px;background:#fef9ee;border-radius:10px;border-left:3px solid #ffb800;">
+        <p style="margin:0;font-size:0.9rem;color:#444;"><strong>Want unlimited sessions?</strong> Premium from <strong>CAD $5/month</strong>. Cancel anytime.</p>
+        <a href="${siteUrl}/premium" style="display:inline-block;margin-top:10px;color:#7b2ff7;font-weight:700;font-size:0.9rem;text-decoration:none;">See Premium Plans →</a>
+      </div>`;
+
+  await transporter.sendMail({
+    from: 'SpellRightPro <spellrightpro@gmail.com>',
+    to: email,
+    subject: t.subject,
+    html: `<div style="font-family:'DM Sans',Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">
+      <img src="https://spellrightpro.org/assets/logo.png" alt="SpellRightPro" style="height:48px;border-radius:12px;margin-bottom:20px;" />
+      <h1 style="font-size:1.3rem;color:#7b2ff7;margin:0 0 12px;">${t.heading}</h1>
+      <p style="color:#444;line-height:1.6;margin:0 0 20px;">${t.body}</p>
+      <a href="${t.ctaUrl}" style="display:inline-block;background:linear-gradient(135deg,#7b2ff7,#f72585);color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:700;font-size:1rem;">${t.cta}</a>${premiumNote}
+      <p style="margin:28px 0 0;font-size:0.75rem;color:#999;">You're receiving this because you created a free account on SpellRightPro. <a href="${siteUrl}" style="color:#999;">spellrightpro.org</a></p>
+    </div>`,
+    text: `${t.heading}\n\n${t.body.replace(/<[^>]+>/g, '')}\n\n${t.cta}: ${t.ctaUrl}`
+  });
+  console.log(`📧 Nurture ${stage} (${audience}) sent to ${email}`);
+}
+
 function runDailyEmailChecks() {
   const headers = {
     'Content-Type': 'application/json',
@@ -885,6 +1012,13 @@ function runDailyEmailChecks() {
       .then(d => console.log('✅ Renewal reminder check:', d.sent || 0, 'emails sent'))
       .catch(e => console.error('Renewal check error:', e.message));
   }, 5000);
+
+  setTimeout(() => {
+    fetch(base + '/api/email/nurture', { method: 'POST', headers })
+      .then(r => r.json())
+      .then(d => console.log('✅ Nurture sequence check:', d.sent || 0, 'emails sent'))
+      .catch(e => console.error('Nurture check error:', e.message));
+  }, 8000);
 }
 
 // ── START ─────────────────────────────────────────────────────────────────────
