@@ -374,7 +374,7 @@ async function generateCreative() {
   results.innerHTML = '';
 
   try {
-    var resp = await fetch('/api/ai-creative', {
+    var resp = await fetch('/.netlify/functions/ai-creative'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: token, segment: segment, angle: angle, count: count })
