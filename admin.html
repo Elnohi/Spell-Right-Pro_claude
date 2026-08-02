@@ -481,41 +481,58 @@ function set(id, v) { var e = document.getElementById(id); if(e) e.textContent =
 
 // ── Load all data ──────────────────────────────────────────────────────────
 window.loadAll = async function() {
-  if (!db) { setTimeout(loadAll, 500); return; }
+  // Fetch dashboard data via server-side API (Admin SDK) instead of querying
+  // Firestore client-side. This bypasses security rules and reads from
+  // premiumByEmail (the complete source) rather than premiumUsers.
+  var apiBase = window.appConfig ? window.appConfig.apiBaseUrl : 'https://spellrightpro-api-798456641137.us-central1.run.app';
+  var token = '';
+  try { token = localStorage.getItem('srp_admin_api_token') || ''; } catch(_) {}
 
-  // ── Premium users ──
-  // Reads premiumByEmail, not premiumUsers: premiumUsers is only written when
-  // a Firebase UID was captured at checkout time (see writePremiumRecord in
-  // server.js). premiumByEmail is written unconditionally on every successful
-  // checkout, so it's the complete, accurate source for this dashboard.
-  var premSnap;
-  try {
-    premSnap = await db.collection('premiumByEmail')
-      .orderBy('activatedAt', 'desc')
-      .limit(50)
-      .get();
-  } catch(e) {
-    // If activatedAt index doesn't exist yet, fall back
-    try { premSnap = await db.collection('premiumByEmail').limit(50).get(); }
-    catch(e2) { premSnap = { docs: [] }; }
+  if (!token) {
+    // Try to get it from the AI creative panel's token field
+    var tokenEl = document.getElementById('aiToken');
+    if (tokenEl && tokenEl.value) token = tokenEl.value.trim();
   }
 
-  var users = premSnap.docs.map(function(d) {
-    return Object.assign({ uid: d.id }, d.data());
-  });
+  if (!token) {
+    set('kpiTotal', '?');
+    set('kpiTotalSub', 'Enter your admin API token in the AI generator panel below, then click Refresh');
+    return;
+  }
+
+  try {
+    var resp = await fetch(apiBase + '/api/admin/dashboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token })
+    });
+    if (!resp.ok) {
+      var errData = await resp.json().catch(function(){ return {}; });
+      set('kpiTotal', '!');
+      set('kpiTotalSub', errData.error || 'API error ' + resp.status);
+      return;
+    }
+    var data = await resp.json();
+  } catch (e) {
+    set('kpiTotal', '!');
+    set('kpiTotalSub', 'Network error: ' + e.message);
+    return;
+  }
+
+  var users = data.premiumUsers || [];
 
   // KPIs
   var now         = new Date();
   var sevenAgo    = new Date(now - 7*86400000);
   var totalUsers  = users.length;
   var activeUsers = users.filter(function(u) {
-    var exp = u.expiryDate && u.expiryDate.toDate ? u.expiryDate.toDate() : null;
+    var exp = u.expiryDate ? new Date(u.expiryDate) : null;
     return u.active !== false && (!exp || exp > now);
   });
   var monthlyUsers = activeUsers.filter(function(u){ return u.plan === 'monthly' || !u.plan; });
   var annualUsers  = activeUsers.filter(function(u){ return u.plan === 'annual'; });
   var newUsers     = users.filter(function(u) {
-    var act = u.activatedAt && u.activatedAt.toDate ? u.activatedAt.toDate() : null;
+    var act = u.activatedAt ? new Date(u.activatedAt) : null;
     return act && act >= sevenAgo;
   });
 
@@ -549,7 +566,8 @@ window.loadAll = async function() {
     tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No premium users yet.</td></tr>';
   } else {
     tbody.innerHTML = users.map(function(u) {
-      var expired = isExpired(u.expiryDate);
+      var exp = u.expiryDate ? new Date(u.expiryDate) : null;
+      var expired = exp ? exp < now : false;
       var status  = u.active === false ? 'expired' : (expired ? 'expired' : 'active');
       var plan    = u.plan || 'monthly';
       return '<tr>' +
@@ -564,28 +582,17 @@ window.loadAll = async function() {
   }
 
   // ── Free users ──
-  var freeSnap;
-  try {
-    freeSnap = await db.collection('users')
-      .orderBy('createdAt', 'desc')
-      .limit(30)
-      .get();
-  } catch(e) {
-    try { freeSnap = await db.collection('users').limit(30).get(); }
-    catch(e2) { freeSnap = { docs: [] }; }
-  }
-
+  var freeUsers = data.freeUsers || [];
   var freeBody = document.getElementById('freeTable');
-  if (!freeSnap.docs.length) {
+  if (!freeUsers.length) {
     freeBody.innerHTML = '<tr><td colspan="4" class="empty-row">No free user records yet.</td></tr>';
   } else {
-    freeBody.innerHTML = freeSnap.docs.map(function(d) {
-      var u = d.data();
+    freeBody.innerHTML = freeUsers.map(function(u) {
       return '<tr>' +
         '<td>' + (u.email || '—') + '</td>' +
         '<td>' + fmtDate(u.createdAt) + '</td>' +
         '<td>' + (u.reengageSent ? '<span class="badge active">Sent</span>' : '<span style="color:var(--muted);font-size:0.8rem;">Not yet</span>') + '</td>' +
-        '<td><code>' + d.id.slice(0,12) + '…</code></td>' +
+        '<td><code>' + (u.uid || '').slice(0,12) + '…</code></td>' +
       '</tr>';
     }).join('');
   }
