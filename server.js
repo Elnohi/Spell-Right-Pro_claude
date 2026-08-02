@@ -682,7 +682,11 @@ app.post('/api/email/reengage', async (req, res) => {
     for (const doc of usersSnap.docs) {
       const user = doc.data();
       if (!user.email) continue;
-      const premSnap = await db.collection('premiumUsers').doc(doc.id).get();
+      // Check premiumByEmail (by email), not premiumUsers (by uid) — premiumUsers
+      // is only written when a Firebase UID was captured at checkout, so relying
+      // on it here risked sending "try premium" emails to existing subscribers.
+      const safeEmail = user.email.replace(/[.#$[\]/]/g, "_");
+      const premSnap = await db.collection('premiumByEmail').doc(safeEmail).get();
       if (premSnap.exists && premSnap.data().active) continue;
       if (user.reengageSent) continue;
       await sendReengageEmail(user.email, user.displayName || user.email.split('@')[0]);
@@ -740,7 +744,11 @@ app.post('/api/email/renewal', async (req, res) => {
     const windowStart = new Date(sevenDaysFromNow); windowStart.setHours(0,0,0,0);
     const windowEnd   = new Date(sevenDaysFromNow); windowEnd.setHours(23,59,59,999);
 
-    const snap = await db.collection('premiumUsers')
+    // premiumByEmail is queried here, not premiumUsers — premiumUsers is only
+    // written when a Firebase UID was captured at checkout. Using premiumUsers
+    // would silently skip renewal reminders for subscribers who checked out
+    // without being logged in first.
+    const snap = await db.collection('premiumByEmail')
       .where('active', '==', true)
       .where('expiryDate', '>=', admin.firestore.Timestamp.fromDate(windowStart))
       .where('expiryDate', '<=', admin.firestore.Timestamp.fromDate(windowEnd))
@@ -753,7 +761,7 @@ app.post('/api/email/renewal', async (req, res) => {
       if (user.renewalReminderSent) continue;
       const expiryStr = user.expiryDate.toDate().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
       await sendRenewalEmail(user.email, user.plan || 'premium', expiryStr);
-      await db.collection('premiumUsers').doc(doc.id).update({ renewalReminderSent: true });
+      await db.collection('premiumByEmail').doc(doc.id).update({ renewalReminderSent: true });
       sent++;
     }
     console.log(`📧 Renewal reminders sent to ${sent} users`);
