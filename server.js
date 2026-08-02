@@ -651,6 +651,75 @@ app.post('/api/email/welcome', async (req, res) => {
   }
 });
 
+// ─── Admin dashboard data endpoint ────────────────────────────────────────────
+// Returns premium subscriber and free-user data for the admin dashboard.
+// Uses the Admin SDK (bypasses Firestore security rules) so the client-side
+// admin page doesn't need direct Firestore read permissions.
+// Protected by ADMIN_TOKEN — same token used by word-admin and ai-creative.
+app.post('/api/admin/dashboard', async (req, res) => {
+  const token = req.body && req.body.token;
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || token !== adminToken) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (!db) return res.json({ error: 'Firestore not available' });
+
+  try {
+    // Premium users — read from premiumByEmail (the complete, authoritative source)
+    let premSnap;
+    try {
+      premSnap = await db.collection('premiumByEmail')
+        .orderBy('activatedAt', 'desc')
+        .limit(50)
+        .get();
+    } catch (e) {
+      premSnap = await db.collection('premiumByEmail').limit(50).get();
+    }
+
+    const premiumUsers = premSnap.docs.map(doc => {
+      const d = doc.data();
+      return {
+        id: doc.id,
+        email: d.email || null,
+        plan: d.plan || 'monthly',
+        active: d.active !== false,
+        activatedAt: d.activatedAt ? d.activatedAt.toDate().toISOString() : null,
+        expiryDate: d.expiryDate ? d.expiryDate.toDate().toISOString() : null,
+        source: d.source || 'stripe',
+        acquisition: d.acquisition || null
+      };
+    });
+
+    // Free users — read from users collection
+    let freeSnap;
+    try {
+      freeSnap = await db.collection('users')
+        .orderBy('createdAt', 'desc')
+        .limit(30)
+        .get();
+    } catch (e) {
+      try { freeSnap = await db.collection('users').limit(30).get(); }
+      catch (e2) { freeSnap = { docs: [] }; }
+    }
+
+    const freeUsers = freeSnap.docs.map(doc => {
+      const d = doc.data();
+      return {
+        uid: doc.id,
+        email: d.email || null,
+        createdAt: d.createdAt ? d.createdAt.toDate().toISOString() : null,
+        reengageSent: !!d.reengageSent,
+        acquisition: d.acquisition || null
+      };
+    });
+
+    res.json({ premiumUsers, freeUsers });
+  } catch (err) {
+    console.error('❌ Admin dashboard error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Re-engagement endpoint ───────────────────────────────────────────────────
 app.post('/api/email/reengage', async (req, res) => {
   const secret = req.headers['x-scheduler-secret'];
