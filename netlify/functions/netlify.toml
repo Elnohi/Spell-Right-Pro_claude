@@ -1,0 +1,261 @@
+[build]
+  publish = "."
+  command = "node inject-version.js || true"
+
+[build.environment]
+  NODE_VERSION = "20"
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+
+# ─── Static asset pass-throughs ─────────────────────────────────────
+# Must come before the catch-all so JSON/JS/CSS fetches are never
+# intercepted and served as index.html.
+[[redirects]]
+  from = "/data/*"
+  to = "/data/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/.well-known/*"
+  to = "/.well-known/:splat"
+  status = 200
+
+# ─── Clean URL routes ────────────────────────────────────────────────
+[[redirects]]
+  from = "/oet-spelling-guide"
+  to = "/oet-spelling-guide.html"
+  status = 200
+
+[[redirects]]
+  from = "/oet-referral-letter-guide"
+  to = "/oet-referral-letter-guide.html"
+  status = 200
+
+[[redirects]]
+  from = "/oet-vs-ielts"
+  to = "/oet-vs-ielts.html"
+  status = 200
+
+[[redirects]]
+  from = "/oet-abbreviations"
+  to = "/oet-abbreviations.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/word-admin"
+  to = "/word-admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/progress"
+  to = "/progress.html"
+  status = 200
+
+[[redirects]]
+  from = "/login"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/security"
+  to = "/security.html"
+  status = 200
+
+[[redirects]]
+  from = "/pricing"
+  to = "/pricing.html"
+  status = 200
+
+[[redirects]]
+  from = "/payment"
+  to = "/payment.html"
+  status = 200
+
+[[redirects]]
+  from = "/cancel"
+  to = "/cancel.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact-success"
+  to = "/contact-success.html"
+  status = 200
+
+[[redirects]]
+  from = "/pro"
+  to = "/pro.html"
+  status = 200
+
+[[redirects]]
+  from = "/trainer"
+  to = "/trainer.html"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
+[[redirects]]
+  from = "/refund-policy"
+  to = "/refund-policy.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/premium"
+  to = "/premium.html"
+  status = 200
+
+[[redirects]]
+  from = "/freemium-school"
+  to = "/freemium-school.html"
+  status = 200
+
+[[redirects]]
+  from = "/freemium-oet"
+  to = "/freemium-oet.html"
+  status = 200
+
+[[redirects]]
+  from = "/freemium-bee"
+  to = "/freemium-bee.html"
+  status = 200
+
+[[redirects]]
+  from = "/offline"
+  to = "/offline.html"
+  status = 200
+
+[[redirects]]
+  from = "/thank-you"
+  to = "/thank-you.html"
+  status = 200
+
+[[redirects]]
+  from = "/about"
+  to = "/about.html"
+  status = 200
+
+[[redirects]]
+  from = "/blog"
+  to = "/blog.html"
+  status = 200
+
+# API proxies
+[[redirects]]
+  from = "/api/ocr"
+  to = "/.netlify/functions/ocr"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/word-submit"
+  to = "/.netlify/functions/word-submit"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/word-admin"
+  to = "/.netlify/functions/word-admin"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/ai-creative"
+  to = "/.netlify/functions/ai-creative"
+  status = 200
+  force = true
+
+# ─── Catch-all (LAST — no force so real files take precedence) ───────
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ─── Security headers (all pages) ────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(self), geolocation=()"
+
+# Digital Asset Links
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Service worker — never cache
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+# HTML — never cache
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# JS — 1 hour (allows updates without full immutable cache busting)
+[[headers]]
+  for = "/js/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# main-premium.js — never cache (always serve fresh)
+[[headers]]
+  for = "/js/main-premium.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# CSS — 1 hour
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Data files — 1 hour
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Assets — long cache
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, immutable"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[context.production]
+  environment = { NODE_ENV = "production" }
+
+[context.deploy-preview]
+  environment = { NODE_ENV = "preview" }
+
+[context.branch-deploy]
+  environment = { NODE_ENV = "development" }
