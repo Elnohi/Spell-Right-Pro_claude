@@ -464,13 +464,13 @@
             <span>Monthly</span>
             <span style="font-size:0.7rem;font-weight:500;opacity:.7;">Flexible</span>
           </button>
-          <button id="tabSixmonth" onclick="selectPlanKey('sixmonth')"
+          <button id="tabExamprep" onclick="selectPlanKey('examprep')"
                   style="flex:1;padding:12px 8px;border:none;background:transparent;color:rgba(255,255,255,0.75);
                          border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;
                          font-size:0.85rem;font-weight:700;transition:all .2s;
                          display:flex;flex-direction:column;gap:2px;line-height:1.2;">
-            <span>6 months</span>
-            <span style="font-size:0.7rem;font-weight:500;opacity:.7;">Save 13%</span>
+            <span>Exam Prep</span>
+            <span style="font-size:0.7rem;font-weight:500;opacity:.7;">3 months</span>
           </button>
           <button id="tabAnnual" onclick="selectPlanKey('annual')"
                   style="flex:1;padding:12px 8px;border:none;background:white;color:#7b2ff7;
@@ -849,12 +849,12 @@
         amount:    5,
         label:     'SpellRightPro Premium — CAD $5/month'
       },
-      sixmonth: {
-        priceHTML: 'CAD $26<span>/6 months</span><div style="font-size:0.35em;opacity:0.8;margin-top:4px;">Equivalent to CAD $4.33/mo — save 13%</div>',
-        btnLabel:  'Get 6 Months — CAD $26',
-        currency:  '≈ USD $19 · GBP 15 · AUD 29 · PHP 1,100 · INR 1,600',
-        amount:    26,
-        label:     'SpellRightPro Premium — CAD $26 (6 months, save 13%)'
+      examprep: {
+        priceHTML: 'CAD $25<span>/3 months</span><div style="font-size:0.35em;opacity:0.8;margin-top:4px;">OET exam prep bundle — CAD $8.33/mo</div>',
+        btnLabel:  'Get Exam Prep — CAD $25/3mo',
+        currency:  '≈ USD $18 · GBP 14 · AUD 28 · PHP 1,000 · INR 1,500',
+        amount:    25,
+        label:     'SpellRightPro Premium — CAD $25 (3-month exam prep)'
       },
       annual:   {
         priceHTML: 'CAD $45<span>/year</span><div style="font-size:0.35em;opacity:0.8;margin-top:4px;">Equivalent to CAD $3.75/mo — save 25%</div>',
@@ -870,8 +870,8 @@
       const data = PLAN_DATA[plan];
 
       // Update tab styling
-      ['monthly','sixmonth','annual'].forEach(function(p) {
-        const tabId = p === 'sixmonth' ? 'tabSixmonth'
+      ['monthly','examprep','annual'].forEach(function(p) {
+        const tabId = p === 'examprep' ? 'tabExamprep'
                    : p === 'monthly'  ? 'tabMonthly'
                    : 'tabAnnual';
         const tab = document.getElementById(tabId);
@@ -947,7 +947,7 @@
         fbq('track', 'InitiateCheckout', {
           content_name: 'SpellRightPro Premium',
           content_category: 'Premium',
-          value: selectedPlanKey === 'annual' ? 45.00 : selectedPlanKey === 'sixmonth' ? 26.00 : 5.00,
+          value: selectedPlanKey === 'annual' ? 45.00 : selectedPlanKey === 'examprep' ? 25.00 : 5.00,
           currency: 'CAD',
           num_items: 1
         });

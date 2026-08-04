@@ -66,9 +66,11 @@ try {
 
 // ── Plan config ───────────────────────────────────────────────────────────────
 const PLANS = {
-  monthly:  { name: "SpellRightPro Premium — Monthly",  amount: 500,  interval: "month", intervalCount: 1, priceId: process.env.STRIPE_PRICE_MONTHLY  || null },
-  sixmonth: { name: "SpellRightPro Premium — 6 months", amount: 2600, interval: "month", intervalCount: 6, priceId: process.env.STRIPE_PRICE_SIXMONTH || null },
-  annual:   { name: "SpellRightPro Premium — Annual",   amount: 4500, interval: "year",  intervalCount: 1, priceId: process.env.STRIPE_PRICE_ANNUAL   || null },
+  monthly:  { name: "SpellRightPro Premium — Monthly",    amount: 500,  interval: "month", intervalCount: 1, priceId: process.env.STRIPE_PRICE_MONTHLY  || null },
+  examprep: { name: "SpellRightPro Premium — Exam Prep",  amount: 2500, interval: "month", intervalCount: 3, priceId: process.env.STRIPE_PRICE_EXAMPREP || null },
+  annual:   { name: "SpellRightPro Premium — Annual",     amount: 4500, interval: "year",  intervalCount: 1, priceId: process.env.STRIPE_PRICE_ANNUAL   || null },
+  // Legacy aliases — all resolve to monthly
+  sixmonth: { name: "SpellRightPro Premium — Monthly", amount: 500, interval: "month", intervalCount: 1, priceId: process.env.STRIPE_PRICE_MONTHLY || null },
   school:   { name: "SpellRightPro Premium — Monthly", amount: 500, interval: "month", intervalCount: 1, priceId: process.env.STRIPE_PRICE_MONTHLY || null },
   complete: { name: "SpellRightPro Premium — Monthly", amount: 500, interval: "month", intervalCount: 1, priceId: process.env.STRIPE_PRICE_MONTHLY || null },
   family:   { name: "SpellRightPro Premium — Monthly", amount: 500, interval: "month", intervalCount: 1, priceId: process.env.STRIPE_PRICE_MONTHLY || null },
@@ -184,6 +186,7 @@ async function writePremiumRecord(uid, email, plan, sessionId, source, acquisiti
   const expiry = new Date();
   if (plan === 'annual')        expiry.setFullYear(expiry.getFullYear() + 1);
   else if (plan === 'sixmonth') expiry.setMonth(expiry.getMonth() + 6);
+  else if (plan === 'examprep') expiry.setMonth(expiry.getMonth() + 3);
   else expiry.setMonth(expiry.getMonth() + 1);
   const record = {
     email, plan, active: true,
@@ -234,6 +237,7 @@ async function extendPremiumExpiry(email, plan, invoiceId, amount) {
   const newExpiry = new Date(baseDate);
   if (plan === 'annual')        newExpiry.setFullYear(newExpiry.getFullYear() + 1);
   else if (plan === 'sixmonth') newExpiry.setMonth(newExpiry.getMonth() + 6);
+  else if (plan === 'examprep') newExpiry.setMonth(newExpiry.getMonth() + 3);
   else                          newExpiry.setDate(newExpiry.getDate() + 30);
 
   const update = {
@@ -307,7 +311,7 @@ app.get("/api/health",(_, res) => res.json({
   status: "healthy", stripe: !!stripe, firebase: !!db, email: !!transporter,
   plans: {
     monthly:  { amount: 500,  priceId: PLANS.monthly.priceId  },
-    sixmonth: { amount: 2600, priceId: PLANS.sixmonth.priceId },
+    examprep: { amount: 2500, priceId: PLANS.examprep.priceId },
     annual:   { amount: 4500, priceId: PLANS.annual.priceId   }
   },
   timestamp: new Date().toISOString()
@@ -434,6 +438,7 @@ app.post("/api/stripe-webhook", async (req, res) => {
       const expiry = new Date();
       if (plan === 'annual')        expiry.setFullYear(expiry.getFullYear() + 1);
       else if (plan === 'sixmonth') expiry.setMonth(expiry.getMonth() + 6);
+  else if (plan === 'examprep') expiry.setMonth(expiry.getMonth() + 3);
       else                          expiry.setDate(expiry.getDate() + 30);
       const expiryStr = expiry.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
       const paymentDate = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
@@ -585,6 +590,7 @@ app.post("/api/send-confirmation", async (req, res) => {
       const expiry = new Date();
       if (plan === 'annual')        expiry.setFullYear(expiry.getFullYear() + 1);
       else if (plan === 'sixmonth') expiry.setMonth(expiry.getMonth() + 6);
+  else if (plan === 'examprep') expiry.setMonth(expiry.getMonth() + 3);
       else                          expiry.setDate(expiry.getDate() + 30);
       const expiryStr   = expiry.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
       const paymentDate = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
