@@ -850,11 +850,11 @@
         label:     'SpellRightPro Premium — CAD $5/month'
       },
       examprep: {
-        priceHTML: 'CAD $25<span>/3 months</span><div style="font-size:0.35em;opacity:0.8;margin-top:4px;">OET exam prep bundle — CAD $8.33/mo</div>',
-        btnLabel:  'Get Exam Prep — CAD $25/3mo',
-        currency:  '≈ USD $18 · GBP 14 · AUD 28 · PHP 1,000 · INR 1,500',
-        amount:    25,
-        label:     'SpellRightPro Premium — CAD $25 (3-month exam prep)'
+        priceHTML: 'CAD $12<span>/3 months</span><div style="font-size:0.35em;opacity:0.8;margin-top:4px;">CAD $4/mo — save 20% vs monthly</div>',
+        btnLabel:  'Get Exam Prep — CAD $12/3mo',
+        currency:  '≈ USD $9 · GBP 7 · AUD 13 · PHP 480 · INR 720',
+        amount:    12,
+        label:     'SpellRightPro Premium — CAD $12 (3-month exam prep, save 20%)'
       },
       annual:   {
         priceHTML: 'CAD $45<span>/year</span><div style="font-size:0.35em;opacity:0.8;margin-top:4px;">Equivalent to CAD $3.75/mo — save 25%</div>',
@@ -947,7 +947,7 @@
         fbq('track', 'InitiateCheckout', {
           content_name: 'SpellRightPro Premium',
           content_category: 'Premium',
-          value: selectedPlanKey === 'annual' ? 45.00 : selectedPlanKey === 'examprep' ? 25.00 : 5.00,
+          value: selectedPlanKey === 'annual' ? 45.00 : selectedPlanKey === 'examprep' ? 12.00 : 5.00,
           currency: 'CAD',
           num_items: 1
         });

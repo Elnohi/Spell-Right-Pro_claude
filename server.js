@@ -67,7 +67,7 @@ try {
 // ── Plan config ───────────────────────────────────────────────────────────────
 const PLANS = {
   monthly:  { name: "SpellRightPro Premium — Monthly",    amount: 500,  interval: "month", intervalCount: 1, priceId: process.env.STRIPE_PRICE_MONTHLY  || null },
-  examprep: { name: "SpellRightPro Premium — Exam Prep",  amount: 2500, interval: "month", intervalCount: 3, priceId: process.env.STRIPE_PRICE_EXAMPREP || null },
+  examprep: { name: "SpellRightPro Premium — Exam Prep",  amount: 1200, interval: "month", intervalCount: 3, priceId: process.env.STRIPE_PRICE_EXAMPREP || null },
   annual:   { name: "SpellRightPro Premium — Annual",     amount: 4500, interval: "year",  intervalCount: 1, priceId: process.env.STRIPE_PRICE_ANNUAL   || null },
   // Legacy aliases — all resolve to monthly
   sixmonth: { name: "SpellRightPro Premium — Monthly", amount: 500, interval: "month", intervalCount: 1, priceId: process.env.STRIPE_PRICE_MONTHLY || null },
@@ -311,7 +311,7 @@ app.get("/api/health",(_, res) => res.json({
   status: "healthy", stripe: !!stripe, firebase: !!db, email: !!transporter,
   plans: {
     monthly:  { amount: 500,  priceId: PLANS.monthly.priceId  },
-    examprep: { amount: 2500, priceId: PLANS.examprep.priceId },
+    examprep: { amount: 1200, priceId: PLANS.examprep.priceId },
     annual:   { amount: 4500, priceId: PLANS.annual.priceId   }
   },
   timestamp: new Date().toISOString()

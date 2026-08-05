@@ -265,7 +265,7 @@
     if (sessionId) {
       // Facebook Pixel Purchase event — fires independently of GA4
       if (typeof fbq !== 'undefined') {
-        const planValues = {annual: 45.00, examprep: 25.00, monthly: 5.00, premium: 5.00};
+        const planValues = {annual: 45.00, examprep: 12.00, monthly: 5.00, premium: 5.00};
         const purchaseValue = planValues[planParam] || 5.00;
         fbq('track', 'Purchase', {
           value: purchaseValue,
@@ -279,7 +279,7 @@
       // GA4 purchase event — only if gtag is available
       // NOTE: 'value' was previously missing, so every purchase logged as $0 revenue in GA4.
       if (typeof gtag !== 'undefined') {
-        const planValues = {annual: 45.00, examprep: 25.00, monthly: 5.00, premium: 5.00};
+        const planValues = {annual: 45.00, examprep: 12.00, monthly: 5.00, premium: 5.00};
         const purchaseValue = planValues[planParam] || 5.00;
         gtag('event', 'purchase', {
           transaction_id: sessionId,
