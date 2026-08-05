@@ -1265,7 +1265,7 @@ const firebaseConfig = {
       state.currentIndex++;
       
       // ── Auth wall after word 6 ─────────────────────────────────
-      if (state.currentIndex === 6 && !srpAuth.isLoggedIn()) {
+      if (state.currentIndex === 12 && !srpAuth.isLoggedIn()) {
         srpAuth.showWall('oet', function() {
           // Called on successful auth — resume from word 7
           updateProgress();
@@ -2305,9 +2305,9 @@ window.srpAuth = (function() {
       '<div style="background:#fff;border-radius:20px;padding:32px 28px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);">',
 
       // Header
-      '<div style="font-size:2rem;margin-bottom:8px;">📋</div>',
-      '<h3 style="margin:0 0 6px;font-size:1.15rem;font-weight:800;color:#1a0533;">One free account — keep going</h3>',
-      '<p style="margin:0 0 20px;font-size:0.88rem;color:#7b6f8a;">Create your free account to unlock your daily 24 ' + label + '. Same account upgrades to Premium later.</p>',
+      '<div style="font-size:2rem;margin-bottom:8px;">🎯</div>',
+      '<h3 style="margin:0 0 6px;font-size:1.15rem;font-weight:800;color:#1a0533;">You&#39;re halfway — don&#39;t lose your progress</h3>',
+      '<p style="margin:0 0 20px;font-size:0.88rem;color:#7b6f8a;">Sign up in 10 seconds to finish your session and see your full score. Your free account includes a daily practice session every day — no credit card, no trial, no catch.' + '<br><span style="display:inline-block;margin-top:8px;font-size:0.8rem;color:#7b2ff7;font-weight:600;">✓ Free daily session every day · ✓ Keep your mistakes for review · ✓ No card needed, ever · ✓ Same account upgrades to Premium later</span></p>',
 
       // Tabs
       '<div style="display:flex;border-radius:10px;overflow:hidden;border:1px solid rgba(123,47,247,0.2);margin-bottom:20px;">',
