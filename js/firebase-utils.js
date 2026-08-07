@@ -150,11 +150,15 @@ class FirebaseUtils {
       }
     } catch (_) {}
 
-    // Also check the old key format
-    if (localStorage.getItem('premium_' + user.uid) === 'true') {
-      console.log('✅ Premium confirmed via legacy localStorage key');
-      return true;
-    }
+    // Clean up legacy key that never checked expiry — was granting
+    // permanent premium access even after cancellation/expiry.
+    try {
+      const legacyKey = 'premium_' + user.uid;
+      if (localStorage.getItem(legacyKey)) {
+        localStorage.removeItem(legacyKey);
+        console.log('🧹 Removed legacy premium key (no expiry check)');
+      }
+    } catch (_) {}
 
     if (!this.initialized) {
       console.warn('Firebase not initialized — cannot check Firestore');
