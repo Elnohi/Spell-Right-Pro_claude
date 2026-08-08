@@ -2277,6 +2277,27 @@ window.srpAuth = (function() {
       : auth.signInWithEmailAndPassword(email, password);
 
     promise.then(function(cred) {
+      if (mode === 'signup' && cred.user) {
+        try {
+          var attribution = (typeof window.getAttribution === 'function') ? window.getAttribution() : {};
+          firebase.firestore().collection('users').doc(cred.user.uid).set({
+            email: email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            acquisition: {
+              utm_source:   attribution.utm_source   || 'direct',
+              utm_medium:   attribution.utm_medium   || 'none',
+              utm_campaign: attribution.utm_campaign || 'none',
+              utm_content:  attribution.utm_content  || null,
+              landing_page: attribution.landing_page || null,
+              signup_page:  'freemium_school_wall',
+              signed_up_at: firebase.firestore.FieldValue.serverTimestamp()
+            }
+          }, { merge: true }).catch(function(e) {
+            console.warn('Users write failed (non-critical):', e.message);
+          });
+        } catch (_) {}
+      }
+
       // Also save lead to Firestore via save-lead function
       fetch('/.netlify/functions/save-lead', {
         method: 'POST',

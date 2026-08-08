@@ -764,6 +764,16 @@ app.post('/api/email/reengage', async (req, res) => {
       const premSnap = await db.collection('premiumByEmail').doc(safeEmail).get();
       if (premSnap.exists && premSnap.data().active) continue;
       if (user.reengageSent) continue;
+
+      // Skip users who also exist in freeLeads — the nurture sequence
+      // (day 3/7/14) handles them with segment-aware copy. Without this
+      // check, a user in both collections would get the generic re-engage
+      // email AND the nurture day-3 email on the same day.
+      try {
+        const leadDoc = await db.collection('freeLeads').doc(safeEmail).get();
+        if (leadDoc.exists) continue;
+      } catch (_) {}
+
       await sendReengageEmail(user.email, user.displayName || user.email.split('@')[0]);
       await db.collection('users').doc(doc.id).update({ reengageSent: true });
       sent++;

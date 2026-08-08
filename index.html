@@ -635,6 +635,9 @@
       
       // Initialize analytics immediately
       initializeAnalytics();
+
+      // Notify config.js attribution capture to promote sessionStorage → localStorage
+      document.dispatchEvent(new Event('cookieConsentGranted'));
       
       // Show feedback but don't reload
       console.log('✅ Cookies accepted - Analytics enabled');
