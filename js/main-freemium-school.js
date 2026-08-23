@@ -17,7 +17,7 @@
     summary: $('.summary-area')
   };
 
-  const LIST = '/data/word-lists/school.json';
+  const LIST = '/data/school.json';
   const FALLBACK = ['example', 'language', 'grammar', 'knowledge', 'science', 'mathematics', 'history', 'geography', 'literature', 'chemistry'];
   
   const state = { 
