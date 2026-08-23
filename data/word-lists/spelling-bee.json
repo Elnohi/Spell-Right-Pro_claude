@@ -1,24 +1,3013 @@
 {
+  "meta": {
+    "count": 500,
+    "description": "Competition spelling bee word list, ordered by difficulty tier (1=easy, 2=intermediate, 3=advanced). Uses US English spelling. All words anglicized for TTS pronunciation.",
+    "tiers": {
+      "1": "Everyday vocabulary, basic Latin/Greek roots, common patterns",
+      "2": "Loanwords (French/German/Italian/Spanish), advanced Latin/Greek, homophones, medical",
+      "3": "Advanced etymology, botanical/zoological, elite spell-off words, complex traps"
+    }
+  },
   "words": [
-    "accommodate",
-    "bellwether",
-    "consensus",
-    "diaphragm",
-    "embarrass",
-    "flabbergasted",
-    "gauge",
-    "handkerchief",
-    "indict",
-    "jeopardize",
-    "knapsack",
-    "liaison",
-    "maneuver",
-    "nebulous",
-    "occasionally",
-    "playwright",
-    "questionnaire",
-    "rendezvous",
-    "silhouette",
-    "yacht"
+    {
+      "word": "Flabbergast",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Conundrum",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Mischievous",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gobbledegook",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Skedaddle",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ballyhoo",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Shenanigans",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bamboozle",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kerfuffle",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hodgepodge",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Whimsical",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gargantuan",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Quarantine",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Camouflage",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Silhouette",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Boulevard",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Avalanche",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chauffeur",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Croissant",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bureaucracy",
+      "tier": 1,
+      "category": "everyday",
+      "lang": "en-US"
+    },
+    {
+      "word": "Accelerate",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Benevolent",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Centennial",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Deceitful",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Eloquent",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Frivolous",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Garrulous",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Horticulture",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Illegible",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Judicious",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Luminous",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Magnanimous",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Notorious",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Omniscient",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Plausible",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rejuvenate",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sedimentary",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Turbulent",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Unanimous",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vindictive",
+      "tier": 1,
+      "category": "latin_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Astronomy",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Biography",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chronological",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Democracy",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Enthusiasm",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Geography",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Homogenized",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hyperbole",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Metaphor",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Orthodontist",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Philosophy",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Psychology",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Symphony",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Thermostat",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Xylophone",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hieroglyph",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Catastrophe",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Antagonist",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Protagonist",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Metamorphosis",
+      "tier": 1,
+      "category": "greek_roots",
+      "lang": "en-US"
+    },
+    {
+      "word": "Accommodation",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Broccoli",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Caribbean",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Exaggerate",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Harass",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Innocuous",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Millennium",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Necessary",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Occurrence",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Possession",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Questionnaire",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Recommendation",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Successor",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vaccinate",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vacillate",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Aggressive",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Flaccid",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Irresistible",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Perennial",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tyranny",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Audible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Compatible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Feasible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Susceptible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tangible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Incredible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Edible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Eligible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Indelible",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dependable",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Formidable",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Inevitable",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Memorable",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Navigable",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Abundance",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Compliance",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Maintenance",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Persistence",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sophisticated",
+      "tier": 1,
+      "category": "tricky_vowels",
+      "lang": "en-US"
+    },
+    {
+      "word": "Occasion",
+      "tier": 1,
+      "category": "double_consonants",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bourgeois",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Boutique",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chandelier",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chateau",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Connoisseur",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Courtesan",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Debris",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Debutante",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Entrepreneur",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Espionage",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Etiquette",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gourmet",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ingenue",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Lingerie",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Renaissance",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rendezvous",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Reservoir",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sabotage",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Souvenir",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vaudeville",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Angst",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bratwurst",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dachshund",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Delicatessen",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Doppelganger",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Edelweiss",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Festschrift",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hinterland",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kaper",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kindergarten",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kitsch",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Krausen",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Leitmotif",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Poltergeist",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pumpernickel",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rucksack",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sauerkraut",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Schadenfreude",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Schnauzer",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Zeitgeist",
+      "tier": 2,
+      "category": "german",
+      "lang": "en-US"
+    },
+    {
+      "word": "Allegro",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Andante",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Archipelago",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bruschetta",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Camaraderie",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Fiasco",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gondola",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Graffiti",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Intermezzo",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Macaroni",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Zucchini",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Paparazzi",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Staccato",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Terracotta",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Virtuoso",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Adios",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bodega",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Caballero",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cafeteria",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Corrida",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hacienda",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Machismo",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Palomino",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Plaza",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Salsa",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Siesta",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sombrero",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tomatillo",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tortilla",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vaquero",
+      "tier": 2,
+      "category": "italian_spanish",
+      "lang": "en-US"
+    },
+    {
+      "word": "Acquiesce",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Belligerent",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Capricious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Defalcate",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ebullient",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Facetious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gregarious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Histrionic",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Impecunious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Loquacious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Mendacious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Nefarious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Obsequious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pugnacious",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Querulous",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Recalcitrant",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sycophant",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Taciturn",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ubiquitous",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vociferous",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Anachronism",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cataclysm",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dichotomy",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Epiphany",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Idiosyncrasy",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kakistocracy",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Misogyny",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ostracism",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Paradigm",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pompous",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Synecdoche",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tautology",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Xenophobia",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Zephyr",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Polyphony",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Geronimo",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Euphemism",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dyslexia",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Isosceles",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Acrobatics",
+      "tier": 2,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Aneurysm",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bacteria",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Capillary",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dermatitis",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Epidermis",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Fibromyalgia",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Glaucoma",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hemoglobin",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Immunology",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Jaundice",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Leukemia",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Melanoma",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Neurology",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Osteoporosis",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pneumonia",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rheumatism",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Schizophrenia",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tuberculosis",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Urticaria",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vertigo",
+      "tier": 2,
+      "category": "science_medical",
+      "lang": "en-US"
+    },
+    {
+      "word": "Altar",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Alter",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ascent",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Assent",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Canvas",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Canvass",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Compliment",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Complement",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Discreet",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Discrete",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Elicit",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Illicit",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Foreword",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Forward",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Guerilla",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gorilla",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Imminent",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Eminent",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Stationary",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Stationery",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Principal",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Principle",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Aerie",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Airy",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bail",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bale",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Censer",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Censor",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chord",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cord",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dual",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Duel",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Fain",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Feign",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gait",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gate",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hoard",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Horde",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Idol",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Idle",
+      "tier": 2,
+      "category": "homophones",
+      "lang": "en-US"
+    },
+    {
+      "word": "Perseverance",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Restaurateur",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Silhouetted",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Serendipity",
+      "tier": 2,
+      "category": "advanced_latin",
+      "lang": "en-US"
+    },
+    {
+      "word": "Amateur",
+      "tier": 2,
+      "category": "french",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bonsai",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Origami",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Karaoke",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tsunami",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sayonara",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tycoon",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Zenith",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Nadir",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Alkali",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Elixir",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ghoulish",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sherbet",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Saffron",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Avatar",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Guru",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Karma",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Mandala",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pundit",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cheetah",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Juggernaut",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kibbutz",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chutzpah",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Shalom",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dreidel",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Klutz",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Schlep",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Impala",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gnu",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Safari",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Voodoo",
+      "tier": 3,
+      "category": "asian_middle_eastern_african",
+      "lang": "en-US"
+    },
+    {
+      "word": "Banshee",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Brogue",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Clan",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Slogan",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Whiskey",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Flannel",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Coracle",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Penguin",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cairn",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ghillie",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Anorak",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kayak",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Iglu",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chipotle",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chocolate",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Coyote",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Guacamole",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ocelot",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tomato",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Barbecue",
+      "tier": 3,
+      "category": "gaelic_celtic_indigenous",
+      "lang": "en-US"
+    },
+    {
+      "word": "Anemone",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Apocryphal",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Archaeology",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Asphyxiation",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Autochthonous",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Boustrophedon",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cachexy",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Catachresis",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chiaroscuro",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chryselephantine",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cenotaph",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dacryocyst",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Deuteronomy",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Eschatology",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Glyptography",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hemistich",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ichthyology",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ischemia",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Labyrinthine",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Monomachia",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Onychophagy",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ophthalmology",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pachyderm",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Phantasmagoria",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pterodactyl",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rhinoceros",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sybarite",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Trichotillomania",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Uchronia",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Zeugma",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Acanthus",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Begonia",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bougainvillea",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chrysanthemum",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dahlia",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Echinacea",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Fuchsia",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Geranium",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hydrangea",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Jacaranda",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kalanchoe",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Lobelia",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Magnolia",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Nasturtium",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Orchid",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Petunia",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rhododendron",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sequoiadendron",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tillandsia",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Wisteria",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Axolotl",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Capybara",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Chameleon",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Coelacanth",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dugong",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Echidna",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Flamingo",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gibbon",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hoatzin",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Iguana",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kookaburra",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Lemur",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Macaque",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Nautilus",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Okapi",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pangolin",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Quetzal",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Salamander",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tuatara",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Wombat",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Abba",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bilo",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cete",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dika",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Einkorn",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Floes",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gula",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hili",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Inia",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Jete",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kanoon",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Lwei",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Mhorr",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Nipa",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Oorali",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pika",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Quesal",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rhea",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sura",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tahr",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Uraeus",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vlei",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Wadi",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Xebec",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Yurt",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Zho",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Agape",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Boma",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Crwth",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Dhuti",
+      "tier": 3,
+      "category": "elite_spelloff",
+      "lang": "en-US"
+    },
+    {
+      "word": "Asymmetry",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bdellium",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cenobite",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Drachma",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Epitome",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Furlough",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Gherkin",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Heinous",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Indictment",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Jeopardy",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Knell",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Llama",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Mnemonic",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Naphtha",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Oubliette",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Phlegm",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ptarmigan",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Quay",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sovereign",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tryptophan",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Unctuous",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Vicissitude",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Wheedle",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Xenon",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Yttrium",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ziggurat",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Abrasive",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bivouac",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Caterwaul",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Desiccate",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Effervescent",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Fulminate",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Garrulity",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hyperboloid",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Idyllic",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Juxtaposition",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Kaleidoscopic",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Lachrymose",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Maelstrom",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Nihilism",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Ominous",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pusillanimous",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Quixotic",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rapscallion",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sacrilegious",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Tintinnabulation",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Utilitarian",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Verisimilitude",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Weltschmerz",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Appoggiatura",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Eisegesis",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Guillotine",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Humuhumunukunukuapuaa",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Logorrhea",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Odyssey",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Rhapsody",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sphinx",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Weimaraner",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Yogurt",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Apotheosis",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Bibliophile",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cacophony",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Demagogue",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Epihippus",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Feuilleton",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Glockenspiel",
+      "tier": 3,
+      "category": "elite_multilingual",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sesquipedalian",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Antediluvian",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sanguine",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    },
+    {
+      "word": "Pterygoid",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Sesquicentennial",
+      "tier": 3,
+      "category": "ultra_complex",
+      "lang": "en-US"
+    },
+    {
+      "word": "Hippopotamus",
+      "tier": 3,
+      "category": "botanical_zoological",
+      "lang": "en-US"
+    },
+    {
+      "word": "Phenomenon",
+      "tier": 3,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Cathartic",
+      "tier": 3,
+      "category": "advanced_greek",
+      "lang": "en-US"
+    },
+    {
+      "word": "Prestidigitation",
+      "tier": 3,
+      "category": "severe_traps",
+      "lang": "en-US"
+    }
   ]
 }
