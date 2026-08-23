@@ -1452,7 +1452,7 @@ const firebaseConfig = {
           <h4 style="margin: 0 0 8px 0; font-size: 1.1rem;">🎉 You've completed today's free 24-word exam!</h4>
           <p style="margin: 0 0 15px 0; font-size: 0.92em; opacity: 0.95;">
             Upgrade to Premium for <strong>unlimited practice, every day</strong> — the full
-            2,256-word OET list, not just 24:<br>
+            2,257-word OET list, not just 24:<br>
             • Unlimited daily sessions &nbsp;• Full word list &nbsp;• No ads<br>
             • Progress tracking &amp; mistake review &nbsp;• All accents
           </p>
@@ -2141,7 +2141,7 @@ window.srpLimit = (function() {
     return increment();
   }
 
-  // Build the "X of 2,256 words" banner shown above Start button
+  // Build the "X of 2,257 words" banner shown above Start button
   function getWordBannerHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
     var total = TOTAL_WORDS[module] || 1627;
@@ -2175,7 +2175,7 @@ window.srpLimit = (function() {
                     : '&#127881;';
     var moduleCred  = module === 'oet'    ? 'Built by a doctor who passed the OET.'
                     : module === 'school' ? 'Built by a doctor, matched to how teachers test spelling.'
-                    : 'Voice practice with 500 competition-level words.';
+                    : 'Voice practice with 1,243 competition-level words.';
 
     // Midnight reset countdown
     var now       = new Date();
