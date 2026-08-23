@@ -767,7 +767,7 @@
           <button class="source-btn active" id="btnUseApp" onclick="selectSource('app')">
             <i class="fa fa-book-open"></i>
             <strong>Use App Words</strong>
-            <small>500+ built-in words</small>
+            <small>500 built-in words</small>
           </button>
           <button class="source-btn" id="btnUseCustom" onclick="selectSource('custom')">
             <i class="fa fa-pen"></i>
@@ -2082,7 +2082,7 @@ window.srpLimit = (function() {
     return increment();
   }
 
-  // Build the "X of 1,511 words" banner shown above Start button
+  // Build the "X of 2,256 words" banner shown above Start button
   function getWordBannerHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
     var total = TOTAL_WORDS[module] || 1511;
@@ -2116,7 +2116,7 @@ window.srpLimit = (function() {
                     : '&#127881;';
     var moduleCred  = module === 'oet'    ? 'Built by a doctor who passed the OET.'
                     : module === 'school' ? 'Built by a doctor, matched to how teachers test spelling.'
-                    : 'Voice practice with 500+ competition-level words.';
+                    : 'Voice practice with 500 competition-level words.';
 
     // Midnight reset countdown
     var now       = new Date();

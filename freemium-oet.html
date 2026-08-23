@@ -2141,7 +2141,7 @@ window.srpLimit = (function() {
     return increment();
   }
 
-  // Build the "X of 1,511 words" banner shown above Start button
+  // Build the "X of 2,256 words" banner shown above Start button
   function getWordBannerHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
     var total = TOTAL_WORDS[module] || 1627;
@@ -2175,7 +2175,7 @@ window.srpLimit = (function() {
                     : '&#127881;';
     var moduleCred  = module === 'oet'    ? 'Built by a doctor who passed the OET.'
                     : module === 'school' ? 'Built by a doctor, matched to how teachers test spelling.'
-                    : 'Voice practice with 500+ competition-level words.';
+                    : 'Voice practice with 500 competition-level words.';
 
     // Midnight reset countdown
     var now       = new Date();
