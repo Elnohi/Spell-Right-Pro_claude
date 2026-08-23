@@ -1621,10 +1621,12 @@ function startTraining(mode) {
       return;
     }
   } else if (mode === 'bee') {
-    fetch('/data/spelling-bee.json')
+    fetch('/data/word-lists/spelling-bee.json')
       .then(r => r.json())
       .then(data => {
-        currentList = shuffle(data.words || []);
+        // Words are objects {word, tier, category, lang} — extract strings.
+        const rawWords = (data.words || []).map(w => (typeof w === 'string' ? w : w.word)).filter(Boolean);
+        currentList = shuffle(rawWords);
         showFeedback('Spelling Bee started — ' + currentList.length + ' words', 'info');
         updateBeeBadge();
         nextWord();

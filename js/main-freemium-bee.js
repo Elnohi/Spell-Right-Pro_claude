@@ -15,8 +15,26 @@
     summary: $('.summary-area')
   };
 
-  const LIST = '/data/spelling-bee.json';
+  const LIST = '/data/word-lists/spelling-bee.json';
   const FALLBACK = ['accommodate','rhythm','occurrence','necessary','embarrass','challenge','definitely','separate','recommend','privilege'];
+
+  // Load the bee word list from JSON. Returns an array of word strings in
+  // tier order (easy → advanced) so users progress through difficulty naturally.
+  // Falls back to the hardcoded list if the JSON fails to load.
+  async function loadWords() {
+    try {
+      const resp = await fetch(LIST);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      if (!data.words || !Array.isArray(data.words)) throw new Error('Invalid JSON structure');
+      // Extract just the word strings — TTS elsewhere expects strings.
+      // Tier order preserved from JSON (already sorted 1→3).
+      return data.words.map(w => (typeof w === 'string' ? w : w.word)).filter(Boolean);
+    } catch (e) {
+      console.warn('Bee word list failed to load, using fallback:', e.message);
+      return FALLBACK;
+    }
+  }
 
   // ========================================================
   // TIER-AWARE LIMIT FUNCTIONS
