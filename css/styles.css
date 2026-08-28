@@ -884,6 +884,113 @@ body.dark-mode .back-home-link:hover {
   text-decoration: underline;
 }
 
+/* ── Hero ── */
+html { scroll-behavior: smooth; }
+
+.hero {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 40px 28px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #1a0050;
+  letter-spacing: -0.01em;
+}
+.hero p.hero-sub {
+  margin: 0 auto 24px;
+  max-width: 560px;
+  font-size: 1.05rem;
+  color: #444;
+  line-height: 1.6;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: var(--gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.02rem;
+  border-radius: 12px;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(123, 47, 247, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(123, 47, 247, 0.4);
+}
+
+/* ── Stat tiles ── */
+.stat-tile-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 520px;
+  margin: 28px auto 0;
+}
+.stat-tile {
+  background: #f5f0ff;
+  border: 1px solid rgba(123, 47, 247, 0.15);
+  border-radius: 12px;
+  padding: 14px 8px;
+}
+.stat-tile .stat-num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.1;
+}
+.stat-tile .stat-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6b6280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .hero { padding: 28px 18px; }
+  .stat-tile-row { gap: 8px; }
+  .stat-tile { padding: 10px 4px; }
+  .stat-tile .stat-num { font-size: 1.2rem; }
+  .stat-tile .stat-label { font-size: 0.62rem; }
+}
+
+/* ── Mode icon badges ── */
+.card.link-card h3 {
+  display: flex;
+  align-items: center;
+}
+.mode-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.05rem;
+  margin-right: 10px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.mode-icon-badge.badge-bee    { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.mode-icon-badge.badge-oet    { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
+.mode-icon-badge.badge-school { background: linear-gradient(135deg, #22c55e, #15803d); }
+
 /* =======================================================
    INDEX PAGE — DARK MODE OVERRIDES
 ======================================================= */
@@ -910,6 +1017,23 @@ body.dark-mode .btn-icon:hover {
 body.dark-mode .training-card {
   background: #1e0e35;
   border-color: rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .hero {
+  background: #1e0e35;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .hero h1 {
+  color: #f0e8ff;
+}
+body.dark-mode .hero p.hero-sub {
+  color: #c9bfe0;
+}
+body.dark-mode .stat-tile {
+  background: #2a1248;
+  border-color: rgba(168, 100, 255, 0.3);
+}
+body.dark-mode .stat-tile .stat-label {
+  color: #a98fd4;
 }
 body.dark-mode .card-title {
   color: #e8d5ff;

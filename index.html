@@ -273,8 +273,6 @@
   <!-- End Meta Pixel Base Code -->
 </head>
 <body data-page="index">
-  <!-- h1 for search engines — visually hidden, content visible in the logo/brand area -->
-  <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">SpellRightPro — Free Spelling Practice for OET, School &amp; Spelling Bee</h1>
   <header class="navbar">
     <a href="/index.html" class="brand">
       <picture>
@@ -349,6 +347,28 @@
 
   <main class="container">
 
+    <!-- Hero — real visible h1, no more clipped/hidden heading -->
+    <section class="hero">
+      <h1>Free Spelling Practice for OET, School &amp; Spelling Bee</h1>
+      <p class="hero-sub">Hear the word. Type it from memory. Get instant, letter-by-letter feedback — the same skill tested in the OET writing exam, classroom spelling tests, and live spelling bees.</p>
+      <a href="#modeChooserCard" class="hero-cta">
+        <i class="fa fa-play"></i> Start Practicing Free
+      </a>
+      <div class="stat-tile-row">
+        <div class="stat-tile">
+          <span class="stat-num">2,257</span>
+          <span class="stat-label">OET Words</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-num">1,250</span>
+          <span class="stat-label">School Words</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-num">1,243</span>
+          <span class="stat-label">Bee Words</span>
+        </div>
+      </div>
+    </section>
 
     <!-- GEO/AEO: Direct answer opening — AI engines extract this sentence first -->
     <section class="training-card" id="modeChooserCard">
@@ -363,15 +383,15 @@
 
       <div class="mode-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
         <a class="card link-card" href="/freemium-bee.html">
-          <h3><i class="fa fa-microphone"></i> Spelling Bee</h3>
+          <h3><span class="mode-icon-badge badge-bee"><i class="fa fa-microphone"></i></span> Spelling Bee</h3>
           <p>1,243 competition words. Voice mode: spell letter-by-letter exactly like a live bee.</p>
         </a>
         <a class="card link-card" href="/freemium-oet.html">
-          <h3><i class="fa fa-stethoscope"></i> OET</h3>
+          <h3><span class="mode-icon-badge badge-oet"><i class="fa fa-stethoscope"></i></span> OET</h3>
           <p>2,257 OET medical words — drug names, anatomy, clinical terms — spoken in British, American, or Australian accent.</p>
         </a>
         <a class="card link-card" href="/freemium-school.html">
-          <h3><i class="fa fa-graduation-cap"></i> School</h3>
+          <h3><span class="mode-icon-badge badge-school"><i class="fa fa-graduation-cap"></i></span> School</h3>
           <p>1,250 curriculum words, or upload your own classroom list in seconds.</p>
         </a>
       </div>
