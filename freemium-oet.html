@@ -1445,16 +1445,22 @@ const firebaseConfig = {
         </div>
       `;
       
-      // Add premium upgrade prompt — explicitly tied to completing today's
-      // 24-word free exam, since that's now the only thing freemium offers
+      // Add premium upgrade prompt — grounded in the score/mistakes from the
+      // exam the user just took, not a generic feature list
+      var missedCount_s = state.incorrect.length;
+      var upsellHeadline_s = missedCount_s > 0
+        ? '🎉 You scored ' + pct_s + '% (' + correctCount + '/' + total + ') today!'
+        : '🎉 Perfect score — ' + correctCount + '/' + total + ' today!';
+      var upsellBody_s = missedCount_s > 0
+        ? 'Premium\'s <strong>mistake review</strong> would build a spaced-repetition drill from the '
+          + missedCount_s + ' word' + (missedCount_s === 1 ? '' : 's') + ' you missed today, plus unlock the full 2,257-word OET list — not just 24/day.'
+        : 'Ready for a bigger challenge? Premium unlocks the full 2,257-word OET list — not just 24/day — plus progress tracking to keep that streak going.';
       summaryHTML += `
         <div style="margin-top: 20px; padding: 18px; background: linear-gradient(135deg, #7b2ff7, #f72585); border-radius: 10px; color: white; text-align: center;">
-          <h4 style="margin: 0 0 8px 0; font-size: 1.1rem;">🎉 You've completed today's free 24-word exam!</h4>
+          <h4 style="margin: 0 0 8px 0; font-size: 1.1rem;">${upsellHeadline_s}</h4>
           <p style="margin: 0 0 15px 0; font-size: 0.92em; opacity: 0.95;">
-            Upgrade to Premium for <strong>unlimited practice, every day</strong> — the full
-            2,257-word OET list, not just 24:<br>
-            • Unlimited daily sessions &nbsp;• Full word list &nbsp;• No ads<br>
-            • Progress tracking &amp; mistake review &nbsp;• All accents
+            ${upsellBody_s}<br>
+            • Unlimited daily sessions &nbsp;• No ads &nbsp;• All accents
           </p>
           <button onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'oet_upsell'});window.location.href='/premium'"
             style="background: white; color: #7b2ff7; border: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer;">
