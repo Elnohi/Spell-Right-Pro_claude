@@ -273,8 +273,6 @@
   <!-- End Meta Pixel Base Code -->
 </head>
 <body data-page="index">
-  <!-- h1 for search engines — visually hidden, content visible in the logo/brand area -->
-  <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">SpellRightPro — Free Spelling Practice for OET, School &amp; Spelling Bee</h1>
   <header class="navbar">
     <a href="/index.html" class="brand">
       <picture>
@@ -349,6 +347,42 @@
 
   <main class="container">
 
+    <!-- Hero — real visible h1, no more clipped/hidden heading -->
+    <section class="hero">
+      <h1>Free Spelling Practice for OET, School &amp; Spelling Bee</h1>
+      <p class="hero-sub">Hear the word. Type it from memory. Get instant, letter-by-letter feedback — the same skill tested in the OET writing exam, classroom spelling tests, and live spelling bees.</p>
+      <a href="#modeChooserCard" class="hero-cta">
+        <i class="fa fa-play"></i> Start Practicing Free
+      </a>
+      <div class="stat-tile-row">
+        <div class="stat-tile">
+          <span class="stat-num">2,257</span>
+          <span class="stat-label">OET Words</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-num">1,250</span>
+          <span class="stat-label">School Words</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-num">1,243</span>
+          <span class="stat-label">Bee Words</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mini demo — try the core mechanic in 10 seconds, no click-through needed -->
+    <section class="mini-demo" id="miniDemo">
+      <p class="mini-demo-label"><i class="fa fa-bolt"></i> Try it right now — no sign-up</p>
+      <button type="button" class="mini-demo-play" id="miniDemoPlay">
+        <i class="fa fa-volume-up"></i> Play the Word
+      </button>
+      <div class="mini-demo-input-row">
+        <input type="text" id="miniDemoInput" placeholder="Type what you hear…" autocomplete="off" spellcheck="false" aria-label="Type the word you heard">
+        <button type="button" class="mini-demo-submit" id="miniDemoSubmit">Check</button>
+      </div>
+      <p class="mini-demo-feedback" id="miniDemoFeedback"></p>
+      <button type="button" class="mini-demo-next" id="miniDemoNext" style="display:none;">Try Another Word →</button>
+    </section>
 
     <!-- GEO/AEO: Direct answer opening — AI engines extract this sentence first -->
     <section class="training-card" id="modeChooserCard">
@@ -363,15 +397,15 @@
 
       <div class="mode-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
         <a class="card link-card" href="/freemium-bee.html">
-          <h3><i class="fa fa-microphone"></i> Spelling Bee</h3>
+          <h3><span class="mode-icon-badge badge-bee"><i class="fa fa-microphone"></i></span> Spelling Bee</h3>
           <p>1,243 competition words. Voice mode: spell letter-by-letter exactly like a live bee.</p>
         </a>
         <a class="card link-card" href="/freemium-oet.html">
-          <h3><i class="fa fa-stethoscope"></i> OET</h3>
+          <h3><span class="mode-icon-badge badge-oet"><i class="fa fa-stethoscope"></i></span> OET</h3>
           <p>2,257 OET medical words — drug names, anatomy, clinical terms — spoken in British, American, or Australian accent.</p>
         </a>
         <a class="card link-card" href="/freemium-school.html">
-          <h3><i class="fa fa-graduation-cap"></i> School</h3>
+          <h3><span class="mode-icon-badge badge-school"><i class="fa fa-graduation-cap"></i></span> School</h3>
           <p>1,250 curriculum words, or upload your own classroom list in seconds.</p>
         </a>
       </div>
@@ -390,6 +424,18 @@
         </a>
       </div>
 
+    </section>
+
+    <!-- E-E-A-T: Author credentials — moved up so this trust signal is seen
+         before the pricing pitch, not buried after the FAQ -->
+    <section class="training-card" style="margin: 24px 0; background: linear-gradient(135deg,rgba(123,47,247,0.05),rgba(247,37,133,0.04)); border-left: 4px solid #7b2ff7;">
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+        <div style="flex:1;min-width:240px;">
+          <p style="margin:0 0 4px;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7b2ff7;">About the developer</p>
+          <h3 style="margin:0 0 10px;color:#1a0050;font-size:1.1rem;">Built by a doctor, for healthcare professionals</h3>
+          <p style="margin:0;color:#374151;font-size:0.95rem;line-height:1.65;">SpellRightPro was created by a practising medical doctor who used it to prepare for their own OET exam. That first-hand clinical experience informs the 2,257-word OET list — specifically the drug names, anatomy terms, and clinical phrases that candidates know how to use but struggle to spell under exam conditions. <a href="/about" style="color:#7b2ff7;font-weight:600;">Read the full story →</a></p>
+        </div>
+      </div>
     </section>
 
     <!-- About this tool — substantive content section -->
@@ -546,17 +592,6 @@
       </div>
     </section>
 
-    <!-- E-E-A-T: Author credentials surface for AI engines -->
-    <section class="training-card" style="margin: 40px 0; background: linear-gradient(135deg,rgba(123,47,247,0.05),rgba(247,37,133,0.04)); border-left: 4px solid #7b2ff7;">
-      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
-        <div style="flex:1;min-width:240px;">
-          <p style="margin:0 0 4px;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7b2ff7;">About the developer</p>
-          <h3 style="margin:0 0 10px;color:#1a0050;font-size:1.1rem;">Built by a doctor, for healthcare professionals</h3>
-          <p style="margin:0;color:#374151;font-size:0.95rem;line-height:1.65;">SpellRightPro was created by a practising medical doctor who used it to prepare for their own OET exam. That first-hand clinical experience informs the 2,257-word OET list — specifically the drug names, anatomy terms, and clinical phrases that candidates know how to use but struggle to spell under exam conditions. <a href="/about" style="color:#7b2ff7;font-weight:600;">Read the full story →</a></p>
-        </div>
-      </div>
-    </section>
-
         <!-- Trust Badges -->
     <section class="training-card" style="text-align: center; margin: 40px 0;">
       <h2 style="margin-bottom: 20px; color: #1a0050;">Trusted &amp; Secure</h2>
@@ -699,6 +734,81 @@
   })();
   </script>
 
+  <!-- Mini demo widget — lets visitors try "hear it, type it" instantly -->
+  <script>
+  (function () {
+    var MINI_WORDS = ['because', 'definitely', 'necessary', 'embarrass', 'rhythm',
+      'conscience', 'separate', 'pneumonia', 'February', 'restaurant'];
+    var current = '';
+
+    function pickWord() {
+      current = MINI_WORDS[Math.floor(Math.random() * MINI_WORDS.length)];
+    }
+    pickWord();
+
+    function speak() {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(current);
+      u.rate = 0.85;
+      window.speechSynthesis.speak(u);
+    }
+
+    function check() {
+      var input    = document.getElementById('miniDemoInput');
+      var feedback = document.getElementById('miniDemoFeedback');
+      var submit   = document.getElementById('miniDemoSubmit');
+      var nextBtn  = document.getElementById('miniDemoNext');
+      var typed    = (input.value || '').trim().toLowerCase();
+      if (!typed) return;
+
+      var target = current.toLowerCase();
+      if (typed === target) {
+        feedback.innerHTML = '<span style="color:#16a34a;font-weight:700;">✓ Correct! That\'s exactly how the real trainer marks you.</span>';
+      } else {
+        var html = '';
+        var len  = Math.max(typed.length, target.length);
+        for (var i = 0; i < len; i++) {
+          var ch = typed[i] || '_';
+          var ok = typed[i] && typed[i] === target[i];
+          html += '<span style="color:' + (ok ? '#16a34a' : '#dc2626') + ';font-weight:700;">' + ch + '</span>';
+        }
+        feedback.innerHTML = 'You typed: ' + html + '<br>Correct spelling: <strong>' + current + '</strong>';
+      }
+      input.disabled  = true;
+      submit.disabled = true;
+      nextBtn.style.display = 'inline-flex';
+
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'mini_demo_check', { event_category: 'homepage_demo' });
+      }
+    }
+
+    function reset() {
+      pickWord();
+      var input = document.getElementById('miniDemoInput');
+      input.value    = '';
+      input.disabled = false;
+      document.getElementById('miniDemoSubmit').disabled = false;
+      document.getElementById('miniDemoFeedback').innerHTML = '';
+      document.getElementById('miniDemoNext').style.display = 'none';
+      input.focus();
+    }
+
+    document.getElementById('miniDemoPlay')?.addEventListener('click', function () {
+      speak();
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'mini_demo_play', { event_category: 'homepage_demo' });
+      }
+    });
+    document.getElementById('miniDemoSubmit')?.addEventListener('click', check);
+    document.getElementById('miniDemoInput')?.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') check();
+    });
+    document.getElementById('miniDemoNext')?.addEventListener('click', reset);
+  })();
+  </script>
+
   <!-- Premium Entry Points Scripts -->
   <script>
     // Track banner dismissal
@@ -715,7 +825,7 @@
     // Hide banner if previously dismissed
     window.addEventListener('load', function() {
       if (localStorage.getItem('launchBannerDismissed') === 'true') {
-        document.getElementById('launchBanner').style.display = 'none';
+        document.getElementById('launchBanner')?.style.setProperty('display', 'none');
       }
       
       // Track premium showcase views

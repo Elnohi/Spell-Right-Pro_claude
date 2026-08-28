@@ -1075,9 +1075,9 @@ function clearRealTimeFeedback() {
 
 function createCustomWordsUI() {
   const modeConfigs = {
-    school: { count: '1,200+ school words',   hint: 'Built-in school word list is ready' },
-    oet:    { count: '1,511 OET medical words', hint: 'Full OET medical word list is ready' },
-    bee:    { count: '500+ bee words',          hint: 'Built-in Spelling Bee word list is ready' }
+    school: { count: '1,250 school words',      hint: 'Built-in school word list is ready' },
+    oet:    { count: '2,257 OET medical words', hint: 'Full OET medical word list is ready' },
+    bee:    { count: '1,243 bee words',         hint: 'Built-in Spelling Bee word list is ready' }
   };
 
   document.querySelectorAll('.trainer-area').forEach(area => {

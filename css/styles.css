@@ -1,6 +1,8 @@
 /* =======================================================
    SPELLRIGHTPRO FREEMIUM THEME - FIXED LIGHT MODE
 ======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap');
+
 :root {
   --primary: #7b2ff7;
   --primary-dark: #5b1ec4;
@@ -884,6 +886,223 @@ body.dark-mode .back-home-link:hover {
   text-decoration: underline;
 }
 
+/* ── Hero ── */
+html { scroll-behavior: smooth; }
+
+.hero {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 40px 28px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #1a0050;
+  letter-spacing: -0.01em;
+}
+.hero p.hero-sub {
+  margin: 0 auto 24px;
+  max-width: 560px;
+  font-size: 1.05rem;
+  color: #444;
+  line-height: 1.6;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: var(--gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.02rem;
+  border-radius: 12px;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(123, 47, 247, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(123, 47, 247, 0.4);
+}
+
+/* ── Stat tiles ── */
+.stat-tile-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 520px;
+  margin: 28px auto 0;
+}
+.stat-tile {
+  background: #f5f0ff;
+  border: 1px solid rgba(123, 47, 247, 0.15);
+  border-radius: 12px;
+  padding: 14px 8px;
+}
+.stat-tile .stat-num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.1;
+}
+.stat-tile .stat-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6b6280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .hero { padding: 28px 18px; }
+  .stat-tile-row { gap: 8px; }
+  .stat-tile { padding: 10px 4px; }
+  .stat-tile .stat-num { font-size: 1.2rem; }
+  .stat-tile .stat-label { font-size: 0.62rem; }
+}
+
+/* ── Display webfont for headings only — body text stays on --font-main ── */
+.hero h1,
+.card-title,
+.card.link-card h3 {
+  font-family: 'Baloo 2', var(--font-main);
+}
+
+/* ── Mini demo widget ── */
+.mini-demo {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.mini-demo-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 14px;
+}
+.mini-demo-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(123, 47, 247, 0.1);
+  border: 1.5px solid rgba(123, 47, 247, 0.3);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  margin-bottom: 16px;
+  transition: background 0.2s ease;
+}
+.mini-demo-play:hover { background: rgba(123, 47, 247, 0.18); }
+.mini-demo-input-row {
+  display: flex;
+  gap: 8px;
+  max-width: 380px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mini-demo-input-row input {
+  flex: 1;
+  min-width: 180px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(123, 47, 247, 0.25);
+  font-size: 1rem;
+  font-family: var(--font-main);
+}
+.mini-demo-input-row input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(123, 47, 247, 0.15);
+}
+.mini-demo-submit {
+  padding: 12px 20px;
+  background: var(--gradient);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-family: var(--font-main);
+}
+.mini-demo-submit:disabled { opacity: 0.6; cursor: default; }
+.mini-demo-feedback {
+  margin: 16px 0 0;
+  font-size: 1.05rem;
+  min-height: 1.4em;
+  letter-spacing: 0.02em;
+}
+.mini-demo-next {
+  margin-top: 12px;
+  padding: 9px 18px;
+  background: transparent;
+  border: 1.5px solid rgba(123, 47, 247, 0.3);
+  color: var(--primary);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: var(--font-main);
+}
+
+/* ── Streak badge (also used on the freemium practice pages) ── */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #ffedd5, #fed7aa);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #9a3412;
+  margin-bottom: 12px;
+}
+
+/* ── Mode icon badges ── */
+.card.link-card h3 {
+  display: flex;
+  align-items: center;
+}
+.mode-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.05rem;
+  margin-right: 10px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.mode-icon-badge.badge-bee    { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.mode-icon-badge.badge-oet    { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
+.mode-icon-badge.badge-school { background: linear-gradient(135deg, #22c55e, #15803d); }
+
 /* =======================================================
    INDEX PAGE — DARK MODE OVERRIDES
 ======================================================= */
@@ -910,6 +1129,37 @@ body.dark-mode .btn-icon:hover {
 body.dark-mode .training-card {
   background: #1e0e35;
   border-color: rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .hero {
+  background: #1e0e35;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .hero h1 {
+  color: #f0e8ff;
+}
+body.dark-mode .hero p.hero-sub {
+  color: #c9bfe0;
+}
+body.dark-mode .stat-tile {
+  background: #2a1248;
+  border-color: rgba(168, 100, 255, 0.3);
+}
+body.dark-mode .stat-tile .stat-label {
+  color: #a98fd4;
+}
+body.dark-mode .mini-demo {
+  background: #1e0e35;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .mini-demo-input-row input {
+  background: #241541;
+  border-color: rgba(168, 100, 255, 0.3);
+  color: #f0e8ff;
+}
+body.dark-mode .streak-badge {
+  background: linear-gradient(135deg, #451a03, #7c2d12);
+  border-color: rgba(251, 146, 60, 0.4);
+  color: #fdba74;
 }
 body.dark-mode .card-title {
   color: #e8d5ff;
