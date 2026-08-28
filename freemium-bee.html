@@ -2100,7 +2100,38 @@ window.srpLimit = (function() {
   // Call when session ENDS — increments count, returns new count
   function recordSession(module) {
     if (window.srpStreak) window.srpStreak.recordToday();
+    recordServerBackstop(module);
     return increment();
+  }
+
+  // ── Server-side backstop (fails open — see session-limit.js) ────────────
+  // Keeps a durable, IP-based count of real sessions alongside the
+  // localStorage one, so someone clearing storage still shows up as
+  // "already used today" server-side.
+  function recordServerBackstop(module) {
+    fetch('/api/session-limit', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'record', module: module })
+    }).catch(function () { /* fail open — no server backstop this time */ });
+  }
+
+  function checkServerBackstop(module) {
+    fetch('/api/session-limit', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'check', module: module })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        // Local storage says sessions remain, but the server-side IP count
+        // says today's limit is already used — likely a localStorage
+        // clear or incognito window. Show the gate proactively.
+        if (data && data.ok && data.allowed === false && canStart(module)) {
+          showGate(module);
+        }
+      })
+      .catch(function () { /* fail open — local gate is the only gate */ });
   }
 
   // Build the "X of 2,257 words" banner shown above Start button
@@ -2223,6 +2254,7 @@ window.srpLimit = (function() {
     getWordBannerHTML: getWordBannerHTML,
     showGate:       showGate,
     dismissGate:    dismissGate,
+    checkServerBackstop: checkServerBackstop,
     FREE_SESSIONS:  FREE_SESSIONS_PER_DAY,
     TOTAL_WORDS:    TOTAL_WORDS,
     FREE_WORDS:     FREE_WORDS
@@ -2271,6 +2303,11 @@ window.srpStreak = (function() {
   var el = document.getElementById('streakBadgeContainer');
   if (el) el.innerHTML = window.srpStreak.getBadgeHTML();
 })();
+
+// Server-side backstop check — see session-limit.js. No-op unless this IP
+// already shows today's limit used despite a clean localStorage (i.e.
+// someone cleared storage or opened an incognito window).
+window.srpLimit.checkServerBackstop('bee');
 
 </script>
 <script>
