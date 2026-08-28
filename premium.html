@@ -538,6 +538,17 @@
       </div>
     </section>
 
+    <!-- Testimonials — real Google reviews only; hidden until google-reviews.js
+         is configured and returns at least one review, never a fabricated fallback -->
+    <section class="testimonials" id="testimonialsSection" style="display:none;">
+      <h2 style="text-align: center; font-size: 2.2em; margin-bottom: 6px;">What our users say</h2>
+      <p id="testimonialsAgg" style="text-align:center;opacity:0.8;margin-bottom:8px;"></p>
+      <div class="testimonial-grid" id="testimonialGrid"></div>
+      <p style="text-align:center;font-size:0.75rem;opacity:0.55;margin-top:20px;">
+        <i class="fab fa-google"></i> Real reviews from our Google Business Profile
+      </p>
+    </section>
+
     <!-- Trust Guarantee (Refined without refund messaging) -->
     <section style="margin: 60px 0; text-align: center;">
       <div style="display: inline-block; padding: 30px; background: linear-gradient(135deg, rgba(123, 47, 247, 0.1) 0%, rgba(247, 37, 133, 0.1) 100%); border-radius: 20px; max-width: 800px;">
@@ -807,6 +818,65 @@
         }
       });
     });
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TESTIMONIALS — real Google reviews only. If the function isn't configured
+    // or returns nothing, the section stays hidden. No fabricated fallback copy.
+    // ═══════════════════════════════════════════════════════════════════════════
+    (function loadTestimonials() {
+      fetch('/api/google-reviews')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data || !data.ok || !data.reviews || data.reviews.length === 0) return;
+
+          var section = document.getElementById('testimonialsSection');
+          var grid    = document.getElementById('testimonialGrid');
+          var aggEl   = document.getElementById('testimonialsAgg');
+          if (!section || !grid) return;
+
+          function stars(n) {
+            var full = Math.round(n);
+            return '<span style="color:#ffb800;letter-spacing:1px;">'
+              + '★'.repeat(full) + '☆'.repeat(5 - full) + '</span>';
+          }
+
+          if (aggEl && data.rating) {
+            aggEl.innerHTML = stars(data.rating) + ' &nbsp;' + data.rating.toFixed(1)
+              + ' average' + (data.userRatingsTotal ? ' from ' + data.userRatingsTotal + ' reviews' : '');
+          }
+
+          data.reviews.slice(0, 3).forEach(function(rev) {
+            var card = document.createElement('div');
+            card.className = 'testimonial-card';
+
+            var starsEl = document.createElement('div');
+            starsEl.style.marginBottom = '10px';
+            starsEl.innerHTML = stars(rev.rating);
+            card.appendChild(starsEl);
+
+            var textEl = document.createElement('p');
+            textEl.style.cssText = 'margin:0 0 14px;line-height:1.6;';
+            textEl.textContent = '“' + rev.text + '”'; // textContent — never trust remote review text as HTML
+            card.appendChild(textEl);
+
+            var authorEl = document.createElement('div');
+            authorEl.style.cssText = 'display:flex;align-items:center;gap:10px;font-weight:700;';
+            authorEl.textContent = rev.author;
+            if (rev.relativeTime) {
+              var timeEl = document.createElement('span');
+              timeEl.style.cssText = 'font-weight:400;opacity:0.6;font-size:0.85em;';
+              timeEl.textContent = ' · ' + rev.relativeTime;
+              authorEl.appendChild(timeEl);
+            }
+            card.appendChild(authorEl);
+
+            grid.appendChild(card);
+          });
+
+          section.style.display = '';
+        })
+        .catch(function() { /* stay hidden — no fallback content */ });
+    })();
 
     // FAQ toggle
     function toggleFAQ(element) {

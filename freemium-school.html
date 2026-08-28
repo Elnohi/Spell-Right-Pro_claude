@@ -1380,19 +1380,27 @@ const firebaseConfig = {
         </div>
       `;
       
-      // Add school premium upgrade prompt
+      // Add school premium upgrade prompt — grounded in this session's own result
+      var missedCount = state.incorrect.length;
+      var upsellHeadline = missedCount > 0
+        ? '🏫 You scored ' + pct + '% (' + correctCount + '/' + total + ') today!'
+        : '🏫 Perfect score — ' + correctCount + '/' + total + ' today!';
+      var upsellBody = missedCount > 0
+        ? 'Premium\'s <strong>mistake review</strong> would build a spaced-repetition drill from the '
+          + missedCount + ' word' + (missedCount === 1 ? '' : 's') + ' missed today, plus:'
+        : 'Keep the momentum going with Premium:';
       summaryHTML += `
         <div style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #7b2ff7, #f72585); border-radius: 10px; color: white;">
-          <h4 style="margin: 0 0 10px 0;">🏫 Unlock School Premium!</h4>
+          <h4 style="margin: 0 0 10px 0;">${upsellHeadline}</h4>
           <p style="margin: 0 0 15px 0; font-size: 0.9em;">
-            Perfect for students and teachers:<br>
-            • Unlimited word lists<br>
-            • Create and save custom lists<br>
+            ${upsellBody}<br>
+            • Unlimited word lists &amp; daily practice<br>
+            • Create and save unlimited custom lists<br>
             • Track student progress<br>
             • Export results<br>
             • No ads
           </p>
-          <button onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'school_upsell'});window.location.href='/premium'" 
+          <button onclick="if(typeof gtag!=='undefined')gtag('event','premium_click',{event_category:'premium_conversion',event_label:'school_upsell'});window.location.href='/premium'"
             style="background: white; color: #7b2ff7; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
             <i class="fa fa-crown"></i> Get School Premium
           </button>
