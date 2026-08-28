@@ -7,4 +7,14 @@ Disallow: /private/
 Disallow: /thank-you.html
 Disallow: /cancel.html
 Disallow: /contact-success.html
+
+# Internal/dev-only pages — never linked from the site, no end-user content.
+# Exposed to crawling with no protection until this was added; likely a
+# contributor to AdSense's "low value content" / thin-content rejection.
+Disallow: /diag.html
+Disallow: /spellrightpro_file_structure.html
+Disallow: /footer.html
+Disallow: /pro
+Disallow: /pro.html
+
 Sitemap: https://spellrightpro.org/sitemap.xml
