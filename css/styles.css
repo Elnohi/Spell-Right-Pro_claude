@@ -1,6 +1,8 @@
 /* =======================================================
    SPELLRIGHTPRO FREEMIUM THEME - FIXED LIGHT MODE
 ======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap');
+
 :root {
   --primary: #7b2ff7;
   --primary-dark: #5b1ec4;
@@ -969,6 +971,116 @@ html { scroll-behavior: smooth; }
   .stat-tile .stat-label { font-size: 0.62rem; }
 }
 
+/* ── Display webfont for headings only — body text stays on --font-main ── */
+.hero h1,
+.card-title,
+.card.link-card h3 {
+  font-family: 'Baloo 2', var(--font-main);
+}
+
+/* ── Mini demo widget ── */
+.mini-demo {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.mini-demo-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 14px;
+}
+.mini-demo-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(123, 47, 247, 0.1);
+  border: 1.5px solid rgba(123, 47, 247, 0.3);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  margin-bottom: 16px;
+  transition: background 0.2s ease;
+}
+.mini-demo-play:hover { background: rgba(123, 47, 247, 0.18); }
+.mini-demo-input-row {
+  display: flex;
+  gap: 8px;
+  max-width: 380px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mini-demo-input-row input {
+  flex: 1;
+  min-width: 180px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(123, 47, 247, 0.25);
+  font-size: 1rem;
+  font-family: var(--font-main);
+}
+.mini-demo-input-row input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(123, 47, 247, 0.15);
+}
+.mini-demo-submit {
+  padding: 12px 20px;
+  background: var(--gradient);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-family: var(--font-main);
+}
+.mini-demo-submit:disabled { opacity: 0.6; cursor: default; }
+.mini-demo-feedback {
+  margin: 16px 0 0;
+  font-size: 1.05rem;
+  min-height: 1.4em;
+  letter-spacing: 0.02em;
+}
+.mini-demo-next {
+  margin-top: 12px;
+  padding: 9px 18px;
+  background: transparent;
+  border: 1.5px solid rgba(123, 47, 247, 0.3);
+  color: var(--primary);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: var(--font-main);
+}
+
+/* ── Streak badge (also used on the freemium practice pages) ── */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #ffedd5, #fed7aa);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #9a3412;
+  margin-bottom: 12px;
+}
+
 /* ── Mode icon badges ── */
 .card.link-card h3 {
   display: flex;
@@ -1034,6 +1146,20 @@ body.dark-mode .stat-tile {
 }
 body.dark-mode .stat-tile .stat-label {
   color: #a98fd4;
+}
+body.dark-mode .mini-demo {
+  background: #1e0e35;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .mini-demo-input-row input {
+  background: #241541;
+  border-color: rgba(168, 100, 255, 0.3);
+  color: #f0e8ff;
+}
+body.dark-mode .streak-badge {
+  background: linear-gradient(135deg, #451a03, #7c2d12);
+  border-color: rgba(251, 146, 60, 0.4);
+  color: #fdba74;
 }
 body.dark-mode .card-title {
   color: #e8d5ff;

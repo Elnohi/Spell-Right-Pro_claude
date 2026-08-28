@@ -696,6 +696,7 @@
       </div>
 
       <div class="setup-body" id="setupBody">
+        <div id="streakBadgeContainer"></div>
 
         <!-- Word source selector -->
         <div class="word-source-row">
@@ -1055,7 +1056,21 @@ const firebaseConfig = {
       'whole', 'window', 'winter', 'within', 'without', 'woman', 'wonder', 'world',
       'write', 'wrong', 'young'
     ];
-    
+
+    // Upgrade from the 307-word built-in list above to the full 1,250-word
+    // curriculum list. Mirrors the same fetch already proven in
+    // js/main-premium.js for the logged-in trainer. Falls back to the
+    // built-in list above on any fetch failure (e.g. offline) — no regression.
+    fetch('/data/school.json')
+      .then(r => r.json())
+      .then(data => {
+        if (data && Array.isArray(data.words) && data.words.length > 0) {
+          SCHOOL_WORDS.length = 0;
+          SCHOOL_WORDS.push(...data.words);
+        }
+      })
+      .catch(() => { console.warn('Could not load school.json — using built-in 307-word list'); });
+
     // App State
     const state = {
       words: [],
@@ -2003,9 +2018,9 @@ window.srpLimit = (function() {
 
   // Word counts per module
   var TOTAL_WORDS = {
-    school: 1200,
-    oet:    1511,
-    bee:    500
+    school: 1250,
+    oet:    2257,
+    bee:    1243
   };
 
   var FREE_WORDS = {
@@ -2044,6 +2059,7 @@ window.srpLimit = (function() {
 
   // Call when session ENDS — increments count, returns new count
   function recordSession(module) {
+    if (window.srpStreak) window.srpStreak.recordToday();
     return increment();
   }
 
@@ -2055,7 +2071,8 @@ window.srpLimit = (function() {
     var sessionText = rem === 1 ? '1 free session left today'
                     : rem > 1  ? rem + ' free sessions left today'
                     : 'Daily free sessions used';
-    return '<div id="srpWordBanner" style="' +
+    var streakHTML = (window.srpStreak && window.srpStreak.getBadgeHTML()) || '';
+    return streakHTML + '<div id="srpWordBanner" style="' +
       'background:rgba(123,47,247,0.08);border:1px solid rgba(123,47,247,0.2);' +
       'border-radius:12px;padding:12px 16px;margin-bottom:14px;' +
       'display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">' +
@@ -2170,6 +2187,49 @@ window.srpLimit = (function() {
     TOTAL_WORDS:    TOTAL_WORDS,
     FREE_WORDS:     FREE_WORDS
   };
+})();
+
+// ── Daily practice streak — client-side only, no account needed ───────────
+window.srpStreak = (function() {
+  var LAST_KEY  = 'srp_streak_last';
+  var COUNT_KEY = 'srp_streak_count';
+
+  function todayStr() { return new Date().toISOString().slice(0, 10); }
+  function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+
+  // Call once per completed session — increments the streak if the last
+  // practice was yesterday, resets it if a day was missed, no-ops if
+  // already recorded today.
+  function recordToday() {
+    var today = todayStr();
+    var last  = localStorage.getItem(LAST_KEY);
+    var count = parseInt(localStorage.getItem(COUNT_KEY) || '0');
+    if (last === today) return count;
+    count = (last && daysBetween(last, today) === 1) ? count + 1 : 1;
+    localStorage.setItem(LAST_KEY, today);
+    localStorage.setItem(COUNT_KEY, String(count));
+    return count;
+  }
+
+  function getBadgeHTML() {
+    var last  = localStorage.getItem(LAST_KEY);
+    var count = parseInt(localStorage.getItem(COUNT_KEY) || '0');
+    if (!last || count < 1) return '';
+    var today          = todayStr();
+    var practicedToday = last === today;
+    var label = count === 1 ? '1-day streak' : count + '-day streak';
+    var warn  = (!practicedToday && daysBetween(last, today) === 1)
+      ? ' — practice today to keep it!' : '';
+    return '<div class="streak-badge">🔥 ' + label + warn + '</div>';
+  }
+
+  return { recordToday: recordToday, getBadgeHTML: getBadgeHTML };
+})();
+
+// Render the streak badge above the Start button, if there's a streak to show
+(function () {
+  var el = document.getElementById('streakBadgeContainer');
+  if (el) el.innerHTML = window.srpStreak.getBadgeHTML();
 })();
 
 </script>

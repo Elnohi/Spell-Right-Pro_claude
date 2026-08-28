@@ -6,22 +6,22 @@
   <meta name="theme-color" content="#3a0087"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Free OET Spelling Practice — 1,635 Medical Words | SpellRightPro</title>
-  <meta name="description" content="Practice OET medical spelling from a 1,635-word curated list. One free 24-word exam-style session per day, real-time marking, British/Australian/American accents. Free — no signup needed." />
+  <title>Free OET Spelling Practice — 2,257 Medical Words | SpellRightPro</title>
+  <meta name="description" content="Practice OET medical spelling from a 2,257-word curated list. One free 24-word exam-style session per day, real-time marking, British/Australian/American accents. Free — no signup needed." />
   <meta name="keywords" content="OET spelling practice, OET medical vocabulary, occupational english test spelling, medical English spelling, OET preparation" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.spellrightpro.org/freemium-oet" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Free OET Spelling Practice — 1,635 Medical Words" />
-  <meta property="og:description" content="One free 24-word exam-style OET spelling session per day, drawn from 1,635 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
+  <meta property="og:title"       content="Free OET Spelling Practice — 2,257 Medical Words" />
+  <meta property="og:description" content="One free 24-word exam-style OET spelling session per day, drawn from 2,257 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
   <meta property="og:url"         content="https://spellrightpro.org/freemium-oet" />
   <meta property="og:image"       content="https://spellrightpro.org/assets/og-image.png" />
   <meta property="og:site_name"   content="SpellRightPro" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:title"       content="Free OET Spelling Practice — 1,635 Medical Words" />
-  <meta name="twitter:description" content="One free 24-word exam-style OET spelling session per day, drawn from 1,635 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
+  <meta name="twitter:title"       content="Free OET Spelling Practice — 2,257 Medical Words" />
+  <meta name="twitter:description" content="One free 24-word exam-style OET spelling session per day, drawn from 2,257 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
   <meta name="twitter:image"       content="https://spellrightpro.org/assets/og-image.png" />
 
   <link rel="stylesheet" href="/css/styles.css" />
@@ -700,6 +700,7 @@
       </div>
 
       <div class="setup-body" id="setupBody">
+        <div id="streakBadgeContainer"></div>
 
         <!-- Accent: hardcoded British for free OET (premium unlocks 3 accents) -->
         <div class="accent-row" style="font-size:0.78rem;color:var(--muted);background:rgba(123,47,247,0.06);padding:8px 12px;border-radius:8px;margin-bottom:12px;">
@@ -731,7 +732,7 @@
         <!-- App words hint (shown when app words selected) -->
         <div class="app-word-hint" id="appWordHint">
           <i class="fa fa-check-circle"></i>
-          <span>24 random exam-style words from our 1,635-word OET list — your one free practice today. <strong>Press Start below.</strong></span>
+          <span>24 random exam-style words from our 2,257-word OET list — your one free practice today. <strong>Press Start below.</strong></span>
         </div>
 
         <!-- Custom words panel (hidden until user chooses "Add My Words") -->
@@ -1017,7 +1018,7 @@ const firebaseConfig = {
     };
     
     // Word list comes from the shared /js/oet_word_list.js (window.OET_WORDS,
-    // 1,635 words) — loaded as a <script> tag above, not duplicated here.
+    // 2,257 words) — loaded as a <script> tag above, not duplicated here.
     // Falls back to a small built-in list only if that file fails to load.
     const FALLBACK_OET_WORDS = [
       'abdomen', 'anemia', 'antibiotic', 'artery', 'asthma', 'biopsy', 'catheter',
@@ -2097,12 +2098,12 @@ window.srpLimit = (function() {
   var MODULE = 'oet';
   var FREE_SESSIONS_PER_DAY = 1; // OET freemium: exactly one 24-word exam per day
 
-  // Word counts — reflects the real oet_word_list.js (1,635 words) and the
+  // Word counts — reflects the real /js/oet_word_list.js (2,257 words) and the
   // fixed 24-word random exam given per free session (no more "100 words").
   var TOTAL_WORDS = {
-    school: 1200,
-    oet:    1635,
-    bee:    500
+    school: 1250,
+    oet:    2257,
+    bee:    1243
   };
 
   var FREE_WORDS = {
@@ -2144,6 +2145,7 @@ window.srpLimit = (function() {
 
   // Call when session ENDS — increments count, returns new count
   function recordSession(module) {
+    if (window.srpStreak) window.srpStreak.recordToday();
     return increment();
   }
 
@@ -2155,7 +2157,8 @@ window.srpLimit = (function() {
     var sessionText = rem === 1 ? '1 free session left today'
                     : rem > 1  ? rem + ' free sessions left today'
                     : 'Daily free sessions used';
-    return '<div id="srpWordBanner" style="' +
+    var streakHTML = (window.srpStreak && window.srpStreak.getBadgeHTML()) || '';
+    return streakHTML + '<div id="srpWordBanner" style="' +
       'background:rgba(123,47,247,0.08);border:1px solid rgba(123,47,247,0.2);' +
       'border-radius:12px;padding:12px 16px;margin-bottom:14px;' +
       'display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">' +
@@ -2270,6 +2273,49 @@ window.srpLimit = (function() {
     TOTAL_WORDS:    TOTAL_WORDS,
     FREE_WORDS:     FREE_WORDS
   };
+})();
+
+// ── Daily practice streak — client-side only, no account needed ───────────
+window.srpStreak = (function() {
+  var LAST_KEY  = 'srp_streak_last';
+  var COUNT_KEY = 'srp_streak_count';
+
+  function todayStr() { return new Date().toISOString().slice(0, 10); }
+  function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+
+  // Call once per completed session — increments the streak if the last
+  // practice was yesterday, resets it if a day was missed, no-ops if
+  // already recorded today.
+  function recordToday() {
+    var today = todayStr();
+    var last  = localStorage.getItem(LAST_KEY);
+    var count = parseInt(localStorage.getItem(COUNT_KEY) || '0');
+    if (last === today) return count;
+    count = (last && daysBetween(last, today) === 1) ? count + 1 : 1;
+    localStorage.setItem(LAST_KEY, today);
+    localStorage.setItem(COUNT_KEY, String(count));
+    return count;
+  }
+
+  function getBadgeHTML() {
+    var last  = localStorage.getItem(LAST_KEY);
+    var count = parseInt(localStorage.getItem(COUNT_KEY) || '0');
+    if (!last || count < 1) return '';
+    var today          = todayStr();
+    var practicedToday = last === today;
+    var label = count === 1 ? '1-day streak' : count + '-day streak';
+    var warn  = (!practicedToday && daysBetween(last, today) === 1)
+      ? ' — practice today to keep it!' : '';
+    return '<div class="streak-badge">🔥 ' + label + warn + '</div>';
+  }
+
+  return { recordToday: recordToday, getBadgeHTML: getBadgeHTML };
+})();
+
+// Render the streak badge above the Start button, if there's a streak to show
+(function () {
+  var el = document.getElementById('streakBadgeContainer');
+  if (el) el.innerHTML = window.srpStreak.getBadgeHTML();
 })();
 
 </script>

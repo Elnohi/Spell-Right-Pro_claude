@@ -111,7 +111,7 @@ async function sendCustomerReceipt({ email, customerName, plan, planLabel, amoun
       <h2 style="font-size:1rem;color:#1a0533;margin:0 0 12px;">Your premium access includes:</h2>
       <ul style="padding-left:20px;color:#444;line-height:1.9;font-size:0.9rem;margin:0 0 24px;">
         <li><strong>School Practice</strong> — unlimited words &amp; custom lists</li>
-        <li><strong>OET Medical</strong> — full 1,511-word vocabulary</li>
+        <li><strong>OET Medical</strong> — full 2,257-word vocabulary</li>
         <li><strong>Spelling Bee</strong> — voice-recognition mode</li>
         <li><strong>Progress Dashboard</strong> — streak, accuracy, mastered words</li>
         <li><strong>Mistake Review</strong> — spaced repetition for missed words</li>
@@ -965,7 +965,7 @@ async function sendNurtureEmail(email, displayName, audience, stage, landingUrl,
       subject: `Your ${segmentLabel} spelling is improving, ${displayName}`,
       heading: `One week in — here's what consistent practice looks like`,
       body: audience === 'oet'
-        ? `SpellRightPro was built by a doctor who went through OET prep. The 1,635-word medical list isn't random — it's curated from real OET exam patterns. Consistency beats cramming: short daily sessions build the muscle memory that holds up under exam pressure.`
+        ? `SpellRightPro was built by a doctor who went through OET prep. The 2,257-word medical list isn't random — it's curated from real OET exam patterns. Consistency beats cramming: short daily sessions build the muscle memory that holds up under exam pressure.`
         : audience === 'school'
         ? `Teachers consistently say that students who practise spelling regularly — even briefly — outperform those who cram before a test. SpellRightPro's built-in word lists are matched to how schools actually test spelling.`
         : `A week of consistent practice builds real pattern recognition. SpellRightPro's curated competition word lists are designed to stretch your range systematically, not just test what you already know.`,
