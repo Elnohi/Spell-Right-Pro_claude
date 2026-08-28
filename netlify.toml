@@ -180,12 +180,6 @@
   status = 200
   force = true
 
-[[redirects]]
-  from = "/api/google-reviews"
-  to = "/.netlify/functions/google-reviews"
-  status = 200
-  force = true
-
 # ─── Catch-all (LAST — no force so real files take precedence) ───────
 [[redirects]]
   from = "/*"
