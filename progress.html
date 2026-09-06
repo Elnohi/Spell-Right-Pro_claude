@@ -12,6 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="/js/config.js"></script>
+  <script src="/js/firebase-utils.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -237,15 +238,15 @@ function isPremiumLocal(){
   try{var s=JSON.parse(localStorage.getItem('srpPremium')||'null');return s&&s.active&&new Date(s.expiry)>new Date()}
   catch{return false}
 }
-async function isPremiumFirestore(uid){
-  if(!db)return false;
-  try{
-    var doc=await db.collection('premiumUsers').doc(uid).get();
-    if(!doc.exists)return false;
-    var d=doc.data();
-    var exp=d.expiryDate&&d.expiryDate.toDate?d.expiryDate.toDate():null;
-    return d.active!==false&&(!exp||exp>new Date());
-  }catch{return false}
+// Checks premiumUsers/{uid} AND falls back to premiumByEmail/{email} (with
+// auto-migration) via the shared helper — a plain premiumUsers-only lookup
+// incorrectly locks out customers whose Firebase UID wasn't captured at
+// checkout, or who are signing in on a different device than the one they
+// paid on.
+async function isPremiumFirestore(user){
+  if(!window.firebaseUtils)return false;
+  try{ return await window.firebaseUtils.checkPremiumStatus(user); }
+  catch{return false}
 }
 
 async function renderDashboard(user){
@@ -257,7 +258,7 @@ async function renderDashboard(user){
   $('btnSignOut').style.display='flex';
 
   var premium=isPremiumLocal();
-  if(!premium)premium=await isPremiumFirestore(uid);
+  if(!premium)premium=await isPremiumFirestore(user);
 
   var fsStats={};
   if(db){try{var doc=await db.collection('userProgress').doc(uid).get();if(doc.exists)fsStats=doc.data();}catch{}}
