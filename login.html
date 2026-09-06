@@ -12,6 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="/js/config.js"></script>
+  <script src="/js/firebase-utils.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap');
@@ -317,7 +318,6 @@
     }
 
     var auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
-    var db   = typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null;
 
     // ── If already logged in, redirect to correct destination ────────────
     if (auth) {
@@ -342,33 +342,19 @@
           }
         } catch(e) {}
 
-        // Check Firestore
-        if (db) {
-          db.collection('premiumUsers').doc(user.uid).get()
-            .then(function(doc) {
-              if (doc.exists) {
-                var d   = doc.data();
-                var exp = d.expiryDate && d.expiryDate.toDate ? d.expiryDate.toDate() : null;
-                if (d.active !== false && (!exp || exp > new Date())) {
-                  // Cache it for future visits
-                  var expiry = exp || new Date(Date.now() + 30*86400000);
-                  localStorage.setItem('srpPremium', JSON.stringify({
-                    active: true, email: user.email,
-                    plan:   d.plan || 'premium',
-                    expiry: expiry.toISOString(),
-                    source: 'login_check'
-                  }));
-                  window.location.href = '/trainer';
-                } else {
-                  // Logged in but not premium
-                  window.location.href = '/premium.html';
-                }
-              } else {
-                // No premium doc — send to upgrade page
-                window.location.href = '/premium.html';
-              }
-            }).catch(function() {
-              // Firestore unavailable — go to trainer anyway (it will check again)
+        // Check premium status via the shared helper — checks premiumUsers/{uid}
+        // AND falls back to premiumByEmail/{email} (with auto-migration), unlike
+        // a plain premiumUsers-only lookup. Without this fallback, customers who
+        // paid before their Firebase UID was captured at checkout (or who are
+        // simply signing in on a different device than the one they paid on)
+        // get incorrectly sent to the upgrade page despite being paying customers.
+        if (window.firebaseUtils) {
+          window.firebaseUtils.checkPremiumStatus(user)
+            .then(function(isPremium) {
+              window.location.href = isPremium ? '/trainer' : '/premium.html';
+            })
+            .catch(function() {
+              // Check itself failed — go to trainer anyway (it will check again)
               window.location.href = '/trainer';
             });
         } else {

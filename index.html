@@ -953,7 +953,9 @@
           // Check premium status
           var isPremium = false;
 
-          // 1. Check localStorage first (instant)
+          // 1. Check localStorage first (instant) — avoids a UI flash while
+          // the async check below (which also covers premiumByEmail, for
+          // customers whose Firebase UID wasn't captured at checkout) runs.
           try {
             var stored = JSON.parse(localStorage.getItem('srpPremium') || 'null');
             if (stored && stored.active && new Date(stored.expiry) > new Date()) {
@@ -961,23 +963,17 @@
             }
           } catch(e) {}
 
-          // 2. Check Firestore if not confirmed locally
-          if (!isPremium && typeof firebase.firestore === 'function') {
-            firebase.firestore()
-              .collection('premiumUsers').doc(user.uid).get()
-              .then(function(doc) {
-                if (doc.exists) {
-                  var d = doc.data();
-                  var exp = d.expiryDate && d.expiryDate.toDate ? d.expiryDate.toDate() : null;
-                  if (d.active !== false && (!exp || exp > new Date())) {
-                    isPremium = true;
-                    updateAccountButton(btn, isPremium);
-                  }
-                }
-              }).catch(function() {});
-          }
-
           updateAccountButton(btn, isPremium);
+
+          // 2. Confirm via the shared helper if not already confirmed locally.
+          // Uses window.firebaseUtils.checkPremiumStatus — checks
+          // premiumUsers/{uid} AND falls back to premiumByEmail/{email},
+          // unlike a plain premiumUsers-only lookup.
+          if (!isPremium && window.firebaseUtils) {
+            window.firebaseUtils.checkPremiumStatus(user)
+              .then(function(result) { updateAccountButton(btn, result); })
+              .catch(function() {});
+          }
 
         } else {
           // Not logged in — show guest nav
