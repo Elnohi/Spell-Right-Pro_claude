@@ -370,20 +370,6 @@
       </div>
     </section>
 
-    <!-- Mini demo — try the core mechanic in 10 seconds, no click-through needed -->
-    <section class="mini-demo" id="miniDemo">
-      <p class="mini-demo-label"><i class="fa fa-bolt"></i> Try it right now — no sign-up</p>
-      <button type="button" class="mini-demo-play" id="miniDemoPlay">
-        <i class="fa fa-volume-up"></i> Play the Word
-      </button>
-      <div class="mini-demo-input-row">
-        <input type="text" id="miniDemoInput" placeholder="Type what you hear…" autocomplete="off" spellcheck="false" aria-label="Type the word you heard">
-        <button type="button" class="mini-demo-submit" id="miniDemoSubmit">Check</button>
-      </div>
-      <p class="mini-demo-feedback" id="miniDemoFeedback"></p>
-      <button type="button" class="mini-demo-next" id="miniDemoNext" style="display:none;">Try Another Word →</button>
-    </section>
-
     <!-- GEO/AEO: Direct answer opening — AI engines extract this sentence first -->
     <section class="training-card" id="modeChooserCard">
       <p style="font-size:1.05rem;color:#374151;margin:0 0 18px;line-height:1.6;">
@@ -392,8 +378,8 @@
         No sign-up required to start.
       </p>
 
-      <h2 class="card-title">Choose Your Practice</h2>
-      <p class="muted">Start with the mode that suits you best.</p>
+      <h2 class="card-title">Start practicing — pick your mode</h2>
+      <p class="muted">Choose the practice mode that matches your goal. Each opens directly into a free session.</p>
 
       <div class="mode-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
         <a class="card link-card" href="/freemium-bee.html">
@@ -424,6 +410,27 @@
         </a>
       </div>
 
+    </section>
+
+    <!-- Mini demo — secondary "sample" widget, positioned AFTER the mode chooser
+         so it doesn't compete with the main entry points. Reframed as a taste-test
+         for visitors who want to hear one word before picking a full practice mode. -->
+    <section class="mini-demo" id="miniDemo" style="margin-top:12px;">
+      <p class="mini-demo-label" style="font-size:0.88rem;color:var(--muted);">
+        <i class="fa fa-headphones"></i> Not sure which mode? Hear one sample word first
+      </p>
+      <button type="button" class="mini-demo-play" id="miniDemoPlay">
+        <i class="fa fa-volume-up"></i> Play a Sample Word
+      </button>
+      <div class="mini-demo-input-row">
+        <input type="text" id="miniDemoInput" placeholder="Type what you hear…" autocomplete="off" spellcheck="false" aria-label="Type the word you heard">
+        <button type="button" class="mini-demo-submit" id="miniDemoSubmit">Check</button>
+      </div>
+      <p class="mini-demo-feedback" id="miniDemoFeedback"></p>
+      <button type="button" class="mini-demo-next" id="miniDemoNext" style="display:none;">Try Another Word →</button>
+      <p style="margin-top:14px;font-size:0.82rem;color:var(--muted);text-align:center;">
+        Ready for a real session? <a href="#modeChooserCard" style="color:#7b2ff7;font-weight:600;">↑ Pick your mode above</a>
+      </p>
     </section>
 
     <!-- E-E-A-T: Author credentials — moved up so this trust signal is seen
