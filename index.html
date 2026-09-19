@@ -137,6 +137,97 @@
     }
     body.dark-mode .index-tab-bar { background: #160829; border-top-color: rgba(255,255,255,0.1); }
     body.dark-mode .index-tab-bar a { color: #9d8fc0; }
+
+    /* ── Mode cards: persistent visual affordance (works with no hover on mobile) ── */
+    /* Stronger border and layout so the cards obviously read as buttons at rest,
+       not as passive descriptions. */
+    #modeChooserCard .card.link-card {
+      position: relative;
+      border-width: 2px;
+      padding-bottom: 44px; /* room for the Start indicator below */
+    }
+    /* "Start →" indicator anchored to bottom-right of each card — a visible
+       affordance signalling "this is clickable" without any animation. */
+    .mode-start-indicator {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, #7b2ff7, #f72585);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      pointer-events: none; /* the whole card is the link, don't intercept clicks */
+    }
+    .mode-start-indicator i { font-size: 0.7rem; }
+    body.dark-mode #modeChooserCard .card.link-card {
+      border-color: rgba(157, 143, 192, 0.35);
+    }
+
+    /* ── Persistent tap affordance for mode cards ─────────────────────────────
+       Purpose: on mobile there is no hover, so the practice mode cards
+       previously looked like passive descriptions. This gives them a resting
+       state that clearly reads as "tap me to start" — stronger border, subtle
+       elevation, and a "Start →" affordance in the bottom-right corner.
+       The existing pulse animation below still fires on top of this. */
+    #modeChooserCard .card.link-card {
+      position: relative;
+      border-width: 2px;
+      box-shadow: 0 2px 6px rgba(123, 47, 247, 0.10);
+      padding-bottom: 44px; /* leave room for the Start pill at the bottom */
+    }
+    #modeChooserCard .card.link-card::after {
+      content: 'Start →';
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      background: linear-gradient(135deg, #7b2ff7, #f72585);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding: 6px 12px;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(123, 47, 247, 0.28);
+      pointer-events: none; /* the whole card is the link — pill is decoration */
+    }
+    #modeChooserCard .card.link-card:hover::after,
+    #modeChooserCard .card.link-card:focus-visible::after {
+      transform: translateX(3px);
+      transition: transform 0.2s ease;
+    }
+    /* Slight lift at rest to signal clickability without hover */
+    #modeChooserCard .card.link-card:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 3px rgba(123, 47, 247, 0.20);
+    }
+
+    /* ── One-time attention pulse: fires when user clicks "Start Practicing Free" ── */
+    /* Adds a soft glow around each card that pulses 3 times then stops. Not looping. */
+    @keyframes srpCardPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(123, 47, 247, 0.55); }
+      60%  { box-shadow: 0 0 0 14px rgba(123, 47, 247, 0);   }
+      100% { box-shadow: 0 0 0 0 rgba(123, 47, 247, 0);      }
+    }
+    .mode-pulse {
+      animation: srpCardPulse 1.2s ease-out 3;
+    }
+    /* Stagger so the three cards pulse in sequence (0ms / 200ms / 400ms) — makes it
+       feel like a wave drawing the eye across all three options, not one attention grab. */
+    .mode-pulse:nth-child(1) { animation-delay: 0ms;   }
+    .mode-pulse:nth-child(2) { animation-delay: 200ms; }
+    .mode-pulse:nth-child(3) { animation-delay: 400ms; }
+
+    /* Accessibility: honour the user's reduced-motion preference — no pulse for
+       users who've asked their OS to minimise animation. */
+    @media (prefers-reduced-motion: reduce) {
+      .mode-pulse { animation: none; }
+    }
     </style>
 
   <!-- Structured Data: SoftwareApplication + FAQPage -->
@@ -379,20 +470,23 @@
       </p>
 
       <h2 class="card-title">Start practicing — pick your mode</h2>
-      <p class="muted">Choose the practice mode that matches your goal. Each opens directly into a free session.</p>
+      <p class="muted" style="display:flex;align-items:center;gap:6px;"><i class="fa fa-arrow-down" style="color:#7b2ff7;"></i> Tap any mode below to start a free session — no sign-up.</p>
 
       <div class="mode-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
         <a class="card link-card" href="/freemium-bee.html">
           <h3><span class="mode-icon-badge badge-bee"><i class="fa fa-microphone"></i></span> Spelling Bee</h3>
           <p>1,243 competition words. Voice mode: spell letter-by-letter exactly like a live bee.</p>
+          <span class="mode-start-indicator">Start <i class="fa fa-arrow-right"></i></span>
         </a>
         <a class="card link-card" href="/freemium-oet.html">
           <h3><span class="mode-icon-badge badge-oet"><i class="fa fa-stethoscope"></i></span> OET</h3>
           <p>2,257 OET medical words — drug names, anatomy, clinical terms — spoken in British, American, or Australian accent.</p>
+          <span class="mode-start-indicator">Start <i class="fa fa-arrow-right"></i></span>
         </a>
         <a class="card link-card" href="/freemium-school.html">
           <h3><span class="mode-icon-badge badge-school"><i class="fa fa-graduation-cap"></i></span> School</h3>
           <p>1,250 curriculum words, or upload your own classroom list in seconds.</p>
+          <span class="mode-start-indicator">Start <i class="fa fa-arrow-right"></i></span>
         </a>
       </div>
 
@@ -1029,5 +1123,36 @@
   <a href="/premium"><i class="fa fa-crown"></i>Premium</a>
   <a href="/login"><i class="fa fa-user"></i>Account</a>
 </nav>
+
+<!-- Pulse trigger: when user clicks the hero "Start Practicing Free" CTA,
+     smooth-scroll to the mode chooser and fire a one-time pulse on all three
+     cards so it's unmistakable WHICH elements they should interact with.
+     Uses class add/remove so the pulse can be re-triggered if the user
+     scrolls back and clicks again. -->
+<script>
+(function() {
+  var cta   = document.querySelector('.hero-cta[href="#modeChooserCard"]');
+  var cards = document.querySelectorAll('#modeChooserCard .card.link-card');
+  if (!cta || !cards.length) return;
+
+  function pulseCards() {
+    cards.forEach(function(c) { c.classList.remove('mode-pulse'); });
+    // Force a reflow so removing then re-adding the class actually re-fires
+    // the CSS animation (browsers coalesce class changes otherwise).
+    void document.body.offsetWidth;
+    cards.forEach(function(c) { c.classList.add('mode-pulse'); });
+    // Clean up after the animation finishes so repeat clicks work.
+    setTimeout(function() {
+      cards.forEach(function(c) { c.classList.remove('mode-pulse'); });
+    }, 4500);
+  }
+
+  cta.addEventListener('click', function() {
+    // Wait for the smooth scroll to land before pulsing so the animation
+    // is visible in the user's viewport, not scrolled past.
+    setTimeout(pulseCards, 600);
+  });
+})();
+</script>
 </body>
 </html>
