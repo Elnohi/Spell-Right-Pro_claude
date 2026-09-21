@@ -695,6 +695,47 @@
       <a href="#oet-spelling-patterns" style="color:var(--brand);font-weight:600;text-decoration:none;">Learn what they are ↓</a>
     </div>
 
+    <!-- Word-list "last updated" banner — pulses for 7 days after WORD_LIST_UPDATED_DATE,
+         then this script hides it automatically. Update the date string below every time
+         new words are added to js/oet_word_list.js; no other change needed. -->
+    <div id="wordListUpdateBanner" style="display:none;align-items:center;gap:10px;font-size:0.85rem;
+         background:linear-gradient(135deg,rgba(123,47,247,0.10),rgba(247,37,133,0.08));
+         border:1px solid rgba(123,47,247,0.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;">
+      <i class="fa fa-sparkles" style="color:#7b2ff7;"></i>
+      <span style="color:var(--text);">Word list updated <strong id="wordListUpdateWhen"></strong> — new medical terms added from recent OET exam reports.</span>
+    </div>
+    <style>
+      @keyframes srpUpdateBannerPulse {
+        0%   { box-shadow: 0 0 0 0 rgba(123, 47, 247, 0.45); }
+        60%  { box-shadow: 0 0 0 10px rgba(123, 47, 247, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(123, 47, 247, 0); }
+      }
+      #wordListUpdateBanner.srp-pulse { animation: srpUpdateBannerPulse 1.8s ease-out infinite; }
+      @media (prefers-reduced-motion: reduce) {
+        #wordListUpdateBanner.srp-pulse { animation: none; }
+      }
+    </style>
+    <script>
+    (function() {
+      // Set this to the date new words were added — the banner shows for 7 days
+      // from this date, then hides itself automatically on every later visit.
+      var WORD_LIST_UPDATED_DATE = '2026-09-21';
+      var updated = new Date(WORD_LIST_UPDATED_DATE + 'T00:00:00Z');
+      var now = new Date();
+      var daysSince = (now - updated) / 86400000;
+
+      if (daysSince >= 0 && daysSince < 7) {
+        var banner = document.getElementById('wordListUpdateBanner');
+        var whenEl = document.getElementById('wordListUpdateWhen');
+        if (banner && whenEl) {
+          whenEl.textContent = updated.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+          banner.style.display = 'flex';
+          banner.classList.add('srp-pulse');
+        }
+      }
+    })();
+    </script>
+
     <!-- ═══════════════════════════════════════════════════
          SETUP PANEL
     ══════════════════════════════════════════════════════ -->

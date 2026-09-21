@@ -2042,7 +2042,7 @@ const firebaseConfig = {
 
 window.srpLimit = (function() {
 
-  var FREE_SESSIONS_PER_DAY = 3;
+  var FREE_SESSIONS_PER_DAY = 1; // School freemium: exactly one 24-word session per day
 
   // Word counts per module
   var TOTAL_WORDS = {
@@ -2052,7 +2052,7 @@ window.srpLimit = (function() {
   };
 
   var FREE_WORDS = {
-    school: 50,
+    school: 24,
     oet:    50,
     bee:    25
   };
