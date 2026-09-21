@@ -461,13 +461,33 @@
       </div>
     </section>
 
-    <!-- GEO/AEO: Direct answer opening — AI engines extract this sentence first -->
+    <!-- GEO/AEO: Direct answer opening — AI engines extract this sentence first.
+         The full sentence stays in the HTML at all times (for crawlers/screen readers);
+         on mobile (<=480px) it's visually collapsed behind a one-line teaser so it
+         doesn't push the mode cards below the fold. Desktop shows it in full, unchanged. -->
     <section class="training-card" id="modeChooserCard">
-      <p style="font-size:1.05rem;color:#374151;margin:0 0 18px;line-height:1.6;">
+      <p class="geo-intro-full" style="font-size:1.05rem;color:#374151;margin:0 0 18px;line-height:1.6;">
         <strong>SpellRightPro is a free spelling-practice app for OET exam candidates, school students, and Spelling Bee competitors.</strong>
         It plays a word aloud and asks you to type it from memory — the same skill tested in the OET writing sub-test and in live spelling competitions — then marks you in real time and shows exactly what you typed wrong.
         No sign-up required to start.
       </p>
+
+      <details class="geo-intro-compact" style="margin:0 0 14px;">
+        <summary style="list-style:none;cursor:pointer;font-size:0.92rem;color:#374151;font-weight:600;display:flex;align-items:center;gap:6px;">
+          <i class="fa fa-circle-info" style="color:#7b2ff7;"></i> Free spelling practice for OET, School &amp; Spelling Bee
+          <span style="margin-left:auto;color:#7b2ff7;font-size:0.8rem;">What is this? ↓</span>
+        </summary>
+        <p style="font-size:0.92rem;color:#374151;line-height:1.55;margin:10px 0 0;">
+          It plays a word aloud and asks you to type it from memory — the same skill tested in the OET writing sub-test and in live spelling competitions — then marks you in real time and shows exactly what you typed wrong. No sign-up required to start.
+        </p>
+      </details>
+      <style>
+        .geo-intro-compact { display: none; }
+        @media (max-width: 480px) {
+          .geo-intro-full    { display: none; }
+          .geo-intro-compact { display: block; }
+        }
+      </style>
 
       <h2 class="card-title">Start practicing — pick your mode</h2>
       <p class="muted" style="display:flex;align-items:center;gap:6px;"><i class="fa fa-arrow-down" style="color:#7b2ff7;"></i> Tap any mode below to start a free session — no sign-up.</p>
