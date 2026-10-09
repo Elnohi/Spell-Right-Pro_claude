@@ -444,9 +444,11 @@ app.post("/api/stripe-webhook", async (req, res) => {
       const paymentDate = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
       const planLabel = plan === 'annual'   ? 'Annual (12 months)'
                       : plan === 'sixmonth' ? '6 months'
+                      : plan === 'examprep' ? 'Exam Prep (3 months)'
                       : 'Monthly (1 month)';
       const billingNote = plan === 'annual'   ? 'Renews yearly until cancelled'
                         : plan === 'sixmonth' ? 'Renews every 6 months until cancelled'
+                        : plan === 'examprep' ? 'Renews every 3 months until cancelled'
                         : 'Renews monthly until cancelled';
       const txnId = (session.id || '').slice(-12);
       const customerName = (session.customer_details && session.customer_details.name) || email.split('@')[0];
@@ -487,6 +489,7 @@ app.post("/api/stripe-webhook", async (req, res) => {
             const count    = item && item.price && item.price.recurring && item.price.recurring.interval_count;
             if (interval === 'year') plan = 'annual';
             else if (interval === 'month' && count === 6) plan = 'sixmonth';
+            else if (interval === 'month' && count === 3) plan = 'examprep';
             else plan = 'monthly';
           }
         } catch (e) {
@@ -504,7 +507,7 @@ app.post("/api/stripe-webhook", async (req, res) => {
 
       // Send a brief renewal receipt to the customer
       if (transporter && email && newExpiry) {
-        const planLabel = plan === 'annual' ? 'Annual' : plan === 'sixmonth' ? '6 months' : 'Monthly';
+        const planLabel = plan === 'annual' ? 'Annual' : plan === 'sixmonth' ? '6 months' : plan === 'examprep' ? 'Exam Prep (3 months)' : 'Monthly';
         const expiryStr = newExpiry.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
         const safeAmount = parseFloat(amount || 0).toFixed(2);
         transporter.sendMail({
@@ -596,9 +599,11 @@ app.post("/api/send-confirmation", async (req, res) => {
       const paymentDate = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
       const planLabel = plan === 'annual'   ? 'Annual (12 months)'
                       : plan === 'sixmonth' ? '6 months'
+                      : plan === 'examprep' ? 'Exam Prep (3 months)'
                       : 'Monthly (1 month)';
       const billingNote = plan === 'annual'   ? 'Renews yearly until cancelled'
                         : plan === 'sixmonth' ? 'Renews every 6 months until cancelled'
+                        : plan === 'examprep' ? 'Renews every 3 months until cancelled'
                         : 'Renews monthly until cancelled';
       const txnId = (sessionId || '').slice(-12) || 'pending';
       const name = customerName || email.split('@')[0];
@@ -630,6 +635,7 @@ app.post('/api/email/welcome', async (req, res) => {
 
     const planLabel = plan === 'annual'   ? 'Complete Premium — Annual (CAD $45/yr)'
                     : plan === 'sixmonth' ? 'Complete Premium — 6 months (CAD $26)'
+                    : plan === 'examprep' ? 'Complete Premium — Exam Prep (CAD $12 / 3 months)'
                     : 'Complete Premium — Monthly (CAD $5/mo)';
 
     await transporter.sendMail({
@@ -859,7 +865,7 @@ app.post('/api/email/renewal', async (req, res) => {
 
 async function sendRenewalEmail(email, plan, expiryStr) {
   if (!transporter) throw new Error('Email not configured');
-  const planLabel = plan === 'annual' ? 'Annual' : plan === 'sixmonth' ? '6 months' : 'Monthly';
+  const planLabel = plan === 'annual' ? 'Annual' : plan === 'sixmonth' ? '6 months' : plan === 'examprep' ? 'Exam Prep (3 months)' : 'Monthly';
   const siteUrl   = process.env.SITE_URL || 'https://spellrightpro.org';
   await transporter.sendMail({
     from:    'SpellRightPro <spellrightpro@gmail.com>',
