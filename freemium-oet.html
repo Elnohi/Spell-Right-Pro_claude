@@ -6,22 +6,22 @@
   <meta name="theme-color" content="#3a0087"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Free OET Spelling Practice — 2,293 Medical Words | SpellRightPro</title>
-  <meta name="description" content="Practice OET medical spelling from a 2,293-word curated list. One free 24-word exam-style session per day, real-time marking, British/Australian/American accents. Free — no signup needed." />
+  <title>Free OET Spelling Practice — 3,191 Medical Words | SpellRightPro</title>
+  <meta name="description" content="Practice OET medical spelling from a 3,191-word curated list. One free 24-word exam-style session per day, real-time marking, British/Australian/American accents. Free — no signup needed." />
   <meta name="keywords" content="OET spelling practice, OET medical vocabulary, occupational english test spelling, medical English spelling, OET preparation" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.spellrightpro.org/freemium-oet" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Free OET Spelling Practice — 2,293 Medical Words" />
-  <meta property="og:description" content="One free 24-word exam-style OET spelling session per day, drawn from 2,293 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
+  <meta property="og:title"       content="Free OET Spelling Practice — 3,191 Medical Words" />
+  <meta property="og:description" content="One free 24-word exam-style OET spelling session per day, drawn from 3,191 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
   <meta property="og:url"         content="https://spellrightpro.org/freemium-oet" />
   <meta property="og:image"       content="https://spellrightpro.org/assets/og-image.png" />
   <meta property="og:site_name"   content="SpellRightPro" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:title"       content="Free OET Spelling Practice — 2,293 Medical Words" />
-  <meta name="twitter:description" content="One free 24-word exam-style OET spelling session per day, drawn from 2,293 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
+  <meta name="twitter:title"       content="Free OET Spelling Practice — 3,191 Medical Words" />
+  <meta name="twitter:description" content="One free 24-word exam-style OET spelling session per day, drawn from 3,191 medical words. Prepare for the Occupational English Test with our free spelling trainer." />
   <meta name="twitter:image"       content="https://spellrightpro.org/assets/og-image.png" />
 
   <link rel="stylesheet" href="/css/styles.css" />
@@ -719,7 +719,7 @@
     (function() {
       // Set this to the date new words were added — the banner shows for 7 days
       // from this date, then hides itself automatically on every later visit.
-      var WORD_LIST_UPDATED_DATE = '2026-09-21';
+      var WORD_LIST_UPDATED_DATE = '2026-10-08';
       var updated = new Date(WORD_LIST_UPDATED_DATE + 'T00:00:00Z');
       var now = new Date();
       var daysSince = (now - updated) / 86400000;
@@ -728,7 +728,7 @@
         var banner = document.getElementById('wordListUpdateBanner');
         var whenEl = document.getElementById('wordListUpdateWhen');
         if (banner && whenEl) {
-          whenEl.textContent = updated.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+          whenEl.textContent = updated.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
           banner.style.display = 'flex';
           banner.classList.add('srp-pulse');
         }
@@ -779,7 +779,7 @@
         <!-- App words hint (shown when app words selected) -->
         <div class="app-word-hint" id="appWordHint">
           <i class="fa fa-check-circle"></i>
-          <span>24 random exam-style words from our 2,293-word OET list — your one free practice today. <strong>Press Start below.</strong></span>
+          <span>24 random exam-style words from our 3,191-word OET list — your one free practice today. <strong>Press Start below.</strong></span>
         </div>
 
         <!-- Custom words panel (hidden until user chooses "Add My Words") -->
@@ -915,7 +915,7 @@
     <h3 style="font-size:1.05rem;margin-bottom:6px;color:var(--brand);">4. Choosing British or American spelling — and sticking with it</h3>
     <p style="font-size:0.92rem;line-height:1.6;margin-bottom:16px;">Neither spelling system is "more correct" for OET. What matters is consistency: pick one convention for terms that have two accepted spellings, and hold it for the whole writing sample. Mixing "colour" and "color," or "haemoglobin" and "hemoglobin," in the same piece reads as inattention, not as a language gap — and it's one of the easiest things to fix before exam day.</p>
 
-    <p style="font-size:0.92rem;line-height:1.6;">The fastest way to build reflexes for all four patterns is repeated, timed practice against real exam-style vocabulary — which is exactly what the tool above does with our 2,293-word OET list.</p>
+    <p style="font-size:0.92rem;line-height:1.6;">The fastest way to build reflexes for all four patterns is repeated, timed practice against real exam-style vocabulary — which is exactly what the tool above does with our 3,191-word OET list.</p>
   </section>
 
   <!-- COOKIE CONSENT BANNER -->
@@ -1087,7 +1087,7 @@ const firebaseConfig = {
     };
     
     // Word list comes from the shared /js/oet_word_list.js (window.OET_WORDS,
-    // 2,293 words) — loaded as a <script> tag above, not duplicated here.
+    // 3,191 words) — loaded as a <script> tag above, not duplicated here.
     // Falls back to a small built-in list only if that file fails to load.
     const FALLBACK_OET_WORDS = [
       'abdomen', 'anemia', 'antibiotic', 'artery', 'asthma', 'biopsy', 'catheter',
@@ -1523,8 +1523,8 @@ const firebaseConfig = {
         : '🎉 Perfect score — ' + correctCount + '/' + total + ' today!';
       var upsellBody_s = missedCount_s > 0
         ? 'Premium\'s <strong>mistake review</strong> would build a spaced-repetition drill from the '
-          + missedCount_s + ' word' + (missedCount_s === 1 ? '' : 's') + ' you missed today, plus unlock the full 2,293-word OET list — not just 24/day.'
-        : 'Ready for a bigger challenge? Premium unlocks the full 2,293-word OET list — not just 24/day — plus progress tracking to keep that streak going.';
+          + missedCount_s + ' word' + (missedCount_s === 1 ? '' : 's') + ' you missed today, plus unlock the full 3,191-word OET list — not just 24/day.'
+        : 'Ready for a bigger challenge? Premium unlocks the full 3,191-word OET list — not just 24/day — plus progress tracking to keep that streak going.';
       summaryHTML += `
         <div style="margin-top: 20px; padding: 18px; background: linear-gradient(135deg, #7b2ff7, #f72585); border-radius: 10px; color: white; text-align: center;">
           <h4 style="margin: 0 0 8px 0; font-size: 1.1rem;">${upsellHeadline_s}</h4>
@@ -2167,11 +2167,11 @@ window.srpLimit = (function() {
   var MODULE = 'oet';
   var FREE_SESSIONS_PER_DAY = 1; // OET freemium: exactly one 24-word exam per day
 
-  // Word counts — reflects the real /js/oet_word_list.js (2,293 words) and the
+  // Word counts — reflects the real /js/oet_word_list.js (3,191 words) and the
   // fixed 24-word random exam given per free session (no more "100 words").
   var TOTAL_WORDS = {
     school: 1250,
-    oet:    2257,
+    oet:    3191,
     bee:    1243
   };
 
@@ -2218,10 +2218,10 @@ window.srpLimit = (function() {
     return increment();
   }
 
-  // Build the "X of 2,293 words" banner shown above Start button
+  // Build the "X of 3,191 words" banner shown above Start button
   function getWordBannerHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
-    var total = TOTAL_WORDS[module] || 1627;
+    var total = TOTAL_WORDS[module] || 3191;
     var rem   = remaining();
     var sessionText = rem === 1 ? '1 free session left today'
                     : rem > 1  ? rem + ' free sessions left today'
@@ -2243,7 +2243,7 @@ window.srpLimit = (function() {
   // Build the soft gate screen shown after 3rd session
   function getGateHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
-    var total = TOTAL_WORDS[module] || 1627;
+    var total = TOTAL_WORDS[module] || 3191;
     var remaining_words = total - free;
     var moduleLabel = module === 'oet'    ? 'OET Medical'
                     : module === 'school' ? 'School'

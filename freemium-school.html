@@ -2047,7 +2047,7 @@ window.srpLimit = (function() {
   // Word counts per module
   var TOTAL_WORDS = {
     school: 1250,
-    oet:    2257,
+    oet:    3191,
     bee:    1243
   };
 
@@ -2091,10 +2091,10 @@ window.srpLimit = (function() {
     return increment();
   }
 
-  // Build the "X of 2,293 words" banner shown above Start button
+  // Build the "X of 3,191 words" banner shown above Start button
   function getWordBannerHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
-    var total = TOTAL_WORDS[module] || 1511;
+    var total = TOTAL_WORDS[module] || 3191;
     var rem   = remaining();
     var sessionText = rem === 1 ? '1 free session left today'
                     : rem > 1  ? rem + ' free sessions left today'
@@ -2116,7 +2116,7 @@ window.srpLimit = (function() {
   // Build the soft gate screen shown after 3rd session
   function getGateHTML(module) {
     var free  = FREE_WORDS[module]  || 50;
-    var total = TOTAL_WORDS[module] || 1511;
+    var total = TOTAL_WORDS[module] || 3191;
     var remaining_words = total - free;
     var moduleLabel = module === 'oet'    ? 'OET Medical'
                     : module === 'school' ? 'School'
