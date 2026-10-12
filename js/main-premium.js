@@ -24,6 +24,13 @@ let correctWords = [];
 let incorrectWords = [];
 let flaggedWords = new Set();
 
+// Per-word result tracking. Results used to be APPENDED on every submit, so going back
+// (Previous) and answering a word again counted it twice, and a stray click inside the
+// 2-second auto-advance window could skip a word or consume the next one unheard.
+let answeredAt   = {};     // word index -> 'ok' | 'wrong'   (last answer wins)
+let advanceTimer = null;   // pending auto-advance after an answer (guards double-submit / navigation races)
+let examSession  = false;  // true for the 24-word OET exam: every word must be accounted for in the report
+
 // --- Custom Words Management ---
 let customLists = (() => {
   try { return JSON.parse(localStorage.getItem('premiumCustomLists') || '{}'); }
@@ -55,6 +62,8 @@ function saveSessionState(forceIndex0 = false) {
       correctWords:     correctWords,
       incorrectWords:   incorrectWords,
       flaggedWords:     [...flaggedWords],
+      answered:         answeredAt,
+      exam:             examSession,
       selectedWordList: typeof selectedWordList !== 'undefined' ? selectedWordList : 'oet',
       examType:         document.querySelector('input[name="examType"]:checked')?.value || 'practice',
       savedAt:          Date.now()
@@ -65,6 +74,36 @@ function saveSessionState(forceIndex0 = false) {
 
 function clearSessionState() {
   localStorage.removeItem(SESSION_SAVE_KEY);
+}
+
+// Remove the result previously recorded for word index i (if any) so a re-answer REPLACES it.
+function unrecordAnswer(i) {
+  const prev = answeredAt[i];
+  if (!prev) return;
+  const w = currentList[i];
+  if (prev === 'ok') {
+    score = Math.max(0, score - 1);
+    const k = correctWords.indexOf(w);
+    if (k > -1) correctWords.splice(k, 1);
+  } else {
+    const k = incorrectWords.findIndex(it => it.idx === i || (it.idx === undefined && it.word === w));
+    if (k > -1) incorrectWords.splice(k, 1);
+  }
+  delete answeredAt[i];
+}
+
+// Rebuild per-word results for sessions saved before answeredAt existed.
+function deriveAnswered(list, correct, wrong) {
+  const a = {}, used = new Set();
+  const take = (w, val, hint) => {
+    if (hint !== undefined && list[hint] === w && !used.has(hint)) { used.add(hint); a[hint] = val; return; }
+    for (let i = 0; i < list.length; i++) {
+      if (list[i] === w && !used.has(i)) { used.add(i); a[i] = val; return; }
+    }
+  };
+  (correct || []).forEach(w => take(w, 'ok'));
+  (wrong || []).forEach(it => take(it && it.word !== undefined ? it.word : it, 'wrong', it && it.idx));
+  return a;
 }
 
 function loadSessionState() {
@@ -82,7 +121,7 @@ function loadSessionState() {
   } catch(e) { return null; }
 }
 
-function showResumePrompt(state) {
+function showResumePrompt(state, startOverMode) {
   const existing = document.getElementById('srpResumePrompt');
   if (existing) existing.remove();
 
@@ -90,6 +129,11 @@ function showResumePrompt(state) {
                     state.mode === 'bee' ? 'Spelling Bee' :
                     state.examType === 'test' ? 'OET Exam (24 words)' : 'OET Full List';
   const pct = Math.round((state.index / state.list.length) * 100);
+
+  // When the prompt interrupts a Start click, offer an explicit "Start over" so progress is never discarded silently
+  const startOverBtn = startOverMode
+    ? `<button onclick="document.getElementById('srpResumePrompt')?.remove();startTraining('${startOverMode}', true);" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;white-space:nowrap">Start over</button>`
+    : '';
 
   // Human-readable "saved X ago" so the user knows how old their progress is
   let savedAgo = '';
@@ -110,7 +154,7 @@ function showResumePrompt(state) {
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
     background:#7b2ff7;color:#fff;border-radius:14px;padding:14px 20px;
     box-shadow:0 8px 32px rgba(0,0,0,0.25);z-index:10001;
-    display:flex;align-items:center;gap:14px;font-size:0.9rem;
+    display:flex;flex-wrap:wrap;align-items:center;gap:14px;font-size:0.9rem;
     max-width:480px;width:90%;
   `;
   banner.innerHTML = `
@@ -119,6 +163,7 @@ function showResumePrompt(state) {
       <span style="opacity:0.85">${modeLabel} — ${state.index}/${state.list.length} words (${pct}% done)${savedAgo}</span>
     </div>
     <button onclick="resumeSession()" style="background:#fff;color:#7b2ff7;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;white-space:nowrap">Resume</button>
+    ${startOverBtn}
     <button onclick="this.closest('#srpResumePrompt').remove();clearSessionState();" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:8px;padding:8px 10px;cursor:pointer">✕</button>
   `;
   document.body.appendChild(banner);
@@ -174,6 +219,12 @@ function resumeSession() {
     incorrectWords      = state.incorrectWords || [];
     flaggedWords        = new Set(state.flaggedWords || []);
   }
+
+  // Restore per-word results + exam flag (derived for sessions saved before these fields existed)
+  answeredAt  = state.answered || deriveAnswered(currentList, correctWords, incorrectWords);
+  examSession = (typeof state.exam === 'boolean') ? state.exam
+              : (state.mode === 'practice' && state.examType === 'test' && state.selectedWordList !== 'school');
+  if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
 
   // Sync the tab bar if present
   document.querySelectorAll('.trainer-tab-bar a').forEach(a => a.classList.remove('active'));
@@ -424,7 +475,7 @@ function hideOverlay() {
     // fallback for rare cases where auth resolves before DOMContentLoaded fires.
     setTimeout(() => {
       const saved = loadSessionState();
-      if (saved) showResumePrompt(saved);
+      if (saved && !currentList.length) showResumePrompt(saved);   // only on a fresh page load — never over a session already in progress
     }, 400);
 }
 
@@ -1345,7 +1396,7 @@ function loadCustomList(listName) {
   
   if (currentMode) {
     setTimeout(() => {
-      startTraining(currentMode);
+      startTraining(currentMode, true);   // user explicitly picked a list — start it
     }, 1000);
   }
 }
@@ -1530,6 +1581,9 @@ function resetTraining() {
   correctWords = [];
   incorrectWords = [];
   flaggedWords = new Set();
+  answeredAt = {};
+  examSession = false;
+  if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
   // Reset flag button colour so it doesn't carry over amber from previous session
   ['practiceFlag','beeFlag'].forEach(id => {
     const btn = document.getElementById(id);
@@ -1568,7 +1622,17 @@ document.querySelectorAll(".start-btn").forEach(btn => {
   });
 });
 
-function startTraining(mode) {
+function startTraining(mode, force) {
+  // A saved, unfinished session exists for this mode: offer to resume it instead of silently
+  // discarding it (End Session saves progress, but Start used to wipe it and begin at word 1).
+  if (!force) {
+    const saved = loadSessionState();
+    if (saved && saved.mode === mode && saved.index > 0 && saved.index < saved.list.length) {
+      showResumePrompt(saved, mode);
+      return;
+    }
+  }
+
   // Starting fresh — clear any saved state so the resume prompt doesn't
   // reappear after the user has chosen to begin a new session.
   clearSessionState();
@@ -1664,17 +1728,13 @@ function startTraining(mode) {
 function navigateWord(mode, direction) {
   if (!currentList || !currentList.length) return;
 
-  // Stop any in-progress speech before moving
-  if (window.AndroidTTS && typeof window.AndroidTTS.stop === 'function') {
-    window.AndroidTTS.stop();
-  } else if (window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
-
-  // Clear stale real-time colour from previous word
-  clearRealTimeFeedback();
-  const jumpInput = document.getElementById(mode + 'Input');
-  if (jumpInput) jumpInput.value = '';
+  // An answer was just submitted and its 2-second auto-advance is still pending. The cursor has
+  // ALREADY moved on to the next word at that point, so:
+  //   • Next  = "stop waiting, show the next word now"  (it must NOT skip a further word)
+  //   • Prev  = go back to the word just answered       (cursor-1, as normal)
+  //   • Jump  = absolute, unaffected
+  // The pending timer is cancelled once a valid move is made so it can't fire later and race it.
+  const pending = !!advanceTimer;
 
   const total = currentList.length;
 
@@ -1683,8 +1743,11 @@ function navigateWord(mode, direction) {
     currentIndex = Math.max(0, currentIndex - 1);
 
   } else if (direction === 'next') {
-    if (currentIndex >= total - 1) return;   // already at last word
-    currentIndex = Math.min(total - 1, currentIndex + 1);
+    if (!pending) {
+      if (currentIndex >= total - 1) return;  // already at last word
+      currentIndex = Math.min(total - 1, currentIndex + 1);
+    }
+    // pending: cursor is already on the next word (or past the end → report), so just stop waiting
 
   } else if (direction === 'jump') {
     const input = document.getElementById(mode + 'JumpInput');
@@ -1698,6 +1761,20 @@ function navigateWord(mode, direction) {
     currentIndex = n - 1;          // UI is 1-based, array is 0-based
     input.value = '';              // clear after jump
   }
+
+  if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
+
+  // Stop any in-progress speech before moving
+  if (window.AndroidTTS && typeof window.AndroidTTS.stop === 'function') {
+    window.AndroidTTS.stop();
+  } else if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+
+  // Clear stale real-time colour from previous word
+  clearRealTimeFeedback();
+  const jumpInput = document.getElementById(mode + 'Input');
+  if (jumpInput) jumpInput.value = '';
 
   // Update nav button disabled states
   updateNavButtons(mode);
@@ -1744,7 +1821,8 @@ async function loadOETWords() {
   try {
     if (typeof window.OET_WORDS !== 'undefined') {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === "test";
-      currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : window.OET_WORDS;
+      currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : [...window.OET_WORDS];
+      examSession = isTest;
       showFeedback(`OET ${isTest ? 'Test' : 'Practice'} mode: ${currentList.length} words loaded`, "success");
       nextWord();
       return;
@@ -1762,6 +1840,7 @@ async function loadOETWords() {
     if (typeof window.OET_WORDS !== 'undefined') {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === 'test';
       currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : [...window.OET_WORDS];
+      examSession = isTest;
       showFeedback(`OET ${isTest ? 'Test' : 'Practice'} mode: ${currentList.length} words loaded`, 'success');
       nextWord();
     } else {
@@ -1773,6 +1852,7 @@ async function loadOETWords() {
     if (typeof window.OET_WORDS !== 'undefined' && window.OET_WORDS.length > 0) {
       const isTest = document.querySelector('input[name="examType"]:checked')?.value === 'test';
       currentList = isTest ? shuffle(window.OET_WORDS).slice(0, 24) : [...window.OET_WORDS];
+      examSession = isTest;
       showFeedback(`OET words loaded (${currentList.length} words)`, 'success');
       nextWord();
     } else {
@@ -1982,6 +2062,7 @@ function nextWord() {
 // ENHANCED CHECKANSWER FUNCTION WITH REAL-TIME MARKING
 function checkAnswer() {
     if (currentIndex >= currentList.length) return;
+    if (advanceTimer) return;   // previous answer still being processed (double-tap / Enter + click) — ignore
     
     const word = currentList[currentIndex];
     let userAnswer = '';
@@ -2015,9 +2096,13 @@ function checkAnswer() {
     const inputElement = document.getElementById(`${currentMode}Input`);
     const feedbackElement = document.getElementById(`${currentMode}Feedback`);
     
+    // Last answer wins: if this word was already answered (user went back), replace it instead of counting it twice
+    unrecordAnswer(currentIndex);
+
     if (normalizedAnswer === normalizedWord) {
         score++;
         correctWords.push(word);
+        answeredAt[currentIndex] = 'ok';
         showFeedback("✅ Correct! Well done!", "success");
         
         // Visual confirmation
@@ -2034,7 +2119,8 @@ function checkAnswer() {
             feedbackElement.textContent = "✅ Correct!";
         }
     } else {
-        incorrectWords.push({ word: word, answer: userAnswer });
+        incorrectWords.push({ word: word, answer: userAnswer, idx: currentIndex });
+        answeredAt[currentIndex] = 'wrong';
         showFeedback(`❌ Incorrect. The word was: ${word}`, "error");
         
         // Visual feedback for incorrect
@@ -2055,7 +2141,8 @@ function checkAnswer() {
     currentIndex++;
     
     // Auto-advance with delay
-    setTimeout(() => {
+    advanceTimer = setTimeout(() => {
+        advanceTimer = null;
         // nextWord() clears the input and resets styling via clearRealTimeFeedback()
         if (inputElement) inputElement.value = '';
         clearRealTimeFeedback();
@@ -2075,6 +2162,8 @@ function checkAnswer() {
 
 // Summary function
 function showSummary(earlyExit = false) {
+  if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }   // don't let a pending auto-advance fire behind the report
+
   if (earlyExit) {
     // User ended manually mid-session — save progress so the resume prompt
     // can offer to continue when they return to this mode.
@@ -2084,6 +2173,17 @@ function showSummary(earlyExit = false) {
     // Session completed naturally (all words done) — clear saved state so
     // the resume prompt doesn't appear for a finished session.
     clearSessionState();
+
+    // Exam: every one of the 24 words must be accounted for. A word the user skipped
+    // (Next / Jump) is recorded as unanswered-incorrect instead of silently vanishing from the report.
+    if (examSession) {
+      for (let i = 0; i < currentList.length; i++) {
+        if (!answeredAt[i]) {
+          incorrectWords.push({ word: currentList[i], answer: '', idx: i });
+          answeredAt[i] = 'wrong';
+        }
+      }
+    }
   }
 
   // Hide the training UI (Submit, Say Again, Flag, End buttons) so they don't
@@ -2196,6 +2296,14 @@ function showSummary(earlyExit = false) {
   summaryElement.innerHTML = summaryHTML;
   summaryElement.style.display = "block";
 
+  // Ended early: offer to continue right next to the report. Pressing Start again would otherwise begin at word 1.
+  if (earlyExit) {
+    setTimeout(() => {
+      const saved = loadSessionState();
+      if (saved && saved.mode === currentMode) showResumePrompt(saved);
+    }, 300);
+  }
+
   // Record session in progress dashboard (premium feature)
   if (window.progressDashboard && typeof window.progressDashboard.recordSession === 'function') {
     window.progressDashboard.recordSession(currentMode, correctWords, incorrectWords);
@@ -2253,6 +2361,9 @@ function retryIncorrectWords() {
   correctWords   = [];
   incorrectWords = [];
   flaggedWords   = new Set();
+  answeredAt     = {};
+  examSession    = false;
+  if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
   currentList    = wordsToRetry;
   clearSessionState();
 
@@ -2313,9 +2424,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Say Again buttons
   document.querySelectorAll('[id$="SayAgain"]').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (currentIndex < currentList.length) {
-        const word = currentList[currentIndex];
-        speakWord(word);
+      // Right after an answer the cursor has already moved to the NEXT word (auto-advance pending).
+      // "Say Again" should repeat the word just answered, not leak the upcoming one.
+      const idx = advanceTimer ? currentIndex - 1 : currentIndex;
+      if (idx >= 0 && idx < currentList.length) {
+        speakWord(currentList[idx]);
       }
     });
   });
@@ -2384,7 +2497,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
       if (document.getElementById('srpResumePrompt')) return; // already shown by hideOverlay
       const saved = loadSessionState();
-      if (saved) showResumePrompt(saved);
+      if (saved && !currentList.length) showResumePrompt(saved);   // only on a fresh page load — never over a session already in progress
     }, 1500);
 });
 
