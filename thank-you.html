@@ -217,7 +217,7 @@
             fetch(apiUrl + '/api/email/welcome', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: data.email || '', plan: data.plan || 'monthly' })
+              body: JSON.stringify({ sessionId: sessionId, email: data.email || '', plan: data.plan || 'monthly' })
             }).then(function() {
               console.log('✅ Welcome email triggered');
             }).catch(function() {}); // fail silently — webhook also sends confirmation

@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>SpellRightPro Premium — Unlimited Spelling Practice from CAD $5/month</title>
-  <meta name="description" content="Unlock unlimited spelling practice, full OET word list, progress dashboard and mistake review. CAD $5/month or $45/year. Cancel anytime." />
+  <meta name="description" content="Unlock unlimited spelling practice, full OET word list, progress dashboard and mistake review. CAD $5/month, CAD $12 for 3 months of exam prep, or CAD $45/year. Cancel anytime." />
   <meta name="keywords" content="spelling trainer premium, OET premium practice, spelling subscription, spelling app" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.spellrightpro.org/pricing" />
@@ -269,9 +269,9 @@
       <span class="plan-tab-label">Monthly</span>
       <span class="plan-tab-sub">Flexible</span>
     </button>
-    <button class="plan-tab" id="tabSixmonth" onclick="selectPlan('sixmonth')">
-      <span class="plan-tab-label">6 months</span>
-      <span class="plan-tab-sub">Save 13%</span>
+    <button class="plan-tab" id="tabExamprep" onclick="selectPlan('examprep')">
+      <span class="plan-tab-label">Exam Prep</span>
+      <span class="plan-tab-sub">3 months · Save 20%</span>
     </button>
     <button class="plan-tab active" id="tabAnnual" onclick="selectPlan('annual')">
       <span class="save-badge">Best value</span>
@@ -357,7 +357,7 @@
       <button class="faq-q" onclick="toggleFaq(this)">
         Can I cancel anytime? <i class="fa fa-chevron-down"></i>
       </button>
-      <div class="faq-a">Yes — cancel any time by emailing spellrightpro@gmail.com or from your account. Your premium access continues until the end of the period you've paid for, then you simply revert to the free version. No further charges, no surprises.</div>
+      <div class="faq-a">Yes — cancel any time by emailing spellrightpro@gmail.com — we confirm by email, and cancellations are processed within 24 hours. Your premium access continues until the end of the period you've paid for, then you simply revert to the free version. No further charges, no surprises.</div>
     </div>
 
     <div class="faq-item">
@@ -423,13 +423,13 @@
       btnLabel: 'Get Premium — CAD $5/mo',
       currency: '≈ USD $3.60 · GBP 2.80 · AUD 5.50 · PHP 200 · INR 300'
     },
-    sixmonth: {
-      name:   'Premium — 6 months',
-      price:  '$26',
-      period: '/6 months',
-      equiv:  'Just $4.33/month — save 13%',
-      btnLabel: 'Get Premium — CAD $26',
-      currency: '≈ USD $19 · GBP 15 · AUD 29 · PHP 1,100 · INR 1,600'
+    examprep: {
+      name:   'Premium — Exam Prep',
+      price:  '$12',
+      period: '/3 months',
+      equiv:  'Just $4/month — save 20% vs monthly',
+      btnLabel: 'Get Exam Prep — CAD $12/3mo',
+      currency: '≈ USD $9 · GBP 7 · AUD 13 · PHP 480 · INR 720'
     },
     annual:   {
       name:   'Premium — Annual',
@@ -446,8 +446,8 @@
     var data = PLAN_DATA[plan];
 
     // Update tab highlights
-    ['monthly','sixmonth','annual'].forEach(function(p) {
-      var tabId = p === 'sixmonth' ? 'tabSixmonth'
+    ['monthly','examprep','annual'].forEach(function(p) {
+      var tabId = p === 'examprep' ? 'tabExamprep'
                 : p === 'monthly'  ? 'tabMonthly'
                 : 'tabAnnual';
       var el = document.getElementById(tabId);

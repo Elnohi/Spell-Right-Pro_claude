@@ -2,6 +2,25 @@ const express    = require("express");
 const cors       = require("cors");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
+const crypto = require("crypto");
+
+// ── Shared-secret helpers ─────────────────────────────────────────────────────
+// Constant-time comparison so a secret can't be guessed byte-by-byte from response timing.
+function safeEqual(a, b) {
+  const x = Buffer.from(String(a == null ? '' : a));
+  const y = Buffer.from(String(b == null ? '' : b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+
+// Secret protecting /api/email/{reengage,renewal,nurture}. The daily scheduler calls them over
+// localhost on the SAME process, so a random per-process value works with zero configuration.
+// Set SCHEDULER_SECRET in Cloud Run only if you want to trigger them by hand (curl).
+// (Before: the check was skipped whenever the variable was unset, and the scheduler's fallback
+//  was the public string 'internal' — so these endpoints were effectively open to anyone.)
+const SCHEDULER_SECRET = process.env.SCHEDULER_SECRET || crypto.randomBytes(24).toString('hex');
+function schedulerAuthorized(req) {
+  return safeEqual(req.headers['x-scheduler-secret'], SCHEDULER_SECRET);
+}
 
 const app = express();
 
@@ -181,6 +200,17 @@ async function sendAdminNotification({ email, customerName, plan, planLabel, amo
 }
 
 // ── Helper: write premium record to Firestore ────────────────────────────────
+// True when this Stripe session has already activated the account (record carries the same stripeSessionId).
+// On a lookup failure we return false so a paying customer is never locked out by a transient error.
+async function sessionAlreadyActivated(email, sessionId) {
+  if (!db || !email || !sessionId) return false;
+  try {
+    const safeEmail = email.replace(/[.#$[\]/]/g, "_");
+    const snap = await db.collection("premiumByEmail").doc(safeEmail).get();
+    return !!(snap.exists && snap.data() && snap.data().stripeSessionId === sessionId);
+  } catch (e) { return false; }
+}
+
 async function writePremiumRecord(uid, email, plan, sessionId, source, acquisition = {}) {
   if (!db || !email) return;
   const expiry = new Date();
@@ -382,9 +412,15 @@ app.get("/api/verify-session", async (req, res) => {
     };
     console.log(`🔍 verify-session: ${session_id} paid=${paid} ${email}`);
     if (paid) {
-      await writePremiumRecord(uid, email, plan, session_id, "verify_session", acquisition).catch(e =>
-        console.error("Firestore write failed (non-critical):", e.message)
-      );
+      // Idempotent: a session that has already activated this account (by webhook or an earlier visit)
+      // must not activate it again. Without this, reloading an old success URL after cancelling
+      // re-granted a full new period of access every time.
+      const alreadyActivated = await sessionAlreadyActivated(email, session_id);
+      if (!alreadyActivated) {
+        await writePremiumRecord(uid, email, plan, session_id, "verify_session", acquisition).catch(e =>
+          console.error("Firestore write failed (non-critical):", e.message)
+        );
+      }
     }
     res.json({ paid, email, plan, sessionId: session_id });
   } catch (err) {
@@ -585,6 +621,11 @@ app.post("/api/stripe-webhook", async (req, res) => {
 
 // ── SEND CONFIRMATION (fallback) ──────────────────────────────────────────────
 app.post("/api/send-confirmation", async (req, res) => {
+  // Manual/fallback tool only — no page calls it. It emails a "receipt" to whatever address and
+  // amount it is given, so it must never be anonymous (anyone could send forged receipts from our address).
+  if (!process.env.ADMIN_TOKEN || !safeEqual(req.body && req.body.token, process.env.ADMIN_TOKEN)) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
   try {
     const { email, customerName, plan = 'monthly', planName, amount, sessionId } = req.body;
     if (!email) return res.status(400).json({ success: false, message: "email required" });
@@ -627,11 +668,37 @@ app.post("/api/send-confirmation", async (req, res) => {
 });
 
 // ─── Welcome email endpoint ───────────────────────────────────────────────────
+const welcomeSends = new Map();   // sessionIds that already have a welcome email sent (or being sent)
 app.post('/api/email/welcome', async (req, res) => {
+  let reserved = null;   // session whose 'welcome sent' slot this request holds (released if sending fails)
   try {
-    const { email, plan = 'premium' } = req.body;
-    if (!email) return res.status(400).json({ success: false, message: 'email required' });
+    const { sessionId } = req.body || {};
+    if (!sessionId || !/^cs_(live|test)_[A-Za-z0-9]+$/.test(String(sessionId))) {
+      return res.status(400).json({ success: false, message: 'valid sessionId required' });
+    }
+    if (!stripe) return res.status(503).json({ success: false, message: 'payments not configured' });
     if (!transporter) return res.json({ success: false, message: 'email not configured' });
+
+    // Only a genuinely PAID checkout session can trigger this email, and it always goes to the address
+    // Stripe holds for that session — never to an address (or plan) supplied by the caller.
+    let session;
+    try { session = await stripe.checkout.sessions.retrieve(sessionId); }
+    catch (e) { return res.status(404).json({ success: false, message: 'session not found' }); }
+    if (!session || session.payment_status !== 'paid') {
+      return res.status(402).json({ success: false, message: 'session not paid' });
+    }
+    const email = session.customer_email || (session.customer_details && session.customer_details.email) || '';
+    if (!email) return res.status(422).json({ success: false, message: 'no email on session' });
+    const plan = (session.metadata && session.metadata.plan) || 'premium';
+
+    // ONE welcome email per payment session. The thank-you page can load twice (the service-worker update
+    // reload in sw-register.js), which used to send the customer two identical emails — and it stops this
+    // endpoint being used to spam anyone. The slot is reserved BEFORE sending so two simultaneous requests
+    // can't both send, and released below if sending fails so a retry still works.
+    if (welcomeSends.size > 2000) welcomeSends.clear();
+    if (welcomeSends.has(sessionId)) return res.json({ success: true, note: 'already sent' });
+    welcomeSends.set(sessionId, true);
+    reserved = sessionId;
 
     const planLabel = plan === 'annual'   ? 'Complete Premium — Annual (CAD $45/yr)'
                     : plan === 'sixmonth' ? 'Complete Premium — 6 months (CAD $26)'
@@ -658,6 +725,7 @@ app.post('/api/email/welcome', async (req, res) => {
     console.log(`📧 Welcome email sent to ${email}`);
     res.json({ success: true });
   } catch (err) {
+    if (reserved) welcomeSends.delete(reserved);
     console.error('❌ Welcome email error:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
@@ -671,7 +739,7 @@ app.post('/api/email/welcome', async (req, res) => {
 app.post('/api/admin/dashboard', async (req, res) => {
   const token = req.body && req.body.token;
   const adminToken = process.env.ADMIN_TOKEN;
-  if (!adminToken || token !== adminToken) {
+  if (!adminToken || !safeEqual(token, adminToken)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   if (!db) return res.json({ error: 'Firestore not available' });
@@ -734,8 +802,7 @@ app.post('/api/admin/dashboard', async (req, res) => {
 
 // ─── Re-engagement endpoint ───────────────────────────────────────────────────
 app.post('/api/email/reengage', async (req, res) => {
-  const secret = req.headers['x-scheduler-secret'];
-  if (process.env.SCHEDULER_SECRET && secret !== process.env.SCHEDULER_SECRET) {
+  if (!schedulerAuthorized(req)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   if (req.body && req.body.email) {
@@ -816,8 +883,7 @@ async function sendReengageEmail(email, name) {
 
 // ─── Renewal reminder endpoint ────────────────────────────────────────────────
 app.post('/api/email/renewal', async (req, res) => {
-  const secret = req.headers['x-scheduler-secret'];
-  if (process.env.SCHEDULER_SECRET && secret !== process.env.SCHEDULER_SECRET) {
+  if (!schedulerAuthorized(req)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   if (req.body && req.body.email) {
@@ -892,8 +958,7 @@ async function sendRenewalEmail(email, plan, expiryStr) {
 // up via the word-6 auth wall (stored in the freeLeads collection by save-lead.js).
 // Each email is segment-aware (OET / School / Bee) and sends once per stage.
 app.post('/api/email/nurture', async (req, res) => {
-  const secret = req.headers['x-scheduler-secret'];
-  if (process.env.SCHEDULER_SECRET && secret !== process.env.SCHEDULER_SECRET) {
+  if (!schedulerAuthorized(req)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   if (!db) return res.json({ success: false, message: 'Firestore not available', sent: 0 });
@@ -1017,7 +1082,7 @@ async function sendNurtureEmail(email, displayName, audience, stage, landingUrl,
 function runDailyEmailChecks() {
   const headers = {
     'Content-Type': 'application/json',
-    'X-Scheduler-Secret': process.env.SCHEDULER_SECRET || 'internal'
+    'X-Scheduler-Secret': SCHEDULER_SECRET
   };
   const base = `http://localhost:${process.env.PORT || 8080}`;
 
