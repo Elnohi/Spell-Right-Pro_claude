@@ -619,6 +619,67 @@ app.post("/api/stripe-webhook", async (req, res) => {
   res.json({ received: true });
 });
 
+// ── Server-side premium check for the trainer paywall ────────────────────────────────
+// The trainer used to decide "is this person premium?" in the browser (a localStorage note anyone could edit,
+// plus browser-side Firestore reads). Now the page sends the signed-in user's Firebase ID token and the SERVER
+// answers from Firestore with the Admin SDK.
+// Only HTTP 200 with premium:false is a definitive "no". Every failure on our side is reported as an error
+// status (503) so the page can fall back gracefully — a Firebase/config problem must never lock out a paying
+// customer by being mistaken for "not premium".
+const TOKEN_PROBLEM_CODES = new Set([
+  'auth/argument-error', 'auth/id-token-expired', 'auth/id-token-revoked',
+  'auth/invalid-id-token', 'auth/user-disabled', 'auth/user-not-found'
+]);
+app.post('/api/premium-status', async (req, res) => {
+  try {
+    const { idToken } = req.body || {};
+    if (typeof idToken !== 'string' || idToken.length < 20 || idToken.length > 6000) {
+      return res.status(400).json({ error: 'idToken required' });
+    }
+    if (!db) return res.status(503).json({ error: 'database unavailable' });
+
+    let decoded;
+    try {
+      decoded = await admin.auth().verifyIdToken(idToken);
+    } catch (e) {
+      // A bad/expired token is the caller's problem (401). Anything else is OUR problem (503).
+      return res.status(TOKEN_PROBLEM_CODES.has(e && e.code) ? 401 : 503).json({ error: 'token not verified' });
+    }
+
+    const uid   = decoded.uid;
+    const email = String(decoded.email || '');
+    const now   = new Date();
+    const toDate = v => (v && typeof v.toDate === 'function') ? v.toDate() : (v ? new Date(v) : null);
+    const isActive = d => !!d && d.active !== false && (!toDate(d.expiryDate) || toDate(d.expiryDate) > now);
+
+    // 1) premiumUsers/{uid}   2) premiumByEmail/{email} (people who paid before signing in)
+    // An expired/inactive premiumUsers record falls through to the email record, which the server keeps current.
+    let rec = null, matchedBy = null;
+    const byUid = await db.collection('premiumUsers').doc(uid).get();
+    if (byUid.exists && isActive(byUid.data())) { rec = byUid.data(); matchedBy = 'uid'; }
+    if (!rec && email) {
+      for (const candidate of new Set([email, email.toLowerCase()])) {
+        const key = candidate.replace(/[.#$[\]/]/g, '_');          // same key rule as writePremiumRecord
+        const byEmail = await db.collection('premiumByEmail').doc(key).get();
+        if (byEmail.exists && isActive(byEmail.data())) { rec = byEmail.data(); matchedBy = 'email'; break; }
+      }
+    }
+
+    if (!rec) return res.json({ premium: false });
+    const exp = toDate(rec.expiryDate);
+    return res.json({
+      premium: true,
+      plan: rec.plan || 'premium',
+      expiry: exp ? exp.toISOString() : null,
+      matchedBy,
+      emailVerified: !!decoded.email_verified
+    });
+  } catch (err) {
+    console.error('premium-status error:', err.message);
+    return res.status(503).json({ error: 'temporary error' });    // never premium:false on a failure
+  }
+});
+
 // ── SEND CONFIRMATION (fallback) ──────────────────────────────────────────────
 app.post("/api/send-confirmation", async (req, res) => {
   // Manual/fallback tool only — no page calls it. It emails a "receipt" to whatever address and
