@@ -183,8 +183,10 @@ class FirebaseUtils {
           }));
           return true;
         } else {
-          console.warn('⚠️ Firestore premiumUsers: subscription expired or inactive');
-return false;
+          // Do NOT stop here. premiumByEmail is the record the server keeps current (renewals extend it), so an
+          // old/stale premiumUsers copy must never lock out someone whose renewal is recorded there. If the
+          // email record is also inactive/expired, Source 3 below returns false as before.
+          console.warn('⚠️ Firestore premiumUsers: expired or inactive — checking premiumByEmail');
         }
       }
     } catch (err) {
@@ -203,17 +205,9 @@ return false;
           if (data.active !== false && (!expiryDate || expiryDate > new Date())) {
             console.log('✅ Premium confirmed via Firestore premiumByEmail');
 
-            // Now that we have the UID, upgrade the record to premiumUsers/{uid}
-            // so future logins use the faster Source 2 path
-            try {
-              await this.db.collection('premiumUsers').doc(user.uid).set({
-                ...data,
-                firebaseUid:  user.uid,
-                migratedFrom: 'premiumByEmail',
-                migratedAt:   firebase.firestore.FieldValue.serverTimestamp()
-              }, { merge: true });
-              console.log('✅ Migrated premiumByEmail → premiumUsers/' + user.uid);
-            } catch (_) {}
+            // The browser must NOT copy this record into premiumUsers/{uid}: the server never sees that copy, so renewals
+            // never extend it, and it would later expire and (before this check fell through) lock the customer out.
+            // Server-written records are the only source of truth; the cache below is just a speed-up.
 
             // Cache in localStorage
             localStorage.setItem('srpPremium', JSON.stringify({
