@@ -176,6 +176,7 @@ function showResumePrompt(state, startOverMode) {
 }
 
 function resumeSession() {
+  if (!premiumGate.ok()) { showOverlay(); showNonPremiumMessage(); return; }   // trainer code only runs for a server-verified premium account
   const state = loadSessionState();
   if (!state) return;
   document.getElementById('srpResumePrompt')?.remove();
@@ -339,6 +340,128 @@ function updateBeeBadge() {
   beeLastBadgeLevel = diff.level;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PREMIUM GATE — the SERVER decides who is premium
+// Before: the browser decided from a localStorage note (editable by the visitor), and an 8-second timer even
+// unlocked the trainer from that note with nobody signed in. Now only a server answer opens the trainer, plus
+// one narrow exception: if the server genuinely cannot be reached, a confirmation the server gave THIS account
+// within the last 24h covers the gap (so an outage or being offline doesn't lock out a paying customer).
+// Editing localStorage no longer unlocks anything.
+// ═══════════════════════════════════════════════════════════════════════════════
+const PREMIUM_API = ((window.appConfig && window.appConfig.apiBaseUrl) ||
+                     'https://spellrightpro-api-798456641137.us-central1.run.app') + '/api/premium-status';
+const PREMIUM_GRACE_MS = 24 * 60 * 60 * 1000;
+
+const premiumGate = (function () {
+  let granted = false, resolvedNo = false;
+  return {
+    ok:     () => granted,
+    grant:  () => { granted = true;  resolvedNo = false; },
+    deny:   () => { granted = false; resolvedNo = true;  },
+    denied: () => resolvedNo
+  };
+})();
+
+function readVerifiedRecord() {
+  try { return JSON.parse(localStorage.getItem('srpPremiumVerified') || 'null'); } catch (_) { return null; }
+}
+function graceCovers(uid) {
+  const r = readVerifiedRecord();
+  return !!(r && r.uid && r.uid === uid && typeof r.at === 'number' &&
+            (Date.now() - r.at) < PREMIUM_GRACE_MS && (!r.expiry || new Date(r.expiry) > new Date()));
+}
+
+// → { state: 'yes' | 'no' | 'unreachable', data }.  Only HTTP 200 + premium:false is a definitive "no";
+//   any other failure (network, timeout, 4xx/5xx) is "unreachable", never "no".
+async function askServerAboutPremium(user) {
+  let token;
+  try { token = await user.getIdToken(); } catch (_) { return { state: 'unreachable' }; }
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const r = await fetch(PREMIUM_API, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: token }), signal: ctrl.signal
+    });
+    if (r.status !== 200) return { state: 'unreachable' };
+    const data = await r.json();
+    if (data && data.premium === true)  return { state: 'yes', data };
+    if (data && data.premium === false) return { state: 'no',  data };
+    return { state: 'unreachable' };
+  } catch (_) {
+    return { state: 'unreachable' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// → { premium: boolean, reason: 'server_yes' | 'server_no' | 'grace' | 'unreachable' }
+async function decidePremium(user) {
+  const { state, data } = await askServerAboutPremium(user);
+  if (state === 'yes') {
+    try {
+      localStorage.setItem('srpPremiumVerified', JSON.stringify({ uid: user.uid, at: Date.now(), expiry: data.expiry || null }));
+      // Other pages (home, progress…) read this cache only to adapt their wording — it never opens the trainer.
+      localStorage.setItem('srpPremium', JSON.stringify({
+        active: true, email: user.email || '', plan: data.plan || 'premium',
+        expiry: data.expiry || new Date(Date.now() + 30 * 86400000).toISOString(), source: 'server'
+      }));
+    } catch (_) {}
+    return { premium: true, reason: 'server_yes' };
+  }
+  if (state === 'no') {
+    try { localStorage.removeItem('srpPremiumVerified'); localStorage.removeItem('srpPremium'); } catch (_) {}   // drop any stale/forged note
+    return { premium: false, reason: 'server_no' };
+  }
+  if (graceCovers(user.uid)) {
+    console.warn('⚠️ Premium server unreachable — using the confirmation from the last 24h');
+    return { premium: true, reason: 'grace' };
+  }
+  return { premium: false, reason: 'unreachable' };
+}
+
+// "Back": the previous page of this site if there is one, otherwise the home page.
+function leaveToIndex(replace) {
+  // A usable "previous page" is a DIFFERENT page of this site. (After a reload — e.g. the service-worker update
+  // reload — a page's referrer is the page itself, and history.back() could land on an empty entry.)
+  let usable = false;
+  try {
+    const ref = document.referrer ? new URL(document.referrer) : null;
+    usable = !!ref && ref.origin === location.origin && ref.pathname !== location.pathname;
+  } catch (_) {}
+  if (replace) location.replace('/');                      // used when the paywall was tampered with: Back can't return here
+  else if (usable && history.length > 1) history.back();
+  else location.href = '/';
+}
+
+// A "← Back" link on the sign-in card so a visitor who isn't paying is never stranded.
+function ensureBackLink() {
+  const card = document.getElementById('authCardContent');
+  if (!card || document.getElementById('paywallBackLink')) return;
+  const a = document.createElement('a');
+  a.id = 'paywallBackLink'; a.href = '#'; a.textContent = '← Back';
+  a.style.cssText = 'display:block;text-align:center;margin-top:14px;color:#7b2ff7;font-weight:600;text-decoration:none;';
+  a.addEventListener('click', e => { e.preventDefault(); leaveToIndex(); });
+  card.appendChild(a);
+}
+
+// If the paywall is removed or hidden while the server has said "no" (e.g. someone deletes it in the console),
+// put it back and send them away. (Only armed after a definitive answer, so it never fires during normal loading.)
+let paywallEscapeHandled = false;
+setInterval(() => {
+  if (premiumGate.ok() || !premiumGate.denied() || paywallEscapeHandled) return;
+  const overlay = document.getElementById('loginOverlay');
+  const main = document.querySelector('main');
+  const overlayHidden = !overlay || getComputedStyle(overlay).display === 'none';
+  const mainVisible = !!main && getComputedStyle(main).display !== 'none';
+  if (overlayHidden || mainVisible) {
+    paywallEscapeHandled = true;
+    showOverlay();
+    leaveToIndex(true);
+  }
+}, 1000);
+
+
 // Initialize Firebase components when ready
 function initializeFirebase() {
     // ── localStorage hint (NOT a gate) ──────────────────────────────────────
@@ -377,23 +500,12 @@ function setupAuthListener() {
             currentUser = user;
             console.log('✅ User authenticated:', user.email);
             
-            // Check premium status
-            // Check premium — localStorage hint first, then Firestore
-            // This runs ONLY after Firebase confirms the user is signed in
-            try {
-                var stored = JSON.parse(localStorage.getItem('srpPremium') || 'null');
-                if (stored && stored.active && new Date(stored.expiry) > new Date()) {
-                    userIsPremium = true;
-                    console.log('💎 Premium confirmed: localStorage (user authenticated)');
-                }
-            } catch(e) {}
-
-            // Always verify with Firestore if not confirmed locally
-            // (catches expired localStorage, new devices, cleared browser data)
-            if (!userIsPremium && window.firebaseUtils) {
-                userIsPremium = await window.firebaseUtils.checkPremiumStatus(user);
-                console.log('💎 Premium status (Firestore):', userIsPremium);
-            }
+            // Premium is decided by the SERVER (see PREMIUM GATE above) — never from a browser note.
+            // This runs ONLY after Firebase confirms the user is signed in.
+            const verdict = await decidePremium(user);
+            userIsPremium = verdict.premium;
+            if (userIsPremium) premiumGate.grant(); else premiumGate.deny();
+            console.log('💎 Premium status (server):', verdict.reason);
             
             if (userIsPremium) {
                 hideOverlay();
@@ -412,11 +524,12 @@ function setupAuthListener() {
                 setTimeout(waitForFirestoreAndLoadLists, 3000);
             } else {
                 showOverlay();
-                showNonPremiumMessage();
+                showNonPremiumMessage(verdict.reason);
             }
         } else {
             console.log('❌ No user, showing login');
             currentUser = null;
+            premiumGate.deny();
             userIsPremium = false;
             showOverlay();
         }
@@ -424,29 +537,34 @@ function setupAuthListener() {
 }
 
 // Show message for non-premium users
-function showNonPremiumMessage() {
+function showNonPremiumMessage(reason) {
     const glassCard = document.querySelector('.glass-card');
     if (!glassCard) return;
-    
+
     // Remove existing premium redirect messages
-    const existingMessages = glassCard.querySelectorAll('.premium-redirect');
-    existingMessages.forEach(msg => msg.remove());
-    
+    glassCard.querySelectorAll('.premium-redirect').forEach(msg => msg.remove());
+
+    // 'unreachable' = we could not ask the server (connection/outage) — never tell a possible subscriber to buy again
+    const unreachable = reason === 'unreachable';
+    const btnStyle = 'background: #7b2ff7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin: 5px 0;';
     const messageDiv = document.createElement('div');
     messageDiv.className = 'premium-redirect';
     messageDiv.innerHTML = `
         <div style="text-align: center; margin: 15px 0; padding: 15px; background: rgba(123, 47, 247, 0.1); border-radius: 8px;">
-            <p style="margin: 0 0 10px 0;">Premium access required for full features.</p>
-            <button onclick="window.location.href='/premium'" 
-                    style="background: #7b2ff7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin: 5px 0;">
-                <i class="fa fa-crown"></i> Upgrade to Premium
-            </button>
+            <p style="margin: 0 0 10px 0;">${unreachable
+                ? "We couldn't verify your subscription just now (connection problem). Please reload — nothing has been lost."
+                : 'Premium access required for full features.'}</p>
+            ${unreachable
+                ? `<button id="paywallRetryBtn" style="${btnStyle}"><i class="fa fa-rotate-right"></i> Reload</button>`
+                : `<button onclick="window.location.href='/premium'" style="${btnStyle}"><i class="fa fa-crown"></i> Upgrade to Premium</button>`}
             <br>
-
+            <button id="paywallBackBtn" style="background: transparent; color: #7b2ff7; border: 1px solid #7b2ff7; padding: 8px 18px; border-radius: 6px; cursor: pointer; margin: 8px 0 0;">← Back</button>
         </div>
     `;
-    
+
     glassCard.appendChild(messageDiv);
+    document.getElementById('paywallBackBtn')?.addEventListener('click', leaveToIndex);
+    document.getElementById('paywallRetryBtn')?.addEventListener('click', () => location.reload());
 }
 
 // UI Functions
@@ -460,6 +578,7 @@ function showOverlay() {
     // Auth state is now known (no user / not premium) — swap spinner for the real form
     if (loadingCard) loadingCard.style.display = "none";
     if (formCard) formCard.style.display = "block";
+    ensureBackLink();
 }
 
 function hideOverlay() {
@@ -492,10 +611,8 @@ function hideOverlay() {
 // 2. Auth resolved (currentUser set, userIsPremium true) but this timeout fires
 //    before hideOverlay() ran (e.g. slow async Firestore check) → call hideOverlay()
 //    now so the user isn't stuck waiting any longer.
-// 3. Auth hasn't resolved at all (Firebase SDK slow on Android/TWA cold start) →
-//    use the localStorage srpPremium hint. If a valid, non-expired record exists
-//    the user is almost certainly still premium; dismiss the overlay optimistically.
-//    If no localStorage hint, fall back to showing the login form.
+// 3. Auth hasn't resolved at all (Firebase SDK slow on Android/TWA cold start) → show the sign-in form. It does NOT
+//    unlock from any localStorage note; once auth resolves the server check opens the page for premium users.
 setTimeout(() => {
     const loadingCard = document.getElementById("authLoadingCard");
     const formCard = document.getElementById("authCardContent");
@@ -504,21 +621,20 @@ setTimeout(() => {
     console.warn('⏱️ Auth check timed out after 8s');
 
     // Case 2: onAuthStateChanged already confirmed user + premium — just unblock
-    if (currentUser && userIsPremium) {
+    if (currentUser && userIsPremium && premiumGate.ok()) {
         console.warn('⏱️ Auth resolved but overlay still up — calling hideOverlay()');
         hideOverlay();
         return;
     }
 
-    // Case 3: Auth never fired — check localStorage hint
-    if (window._srpLocalPremium) {
-        console.warn('⏱️ Firebase slow — dismissing overlay via localStorage hint');
-        hideOverlay();
-        showFeedback('Signed in (offline cache) — syncing in background…', 'info');
-        // Keep trying to complete Firebase auth in the background so Firestore
-        // sync and real premium verification still happen once the SDK is ready.
-        return;
-    }
+    // Signed in, but the server's premium check is still in flight (slow network / Cloud Run cold start).
+    // Showing the sign-in form to a signed-in subscriber would be wrong — keep the spinner. The check has its own
+    // 12s timeout and always ends in a verdict (open the trainer, or show the paywall / "couldn't verify" message).
+    if (currentUser && !premiumGate.ok() && !premiumGate.denied()) return;
+
+    // Case 3: Auth never fired. This used to dismiss the overlay from a localStorage note; an editable browser note
+    // must not open the trainer, so it no longer does. Fall through to the sign-in form: a genuine premium user is
+    // unlocked by the normal auth + server check as soon as Firebase is ready.
 
     // No hint and no auth — show the login form so the user isn't stuck
     console.warn('⏱️ No auth, no hint — showing login form');
@@ -559,16 +675,19 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         }
         
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        
-        // Check premium status
-        if (window.firebaseUtils) {
-            userIsPremium = await window.firebaseUtils.checkPremiumStatus(userCredential.user);
-        }
-        
+
+        // Premium is decided by the SERVER (see PREMIUM GATE) — never from a browser note
+        const verdict = await decidePremium(userCredential.user);
+        userIsPremium = verdict.premium;
+        if (userIsPremium) premiumGate.grant(); else premiumGate.deny();
+
         if (userIsPremium) {
             hideOverlay();
             showFeedback('Welcome back to Premium!', 'success');
             initializePremiumFeatures();
+        } else if (verdict.reason === 'unreachable') {
+            showFeedback('We could not verify your subscription right now — please check your connection and try again.', 'error');
+            showNonPremiumMessage('unreachable');
         } else {
             showFeedback('Premium access required. Redirecting to pricing...', 'info');
             setTimeout(() => {
@@ -1623,6 +1742,7 @@ document.querySelectorAll(".start-btn").forEach(btn => {
 });
 
 function startTraining(mode, force) {
+  if (!premiumGate.ok()) { showOverlay(); showNonPremiumMessage(); return; }   // trainer code only runs for a server-verified premium account
   // A saved, unfinished session exists for this mode: offer to resume it instead of silently
   // discarding it (End Session saves progress, but Start used to wipe it and begin at word 1).
   if (!force) {
@@ -2348,6 +2468,7 @@ function showSummary(earlyExit = false) {
 }
 
 function retryIncorrectWords() {
+  if (!premiumGate.ok()) { showOverlay(); showNonPremiumMessage(); return; }   // trainer code only runs for a server-verified premium account
   if (!incorrectWords.length) return;
 
   // Build a word list from just the incorrect words, then start a fresh session
