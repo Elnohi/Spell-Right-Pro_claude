@@ -538,33 +538,54 @@ function setupAuthListener() {
 
 // Show message for non-premium users
 function showNonPremiumMessage(reason) {
-    const glassCard = document.querySelector('.glass-card');
-    if (!glassCard) return;
+    // Shown INSIDE the visible overlay (the old message was appended to the trainer's own card, which sits hidden
+    // behind the overlay — so a signed-in free user only ever saw a sign-in form and could not tell why).
+    const overlay = document.getElementById('loginOverlay');
+    if (!overlay) return;
+    const signedInUser = (typeof auth !== 'undefined' && auth && auth.currentUser) ||
+                         (typeof currentUser !== 'undefined' && currentUser) || null;
+    if (!signedInUser) return;                       // nobody signed in → the normal sign-in form is the right screen
 
-    // Remove existing premium redirect messages
-    glassCard.querySelectorAll('.premium-redirect').forEach(msg => msg.remove());
+    const unreachable = reason === 'unreachable';    // we could not ask the server — never tell a possible subscriber to buy again
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const primary = 'display:block;width:100%;background:#7b2ff7;color:#fff;border:none;padding:13px 20px;border-radius:10px;cursor:pointer;font-weight:700;font-size:1rem;margin:16px 0 8px;';
+    const second  = 'display:block;width:100%;background:transparent;color:#7b2ff7;border:2px solid #7b2ff7;padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.95rem;margin:0 0 6px;';
 
-    // 'unreachable' = we could not ask the server (connection/outage) — never tell a possible subscriber to buy again
-    const unreachable = reason === 'unreachable';
-    const btnStyle = 'background: #7b2ff7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin: 5px 0;';
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'premium-redirect';
-    messageDiv.innerHTML = `
-        <div style="text-align: center; margin: 15px 0; padding: 15px; background: rgba(123, 47, 247, 0.1); border-radius: 8px;">
-            <p style="margin: 0 0 10px 0;">${unreachable
-                ? "We couldn't verify your subscription just now (connection problem). Please reload — nothing has been lost."
-                : 'Premium access required for full features.'}</p>
-            ${unreachable
-                ? `<button id="paywallRetryBtn" style="${btnStyle}"><i class="fa fa-rotate-right"></i> Reload</button>`
-                : `<button onclick="window.location.href='/premium'" style="${btnStyle}"><i class="fa fa-crown"></i> Upgrade to Premium</button>`}
-            <br>
-            <button id="paywallBackBtn" style="background: transparent; color: #7b2ff7; border: 1px solid #7b2ff7; padding: 8px 18px; border-radius: 6px; cursor: pointer; margin: 8px 0 0;">← Back</button>
-        </div>
+    let panel = document.getElementById('paywallPanel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'paywallPanel';
+        panel.className = 'auth-card';
+        panel.style.textAlign = 'center';
+        overlay.appendChild(panel);
+    }
+    panel.innerHTML = `
+        <h2 style="color:#7b2ff7;font-weight:800;font-size:1.5rem;margin:0 0 8px;">${unreachable ? "We couldn't verify your subscription" : '<i class="fa fa-crown" style="color:#f72585"></i> Premium Trainer'}</h2>
+        <p style="color:#555;margin:0;line-height:1.5;">${unreachable
+            ? "There was a connection problem, so we couldn't check your subscription just now. Please reload — nothing has been lost."
+            : `You're signed in${signedInUser.email ? ' as <strong>' + esc(signedInUser.email) + '</strong>' : ''}, but this account doesn't have an active Premium subscription.`}</p>
+        ${unreachable
+            ? `<button id="paywallRetryBtn" style="${primary}"><i class="fa fa-rotate-right"></i> Reload</button>`
+            : `<button id="paywallUpgradeBtn" style="${primary}"><i class="fa fa-crown"></i> Upgrade to Premium</button>`}
+        <button id="paywallBackBtn" style="${second}">← Back</button>
+        <p style="margin:14px 0 0;font-size:0.9rem;"><a href="#" id="paywallSignOutLink" style="color:#7b2ff7;font-weight:600;text-decoration:none;">Sign out / use a different account</a></p>
     `;
 
-    glassCard.appendChild(messageDiv);
-    document.getElementById('paywallBackBtn')?.addEventListener('click', leaveToIndex);
-    document.getElementById('paywallRetryBtn')?.addEventListener('click', () => location.reload());
+    // Swap the sign-in form (and spinner) for this panel
+    const formCard = document.getElementById('authCardContent');
+    const loadingCard = document.getElementById('authLoadingCard');
+    if (formCard) formCard.style.display = 'none';
+    if (loadingCard) loadingCard.style.display = 'none';
+    panel.style.display = 'block';
+
+    document.getElementById('paywallBackBtn').addEventListener('click', () => leaveToIndex());
+    const up = document.getElementById('paywallUpgradeBtn'); if (up) up.addEventListener('click', () => { window.location.href = '/premium'; });
+    const rt = document.getElementById('paywallRetryBtn');   if (rt) rt.addEventListener('click', () => location.reload());
+    document.getElementById('paywallSignOutLink').addEventListener('click', e => {
+        e.preventDefault();
+        try { localStorage.removeItem('srpPremiumVerified'); localStorage.removeItem('srpPremium'); } catch (_) {}
+        Promise.resolve(auth && auth.signOut ? auth.signOut() : null).catch(() => {}).then(() => location.reload());
+    });
 }
 
 // UI Functions
