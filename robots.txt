@@ -17,4 +17,4 @@ Disallow: /footer.html
 Disallow: /pro
 Disallow: /pro.html
 
-Sitemap: https://spellrightpro.org/sitemap.xml
+Sitemap: https://www.spellrightpro.org/sitemap.xml

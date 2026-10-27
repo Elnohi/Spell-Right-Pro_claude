@@ -103,6 +103,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.spellrightpro.org/british-american-spelling-oet</loc>
+    <lastmod>2026-10-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.spellrightpro.org/spelling-bee-guide</loc>
     <lastmod>2026-07-08</lastmod>
     <changefreq>monthly</changefreq>

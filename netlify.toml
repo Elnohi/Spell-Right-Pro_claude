@@ -155,6 +155,21 @@
   to = "/blog.html"
   status = 200
 
+[[redirects]]
+  from = "/school-spelling-guide"
+  to = "/school-spelling-guide.html"
+  status = 200
+
+[[redirects]]
+  from = "/spelling-bee-guide"
+  to = "/spelling-bee-guide.html"
+  status = 200
+
+[[redirects]]
+  from = "/british-american-spelling-oet"
+  to = "/british-american-spelling-oet.html"
+  status = 200
+
 # API proxies
 [[redirects]]
   from = "/api/ocr"

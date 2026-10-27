@@ -31,6 +31,9 @@
 /contact/             /contact             301
 /refund-policy/       /refund-policy       301
 /security/            /security            301
+/school-spelling-guide/ /school-spelling-guide 301
+/spelling-bee-guide/    /spelling-bee-guide    301
+/british-american-spelling-oet/ /british-american-spelling-oet 301
 
 # ─── Static asset pass-throughs (must be BEFORE catch-all) ──────────
 # Prevents the SPA catch-all from intercepting JSON/JS/data fetches.
@@ -44,6 +47,9 @@
 
 # ─── Clean URL routes (extension-less → .html) ──────────────────────
 /oet-spelling-guide  /oet-spelling-guide.html  200
+/school-spelling-guide  /school-spelling-guide.html  200
+/spelling-bee-guide  /spelling-bee-guide.html  200
+/british-american-spelling-oet  /british-american-spelling-oet.html  200
 /oet-referral-letter-guide  /oet-referral-letter-guide.html  200
 /oet-vs-ielts        /oet-vs-ielts.html        200
 /oet-abbreviations   /oet-abbreviations.html   200

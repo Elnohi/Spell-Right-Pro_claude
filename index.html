@@ -365,7 +365,7 @@
 </head>
 <body data-page="index">
   <header class="navbar">
-    <a href="/index.html" class="brand">
+    <a href="/" class="brand">
       <picture>
         <source type="image/webp" srcset="/assets/logo-160.webp 1x, /assets/logo-320.webp 2x"/>
         <img src="/assets/logo-160.png" alt="SpellRightPro Logo" class="logo" width="80" height="80" decoding="async" fetchpriority="high"/>
@@ -390,7 +390,7 @@
                   border:1px solid rgba(123,47,247,0.3);text-decoration:none;">
           <i class="fa fa-sign-in-alt"></i> Sign In
         </a>
-        <a href="/premium.html" class="btn-primary"
+        <a href="/premium" class="btn-primary"
            style="padding:7px 14px;border-radius:10px;font-weight:700;font-size:0.85rem;
                   background:#7b2ff7;color:#fff;text-decoration:none;">
           <i class="fa fa-crown"></i> Go Premium
@@ -493,17 +493,17 @@
       <p class="muted" style="display:flex;align-items:center;gap:6px;"><i class="fa fa-arrow-down" style="color:#7b2ff7;"></i> Tap any mode below to start a free session — no sign-up.</p>
 
       <div class="mode-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
-        <a class="card link-card" href="/freemium-bee.html">
+        <a class="card link-card" href="/freemium-bee">
           <h3><span class="mode-icon-badge badge-bee"><i class="fa fa-microphone"></i></span> Spelling Bee</h3>
           <p>1,243 competition words. Voice mode: spell letter-by-letter exactly like a live bee.</p>
           <span class="mode-start-indicator">Start <i class="fa fa-arrow-right"></i></span>
         </a>
-        <a class="card link-card" href="/freemium-oet.html">
+        <a class="card link-card" href="/freemium-oet">
           <h3><span class="mode-icon-badge badge-oet"><i class="fa fa-stethoscope"></i></span> OET</h3>
           <p>3,191 OET medical words — drug names, anatomy, clinical terms — spoken in British, American, or Australian accent.</p>
           <span class="mode-start-indicator">Start <i class="fa fa-arrow-right"></i></span>
         </a>
-        <a class="card link-card" href="/freemium-school.html">
+        <a class="card link-card" href="/freemium-school">
           <h3><span class="mode-icon-badge badge-school"><i class="fa fa-graduation-cap"></i></span> School</h3>
           <p>1,250 curriculum words, or upload your own classroom list in seconds.</p>
           <span class="mode-start-indicator">Start <i class="fa fa-arrow-right"></i></span>
@@ -511,7 +511,7 @@
       </div>
 
       <div class="info-box" style="margin-top:16px">
-        <p>Free: practice every day with no sign-up — a 24-word School session/day, up to 75 Spelling Bee words/day, or a 24-word OET exam once a day. <a href="/premium.html">Premium</a> removes all daily limits and adds unlimited custom lists, all accents, adaptive drills, and detailed progress tracking.</p>
+        <p>Free: practice every day with no sign-up — a 24-word School session/day, up to 75 Spelling Bee words/day, or a 24-word OET exam once a day. <a href="/premium">Premium</a> removes all daily limits and adds unlimited custom lists, all accents, adaptive drills, and detailed progress tracking.</p>
       </div>
 
       <div style="margin-top:16px; text-align:center;">
@@ -572,14 +572,28 @@
 
       <p><strong>OET medical spelling</strong> — 3,191 healthcare terms across drug names, anatomical vocabulary, clinical abbreviations, and symptom descriptors. Words are randomised using Fisher-Yates shuffle so you never practise the same order twice. You can choose British, American, or Australian accent (Premium), run a timed 24-word exam simulation, or work through the full list with session save so you pick up exactly where you stopped. Our <a href="/oet-spelling-guide">OET spelling guide</a> lists the most commonly misspelled medical words if you want to start there.</p>
 
-      <p><strong>School spelling practice</strong> — 1,250 curriculum-aligned words covering primary through secondary level, plus the ability to upload your own classroom list in seconds. Real-time marking highlights errors character by character so students see exactly where they went wrong, not just a pass/fail.</p>
+      <p><strong>School spelling practice</strong> — 1,250 curriculum-aligned words covering primary through secondary level, plus the ability to upload your own classroom list in seconds. Real-time marking highlights errors character by character so students see exactly where they went wrong, not just a pass/fail. The <a href="/school-spelling-guide">school spelling guide</a> breaks the list down by year level.</p>
 
-      <p><strong>Spelling Bee mode</strong> — 1,243 competition words with voice recognition that listens to you spell letter-by-letter, the way a real competition judge does, rather than just typing into a box. Adaptive difficulty automatically adjusts which words you see based on your recent accuracy.</p>
+      <p><strong>Spelling Bee mode</strong> — 1,243 competition words with voice recognition that listens to you spell letter-by-letter, the way a real competition judge does, rather than just typing into a box. Adaptive difficulty automatically adjusts which words you see based on your recent accuracy. See the <a href="/spelling-bee-guide">spelling bee guide</a> for how competition rounds are structured.</p>
 
-      <p>SpellRightPro was built by a practising doctor who prepared for OET and found no tool that combined a medical word bank, audio playback, and production-based practice in one place. You can read the full story on the <a href="/about">About page</a>. All three modes are free to use with no sign-up required. <a href="/premium.html">Premium</a> adds unlimited custom lists, all accents, and detailed session analytics.</p>
+      <p>SpellRightPro was built by a practising doctor who prepared for OET and found no tool that combined a medical word bank, audio playback, and production-based practice in one place. You can read the full story on the <a href="/about">About page</a>. All three modes are free to use with no sign-up required. <a href="/premium">Premium</a> adds unlimited custom lists, all accents, and detailed session analytics.</p>
 
       <p style="font-size:0.88rem;color:#6b7280;margin-top:16px;">Last updated: 30 June 2026</p>
       </details>
+    </section>
+
+    <!-- Guides -->
+    <section style="margin: 40px auto; padding: 24px 20px; max-width: 860px; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+      <h2 style="margin-top: 0;">Free spelling guides</h2>
+      <ul style="line-height: 1.9; padding-left: 20px;">
+        <li><a href="/oet-spelling-guide">OET spelling guide</a> — the medical words candidates misspell most often.</li>
+        <li><a href="/oet-abbreviations">OET abbreviations</a> — clinical abbreviations you are expected to know.</li>
+        <li><a href="/oet-referral-letter-guide">OET referral letter guide</a> — structure and vocabulary for the writing sub-test.</li>
+        <li><a href="/oet-vs-ielts">OET vs IELTS</a> — how the two exams differ for healthcare professionals.</li>
+        <li><a href="/british-american-spelling-oet">British vs American spelling in OET</a> — which variant to use and when it matters.</li>
+        <li><a href="/school-spelling-guide">School spelling guide</a> — curriculum word lists by year level.</li>
+        <li><a href="/spelling-bee-guide">Spelling bee guide</a> — how competition rounds work and how to prepare.</li>
+      </ul>
     </section>
 
     <!-- Premium Features Showcase -->
@@ -739,15 +753,15 @@
 
 <footer style="text-align: center; margin: 24px auto 40px; padding: 24px 20px; max-width: 860px; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); color: #555;">
   <p>
-    <a href="/privacy.html" style="color: #7b2ff7; text-decoration: none;">Privacy Policy</a> 
+    <a href="/privacy" style="color: #7b2ff7; text-decoration: none;">Privacy Policy</a> 
     • 
-    <a href="/terms.html" style="color: #7b2ff7; text-decoration: none;">Terms of Service</a>
+    <a href="/terms" style="color: #7b2ff7; text-decoration: none;">Terms of Service</a>
     • 
-    <a href="/refund-policy.html" style="color: #7b2ff7; text-decoration: none;">Refund Policy</a>
+    <a href="/refund-policy" style="color: #7b2ff7; text-decoration: none;">Refund Policy</a>
     • 
-    <a href="/security.html" style="color: #7b2ff7; text-decoration: none;">Security</a>
+    <a href="/security" style="color: #7b2ff7; text-decoration: none;">Security</a>
     • 
-    <a href="/contact.html" style="color: #7b2ff7; text-decoration: none;">Contact</a>
+    <a href="/contact" style="color: #7b2ff7; text-decoration: none;">Contact</a>
     • 
     <a href="https://play.google.com/store/apps/details?id=org.spellrightpro.www.twa" target="_blank" rel="noopener" style="color: #7b2ff7; text-decoration: none;">Get it on Google Play</a>
   </p>
@@ -757,7 +771,7 @@
   <!-- COOKIE CONSENT BANNER -->
   <div id="cookieConsentBanner" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #333; color: white; padding: 15px; text-align: center; z-index: 1000;">
     <p>We use cookies to provide our services and for analytics and ads. 
-       <a href="/privacy.html" style="color: #7b2ff7;">Learn more</a>
+       <a href="/privacy" style="color: #7b2ff7;">Learn more</a>
     </p>
     <button onclick="acceptCookies()" style="background: #7b2ff7; color: white; border: none; padding: 8px 15px; margin: 0 5px; border-radius: 5px; cursor: pointer;">
         Accept
