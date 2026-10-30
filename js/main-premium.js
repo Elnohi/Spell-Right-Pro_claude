@@ -1330,7 +1330,7 @@ function createCustomWordsUI() {
                    style="flex:1;min-width:120px;padding:8px 10px;border-radius:8px;
                           border:1.5px solid var(--border);background:var(--surface2);
                           color:var(--text);font-family:inherit;font-size:0.85rem;">
-            <input type="file" id="wordListFile" accept=".txt,.csv"
+            <input type="file" id="wordListFile" accept=".txt,.csv,.pdf"
                    style="flex:2;min-width:0;font-size:0.8rem;">
             <button onclick="uploadWordList()" class="nav-btn">
               <i class="fa fa-upload"></i> Upload
@@ -1405,11 +1405,22 @@ function uploadWordList() {
   }
 
   const file = fileInput.files[0];
-  const reader = new FileReader();
-  
-  reader.onload = function(e) {
+
+  if (window.PDFWords && window.PDFWords.isPDF(file)) {
+    showFeedback('Reading PDF…', 'info');
+  }
+
+  const read = window.PDFWords
+    ? window.PDFWords.readAsText(file)
+    : new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = ev => resolve(ev.target.result);
+        r.onerror = () => reject(new Error('Could not read that file.'));
+        r.readAsText(file);
+      });
+
+  read.then(function(content) {
     try {
-      const content = e.target.result;
       const words = parseWordList(content, file.name);
       
       if (words.length === 0) {
@@ -1432,19 +1443,22 @@ function uploadWordList() {
     } catch (error) {
       showFeedback('Error reading file: ' + error.message, 'error');
     }
-  };
-  
-  reader.readAsText(file);
+  }).catch(function(error) {
+    showFeedback(error.message || 'Could not read that file.', 'error');
+  });
 }
 
 function parseWordList(content, filename) {
   let words = [];
   
-  if (filename.toLowerCase().endsWith('.csv')) {
+  const lower = filename.toLowerCase();
+
+  if (lower.endsWith('.csv')) {
     words = content.split(',')
       .map(word => word.trim())
       .filter(word => word.length > 0);
   } else {
+    // .txt and text extracted from .pdf are both one entry per line
     words = content.split('\n')
       .map(word => word.trim())
       .filter(word => word.length > 0);
