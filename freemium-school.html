@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
   <script src="/js/config.js"></script>
+  <script src="/js/pdf-words.js"></script>
   <script src="/js/hw-canvas.js" defer></script>
 
   <!-- Firebase SDKs -->
@@ -731,9 +732,9 @@
             placeholder="Paste your words here — one per line, or comma-separated&#10;&#10;Example:&#10;necessary&#10;accommodate&#10;rhythm"
           ></textarea>
           <div class="upload-row">
-            <input type="file" id="fileInput" accept=".txt,.csv,.json" style="display:none;" />
+            <input type="file" id="fileInput" accept=".txt,.csv,.json,.pdf" style="display:none;" />
             <button class="nav-btn" onclick="document.getElementById('fileInput').click()">
-              <i class="fa fa-upload"></i> Upload .txt file
+              <i class="fa fa-upload"></i> Upload file (.txt, .csv, .pdf)
             </button>
             <span id="fileName" style="font-size:0.78rem;color:var(--muted);">No file chosen</span>
             <button id="useCustomList" class="nav-btn" style="margin-left:auto;">
@@ -1667,17 +1668,33 @@ const firebaseConfig = {
       if (fileInput) {
         fileInput.addEventListener('change', (e) => {
           const file = e.target.files[0];
-          if (file) {
-            document.getElementById('fileName').textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              if (elements.customBox) {
-                elements.customBox.value = e.target.result;
-                updateFeedback(`File loaded: ${file.name}`);
-              }
-            };
-            reader.readAsText(file);
+          if (!file) return;
+          const label = document.getElementById('fileName');
+          if (label) label.textContent = file.name;
+          const isPdf = window.PDFWords && window.PDFWords.isPDF(file);
+          if (isPdf) {
+            if (label) label.textContent = `${file.name} — reading…`;
+            updateFeedback('Reading PDF…');
           }
+          const read = window.PDFWords
+            ? window.PDFWords.readAsText(file)
+            : new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = ev => resolve(ev.target.result);
+                r.onerror = () => reject(new Error('Could not read that file.'));
+                r.readAsText(file);
+              });
+          read.then(text => {
+            if (elements.customBox) {
+              elements.customBox.value = text;
+              const count = text.split('\n').filter(l => l.trim()).length;
+              if (label) label.textContent = file.name;
+              updateFeedback(`File loaded: ${file.name} (${count} lines)`);
+            }
+          }).catch(err => {
+            if (label) label.textContent = file.name;
+            updateFeedback(err.message || 'Could not read that file.');
+          });
         });
       }
     }
