@@ -2180,7 +2180,7 @@ window.srpLimit = (function() {
       '</div>' +
 
       // Premium CTA + honest price anchor
-      '<a href="/premium" style="' +
+      '<a href="/premium?src=gate_' + module + '" onclick="if(typeof gtag!==\'undefined\')gtag(\'event\',\'premium_click\',{event_category:\'premium_conversion\',event_label:\'' + module + '_gate\'});" style="' +
       'display:block;padding:15px;background:linear-gradient(135deg,#7b2ff7,#f72585);' +
       'color:#fff;border-radius:12px;font-weight:700;font-size:1rem;' +
       'text-decoration:none;margin-bottom:6px;">' +
@@ -2218,6 +2218,7 @@ window.srpLimit = (function() {
     var existing = document.getElementById('srpDailyGate');
     if (existing) existing.remove();
     document.body.insertAdjacentHTML('beforeend', getGateHTML(module));
+    try { if (typeof gtag !== 'undefined') gtag('event', 'limit_gate_shown', { event_category: 'premium_conversion', event_label: module + '_gate' }); } catch (_) {}
   }
 
   return {
