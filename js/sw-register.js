@@ -26,8 +26,15 @@
       });
     });
 
+    // Only reload when an EXISTING worker is replaced by a newer one. On a visitor's very first
+    // visit there is no previous controller: sw.js calls clients.claim(), which fires
+    // 'controllerchange' even though nothing was updated, and the old code reloaded the page.
+    // That made every first-time visit load twice (double page_view/view_item in GA4, and any
+    // state typed during the first load was lost).
+    var hadController = !!navigator.serviceWorker.controller;
     var refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController) return;
       if (!refreshing) {
         refreshing = true;
         window.location.reload();
