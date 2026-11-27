@@ -21,11 +21,15 @@
     .refund-hero {
       text-align: center;
       padding: 40px 20px;
-      background: linear-gradient(135deg, rgba(123,47,247,0.15), rgba(247,37,133,0.1));
+      background: #fff;
       border-radius: 16px;
       margin-bottom: 40px;
-      border: 1px solid rgba(123,47,247,0.2);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
     }
+
+    body.dark-mode .refund-hero { background: rgba(40,15,70,0.92); }
+    body.dark-mode .refund-hero h1 { color: #fff; }
+    body.dark-mode .refund-hero p { color: #e5dcf5 !important; }
 
     .refund-hero i {
       font-size: 3rem;
@@ -325,29 +329,29 @@
             spellrightpro@gmail.com
           </a>
         </p>
-        <p style="margin-top:12px;margin-bottom:0;font-size:0.9rem;color:#666;">
+        <p style="margin-top:12px;margin-bottom:0;font-size:0.9rem;">
           We typically respond within 1 business day. For faster service please include your account email and subscription details.
         </p>
       </div>
 
-      <p style="text-align:center;font-size:0.85rem;color:#999;margin-top:40px;">
-        Last updated: April 2026 · <a href="/terms" style="color:#7b2ff7;">Terms of Service</a> · <a href="/privacy" style="color:#7b2ff7;">Privacy Policy</a>
+      <p style="text-align:center;font-size:0.85rem;color:#fff;margin-top:40px;">
+        Last updated: April 2026 · <a href="/terms" style="color:#fff;text-decoration:underline;">Terms of Service</a> · <a href="/privacy" style="color:#fff;text-decoration:underline;">Privacy Policy</a>
       </p>
 
     </div><!-- /.refund-container -->
   </main>
 
-  <footer style="text-align: center; margin-top: 40px; padding: 20px; color: #666; border-top: 1px solid rgba(0,0,0,0.08);">
+  <footer style="text-align: center; margin-top: 40px; padding: 20px; color:#fff; border-top: 1px solid rgba(0,0,0,0.08);">
     <p>
-      <a href="/privacy" style="color: #7b2ff7; text-decoration: none;">Privacy Policy</a>
+      <a href="/privacy" style="color:#fff;text-decoration:underline;">Privacy Policy</a>
       &nbsp;•&nbsp;
-      <a href="/terms" style="color: #7b2ff7; text-decoration: none;">Terms of Service</a>
+      <a href="/terms" style="color:#fff;text-decoration:underline;">Terms of Service</a>
       &nbsp;•&nbsp;
-      <a href="/refund-policy" style="color: #7b2ff7; text-decoration: none; font-weight: bold;">Refund Policy</a>
+      <a href="/refund-policy" style="color:#fff;text-decoration:underline; font-weight: bold;">Refund Policy</a>
       &nbsp;•&nbsp;
-      <a href="/security" style="color: #7b2ff7; text-decoration: none;">Security</a>
+      <a href="/security" style="color:#fff;text-decoration:underline;">Security</a>
       &nbsp;•&nbsp;
-      <a href="/contact" style="color: #7b2ff7; text-decoration: none;">Contact</a>
+      <a href="/contact" style="color:#fff;text-decoration:underline;">Contact</a>
     </p>
     <p style="margin-top: 10px; font-size: 0.9em;">&copy; 2026 SpellRightPro. All rights reserved.</p>
   </footer>
@@ -355,7 +359,7 @@
   <!-- Cookie Consent Banner -->
   <div id="cookieConsentBanner" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #333; color: white; padding: 15px; text-align: center; z-index: 1000;">
     <p style="margin: 0 0 8px;">We use cookies to provide our services and for analytics.
-      <a href="/privacy" style="color: #7b2ff7;">Learn more</a>
+      <a href="/privacy" style="color:#d4bcff;">Learn more</a>
     </p>
     <button onclick="acceptCookies()" style="background: #7b2ff7; color: white; border: none; padding: 8px 15px; margin: 0 5px; border-radius: 5px; cursor: pointer;">Accept</button>
     <button onclick="declineCookies()" style="background: #666; color: white; border: none; padding: 8px 15px; margin: 0 5px; border-radius: 5px; cursor: pointer;">Decline</button>
