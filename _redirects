@@ -11,7 +11,6 @@
 /env.example                       /404.html  404!
 /.env                              /404.html  404!
 /DEPLOY_NOTES.md                   /404.html  404!
-/.netlifyignore                    /404.html  404!
 /netlify/*                         /404.html  404!
 /diag.html                         /404.html  404!
 /diag                              /404.html  404!
