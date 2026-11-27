@@ -2455,7 +2455,7 @@ window.srpAuth = (function() {
       }
 
       // Also save lead to Firestore via save-lead function
-      fetch('/.netlify/functions/save-lead', {
+      fetch(((window.appConfig && window.appConfig.apiBaseUrl) || 'https://spellrightpro-api-798456641137.us-central1.run.app') + '/api/save-lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, audience: window._srpAuthAudience || 'oet' })
