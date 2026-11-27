@@ -1040,6 +1040,68 @@ async function sendRenewalEmail(email, plan, expiryStr) {
   console.log(`📧 Renewal reminder sent to ${email}`);
 }
 
+// ── Free-lead capture (replaces the Netlify save-lead function, which had no
+// Firebase/email credentials configured and silently saved nothing) ───────────
+const LEAD_AUDIENCES = {
+  oet:    { label: "OET",          url: SITE + "/freemium-oet",    subject: "Your free OET spelling practice is saved" },
+  school: { label: "School",       url: SITE + "/freemium-school", subject: "Your free spelling practice is saved" },
+  bee:    { label: "Spelling Bee", url: SITE + "/freemium-bee",    subject: "Your free Spelling Bee practice is saved" }
+};
+
+app.post("/api/save-lead", async (req, res) => {
+  const email    = String((req.body && req.body.email) || "").trim().toLowerCase();
+  const audience = String((req.body && req.body.audience) || "oet").trim().toLowerCase();
+
+  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Invalid email address" });
+  }
+  const meta = LEAD_AUDIENCES[audience];
+  if (!meta) return res.status(400).json({ error: "Invalid audience" });
+  if (!db) return res.status(503).json({ error: "Storage unavailable" });
+
+  try {
+    const ref  = db.collection("freeLeads").doc(emailKey(email));
+    const snap = await ref.get();
+    // Already captured: do nothing, so repeat submissions can't re-send the welcome
+    // email or reset signedUpAt (which would restart the nurture timing).
+    if (snap.exists) return res.json({ ok: true, existing: true });
+
+    await ref.set({
+      email,
+      audience,
+      signedUpAt: admin.firestore.FieldValue.serverTimestamp(),
+      source:     "freemium_session_complete",
+      emailSent:  false
+    });
+    console.log(`✅ Lead saved: ${email} (${audience})`);
+
+    if (transporter) {
+      try {
+        await transporter.sendMail({
+          from: "SpellRightPro <spellrightpro@gmail.com>",
+          to: email,
+          subject: meta.subject,
+          html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#444;line-height:1.6;">
+  <p style="font-size:20px;font-weight:700;color:#7b2ff7;margin:0 0 12px;">SpellRightPro</p>
+  <p style="font-size:18px;font-weight:700;color:#111;margin:0 0 12px;">Your free ${meta.label} practice session is saved.</p>
+  <p>You get <strong>24 free exam-style words every day</strong>. Come back tomorrow and your next free session will be waiting.</p>
+  <p><a href="${meta.url}" style="display:inline-block;background:#7b2ff7;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">Practice again tomorrow</a></p>
+  <p style="font-size:14px;color:#666;">Want unlimited sessions, mistake review and adaptive drills? Premium starts at CAD $5/month. <a href="${SITE}/premium" style="color:#7b2ff7;">See what Premium includes</a></p>
+  <p style="font-size:12px;color:#999;border-top:1px solid #eee;padding-top:12px;">You're receiving this because you entered your email on SpellRightPro.</p>
+</div>`
+        });
+        await ref.update({ emailSent: true });
+      } catch (mailErr) {
+        console.error("Lead welcome email failed:", mailErr.message);
+      }
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("save-lead failed:", err.message);
+    res.status(500).json({ error: "Could not save" });
+  }
+});
+
 // ── Daily email checks ────────────────────────────────────────────────────────
 // ── Nurture email sequence ───────────────────────────────────────────────────
 // Sends Day 3, Day 7, and Day 14 follow-up emails to free-tier users who signed
