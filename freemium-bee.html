@@ -65,7 +65,7 @@
       --surface2:   #f4f0fc;
       --border:     rgba(123,47,247,0.15);
       --text:       #1a0533;
-      --muted:      #7b6f8a;
+      --muted:      #6a5e7a;
       --radius:     16px;
       --shadow:     0 8px 32px rgba(100,30,200,0.10);
     }
@@ -562,9 +562,9 @@
     body.dark-mode .summary-area .score-cell .value { color: #c89fff !important; }
 
     /* ── Footer: always visible on the purple gradient bg ── */
-    footer { color: rgba(255,255,255,0.75) !important; }
-    footer a { color: #c89fff !important; }
-    footer .fa { color: #c89fff !important; }
+    footer { color: #fff !important; }
+    footer a { color: #fff !important; text-decoration: underline !important; }
+    footer .fa { color: #fff !important; }
 
     /* ── Ad container styling ── */
     #ad-container {
@@ -691,6 +691,15 @@
     }
     .word-item strong { font-weight:700; }
 
+  
+    /* Bottom tab bar (was unstyled, so it showed as raw blue links on every screen size) */
+    .mobile-tab-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:200;padding:6px 0 max(10px,env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,0.07)}
+    .mobile-tab-bar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:#5b5470;font-size:0.68rem;font-weight:600;padding:4px 0}
+    .mobile-tab-bar a.active{color:var(--brand)}
+    .mobile-tab-bar a i{font-size:18px}
+    @media (max-width:700px){.mobile-tab-bar{display:flex}body{padding-bottom:74px}}
+    body.dark-mode #how-spellers-study{background:rgba(31,13,58,0.94) !important}
+    body.dark-mode { --brand: #b48cff; }
   </style>
   <!-- Meta Pixel Base Code -->
   <script>
@@ -863,7 +872,7 @@
   <!-- ═══════════════════════════════════════════════════
        EDUCATIONAL CONTENT — added for review/content-depth
   ══════════════════════════════════════════════════════ -->
-  <section id="how-spellers-study" style="max-width:820px;margin:24px auto;padding:24px 20px;color:var(--text);">
+  <section id="how-spellers-study" style="max-width:820px;margin:24px auto;padding:24px 20px;color:var(--text);background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.12);box-sizing:border-box;width:calc(100% - 24px);">
     <h2 style="font-size:1.4rem;margin-bottom:6px;">How competition spellers actually study</h2>
     <p style="font-size:0.85rem;color:var(--muted);margin-bottom:18px;">Strong spellers work smarter, not just harder. Here's the method behind it.</p>
 
@@ -885,7 +894,7 @@
   <!-- Cookie Consent Banner -->
   <div id="cookieConsentBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#333;color:white;padding:15px;text-align:center;z-index:1000;">
     <p>We use cookies to provide our services and for analytics and ads.
-       <a href="/privacy" style="color:#7b2ff7;">Learn more</a>
+       <a href="/privacy" style="color:#d4bcff;">Learn more</a>
     </p>
     <button onclick="acceptCookies()" style="background:#7b2ff7;color:white;border:none;padding:8px 15px;margin:0 5px;border-radius:5px;cursor:pointer;">Accept</button>
     <button onclick="declineCookies()" style="background:#666;color:white;border:none;padding:8px 15px;margin:0 5px;border-radius:5px;cursor:pointer;">Decline</button>
@@ -1952,21 +1961,21 @@
       <i class="fa fa-book-open"></i>
       Spelling Bee Study Guide — How to Prepare &amp; Win
     </a>
-    <p style="font-size:0.78rem; color:#999; margin:8px 0 0;">Language of origin, roots &amp; a practice routine · Written by a doctor</p>
+    <p style="font-size:0.78rem; color:rgba(255,255,255,.92); margin:8px 0 0;">Language of origin, roots &amp; a practice routine · Written by a doctor</p>
   </div>
 
-  <footer style="text-align:center;margin-top:40px;padding:20px;color:#666;border-top:1px solid rgba(255,255,255,0.1);">
+  <footer style="text-align:center;margin-top:40px;padding:20px;color:#fff;border-top:1px solid rgba(255,255,255,0.1);">
     <div style="display:flex;justify-content:center;gap:30px;margin-bottom:20px;flex-wrap:wrap;">
-      <div style="text-align:center;"><i class="fa fa-lock" style="color:#7b2ff7;font-size:1.5em;"></i><div style="font-size:0.8em;">SSL Secure</div></div>
-      <div style="text-align:center;"><i class="fa fa-shield-alt" style="color:#7b2ff7;font-size:1.5em;"></i><div style="font-size:0.8em;">Cancel Anytime</div></div>
-      <div style="text-align:center;"><i class="fa fa-user-shield" style="color:#7b2ff7;font-size:1.5em;"></i><div style="font-size:0.8em;">GDPR Compliant</div></div>
+      <div style="text-align:center;"><i class="fa fa-lock" style="color:#fff;font-size:1.5em;"></i><div style="font-size:0.8em;">SSL Secure</div></div>
+      <div style="text-align:center;"><i class="fa fa-shield-alt" style="color:#fff;font-size:1.5em;"></i><div style="font-size:0.8em;">Cancel Anytime</div></div>
+      <div style="text-align:center;"><i class="fa fa-user-shield" style="color:#fff;font-size:1.5em;"></i><div style="font-size:0.8em;">GDPR Compliant</div></div>
     </div>
     <p>
-      <a href="/privacy" style="color:#7b2ff7;text-decoration:none;">Privacy Policy</a> &nbsp;•&nbsp;
-      <a href="/terms" style="color:#7b2ff7;text-decoration:none;">Terms of Service</a> &nbsp;•&nbsp;
-      <a href="/refund-policy" style="color:#7b2ff7;text-decoration:none;">Refund Policy</a> &nbsp;•&nbsp;
-      <a href="/security" style="color:#7b2ff7;text-decoration:none;">Security</a> &nbsp;•&nbsp;
-      <a href="/contact" style="color:#7b2ff7;text-decoration:none;">Contact</a>
+      <a href="/privacy" style="color:#fff;text-decoration:underline;">Privacy Policy</a> &nbsp;•&nbsp;
+      <a href="/terms" style="color:#fff;text-decoration:underline;">Terms of Service</a> &nbsp;•&nbsp;
+      <a href="/refund-policy" style="color:#fff;text-decoration:underline;">Refund Policy</a> &nbsp;•&nbsp;
+      <a href="/security" style="color:#fff;text-decoration:underline;">Security</a> &nbsp;•&nbsp;
+      <a href="/contact" style="color:#fff;text-decoration:underline;">Contact</a>
     </p>
     <p style="margin-top:10px;font-size:0.9em;">&copy; 2026 SpellRightPro. All rights reserved.</p>
   </footer>
