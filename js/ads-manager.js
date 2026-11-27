@@ -36,8 +36,22 @@
       }
     ],
     
+    // AdSense policy: show ads only on pages with substantial publisher content.
+    // Interactive practice screens, policy/contact pages and hub pages are excluded.
+    contentPages: [
+      '/', '/index', '/index.html',
+      '/oet-spelling-guide', '/school-spelling-guide', '/spelling-bee-guide',
+      '/oet-abbreviations', '/oet-referral-letter-guide', '/oet-vs-ielts',
+      '/british-american-spelling-oet'
+    ],
+    isContentPage: function() {
+      const path = window.location.pathname.replace(/\.html$/, '').replace(/\/+$/, '') || '/';
+      return this.contentPages.includes(path);
+    },
+
     // Initialize ads
     init: function() {
+      if (!this.isContentPage()) return;
       // Check if ads should be shown
       if (!this.shouldShowAds()) {
         console.log('🔕 Ads disabled for premium user');

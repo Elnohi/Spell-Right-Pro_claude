@@ -34,8 +34,6 @@
 
 
   <!-- Google Adsense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7632930282249669"
-     crossorigin="anonymous"></script>
 
   <!-- Shared config -->
   <script src="/js/config.js"></script>
@@ -948,6 +946,7 @@
       });
     },
     initializeAds() {
+      return; // Ads disabled on practice screens (AdSense: no ads on screens without substantial publisher content)
       const c = document.getElementById('ad-container');
       if (!c) return;
       setTimeout(() => {
