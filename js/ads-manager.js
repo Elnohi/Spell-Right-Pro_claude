@@ -42,7 +42,8 @@
       '/', '/index', '/index.html',
       '/oet-spelling-guide', '/school-spelling-guide', '/spelling-bee-guide',
       '/oet-abbreviations', '/oet-referral-letter-guide', '/oet-vs-ielts',
-      '/british-american-spelling-oet'
+      '/british-american-spelling-oet',
+      '/commonly-confused-medical-words', '/oet-spelling-study-plan', '/spelling-bee-word-roots'
     ],
     isContentPage: function() {
       const path = window.location.pathname.replace(/\.html$/, '').replace(/\/+$/, '') || '/';
