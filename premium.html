@@ -513,39 +513,32 @@
         Cancel anytime. Your access continues until the end of your billing period.
       </p>
       
-      <!-- Plan selector (3-way tabs) -->
-      <div style="display:flex;justify-content:center;margin-bottom:36px;">
-        <div style="display:flex;gap:6px;background:rgba(255,255,255,0.1);border-radius:14px;padding:6px;max-width:520px;width:100%;">
-          <button id="tabMonthly" onclick="selectPlanKey('monthly')"
-                  style="flex:1;padding:12px 8px;border:none;background:transparent;color:rgba(255,255,255,0.75);
-                         border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;
-                         font-size:0.85rem;font-weight:700;transition:all .2s;
-                         display:flex;flex-direction:column;gap:2px;line-height:1.2;">
-            <span>Monthly</span>
-            <span style="font-size:0.7rem;font-weight:500;opacity:.7;">Flexible</span>
+      <!-- Plan selector: all three plans and prices visible; one click picks a plan and opens checkout -->
+      <div style="display:flex;justify-content:center;margin-bottom:28px;">
+        <div style="display:flex;gap:8px;background:rgba(255,255,255,0.1);border-radius:16px;padding:8px;max-width:600px;width:100%;">
+          <button id="tabMonthly" class="btn-choose plan-pick" data-plan="monthly" onclick="selectPlanKey('monthly')"
+                  style="flex:1;min-width:0;padding:16px 8px 14px;border:none;border-radius:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;flex-direction:column;gap:3px;line-height:1.2;align-items:center;position:relative;background:transparent;color:rgba(255,255,255,0.85);">
+            <span style="font-size:0.8rem;font-weight:700;">Monthly</span>
+            <span style="font-size:1.35rem;font-weight:800;">$5<span style="font-size:0.7rem;font-weight:500;opacity:.75;">/mo</span></span>
+            <span style="font-size:0.68rem;font-weight:500;opacity:.8;">CAD · cancel anytime</span>
           </button>
-          <button id="tabExamprep" onclick="selectPlanKey('examprep')"
-                  style="flex:1;padding:12px 8px;border:none;background:transparent;color:rgba(255,255,255,0.75);
-                         border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;
-                         font-size:0.85rem;font-weight:700;transition:all .2s;
-                         display:flex;flex-direction:column;gap:2px;line-height:1.2;">
-            <span>Exam Prep</span>
-            <span style="font-size:0.7rem;font-weight:500;opacity:.7;">3 months</span>
+          <button id="tabExamprep" class="btn-choose plan-pick" data-plan="examprep" onclick="selectPlanKey('examprep')"
+                  style="flex:1;min-width:0;padding:16px 8px 14px;border:none;border-radius:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;flex-direction:column;gap:3px;line-height:1.2;align-items:center;position:relative;background:transparent;color:rgba(255,255,255,0.85);">
+            <span style="font-size:0.8rem;font-weight:700;">Exam Prep</span>
+            <span style="font-size:1.35rem;font-weight:800;">$12<span style="font-size:0.7rem;font-weight:500;opacity:.75;">/3 mo</span></span>
+            <span style="font-size:0.68rem;font-weight:500;opacity:.8;">CAD · $4/mo, save 20%</span>
           </button>
-          <button id="tabAnnual" onclick="selectPlanKey('annual')"
-                  style="flex:1;padding:12px 8px;border:none;background:white;color:#7b2ff7;
-                         border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;
-                         font-size:0.85rem;font-weight:700;transition:all .2s;box-shadow:0 2px 10px rgba(0,0,0,0.2);
-                         display:flex;flex-direction:column;gap:2px;line-height:1.2;position:relative;">
-            <span style="position:absolute;top:-9px;right:6px;background:#ffd166;color:#412402;
-                         font-size:0.6rem;padding:2px 7px;border-radius:20px;font-weight:800;">BEST VALUE</span>
-            <span>Annual</span>
-            <span style="font-size:0.7rem;font-weight:500;opacity:.7;">Save 25%</span>
+          <button id="tabAnnual" class="btn-choose plan-pick" data-plan="annual" onclick="selectPlanKey('annual')"
+                  style="flex:1;min-width:0;padding:16px 8px 14px;border:none;border-radius:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;flex-direction:column;gap:3px;line-height:1.2;align-items:center;position:relative;background:white;color:#7b2ff7;box-shadow:0 2px 10px rgba(0,0,0,0.2);">
+            <span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#ffd166;color:#412402;font-size:0.6rem;padding:2px 8px;border-radius:20px;font-weight:800;white-space:nowrap;">BEST VALUE</span>
+            <span style="font-size:0.8rem;font-weight:700;">Annual</span>
+            <span style="font-size:1.35rem;font-weight:800;">$45<span style="font-size:0.7rem;font-weight:500;opacity:.75;">/yr</span></span>
+            <span style="font-size:0.68rem;font-weight:500;opacity:.8;">CAD · $3.75/mo, save 25%</span>
           </button>
         </div>
       </div>
 
-      <p style="text-align:center;font-size:0.82rem;opacity:0.6;margin:-20px 0 18px;">Select a plan above, then click the button below.</p>
+      <p style="text-align:center;font-size:0.82rem;opacity:0.7;margin:-12px 0 18px;">Tap a plan to continue to checkout. Cancel anytime.</p>
 
       <div class="plans-grid" style="max-width:700px;margin:0 auto;
                                      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
