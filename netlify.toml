@@ -195,11 +195,7 @@
   status = 200
   force = true
 
-# ─── Catch-all (LAST — no force so real files take precedence) ───────
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# No catch-all: unknown URLs return a real 404 (/404.html). See _redirects.
 
 # ─── Security headers (all pages) ────────────────────────────────────
 [[headers]]

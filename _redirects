@@ -1,3 +1,24 @@
+# ─── Never serve backend / internal files ───────────────────────────
+# publish = "." means every file in the repo is public unless blocked here.
+# server.js etc. are needed in the repo for the Cloud Run build, so we block
+# them at the edge instead of moving them. "404!" forces the rule even though
+# the file exists. These MUST stay above every other rule.
+/server.js                         /404.html  404!
+/package.json                      /404.html  404!
+/package-lock.json                 /404.html  404!
+/dockerfile                        /404.html  404!
+/Dockerfile                        /404.html  404!
+/env.example                       /404.html  404!
+/.env                              /404.html  404!
+/DEPLOY_NOTES.md                   /404.html  404!
+/netlify/*                         /404.html  404!
+/diag.html                         /404.html  404!
+/diag                              /404.html  404!
+/spellrightpro_file_structure.html /404.html  404!
+/footer.html                       /404.html  404!
+/social-posts.html                 /404.html  404!
+/social-posts                      /404.html  404!
+
 # ─── .html → clean URL redirects (prevents duplicate content) ────────
 # Bing (and Google) crawl both /contact and /contact.html via 200 rewrites,
 # causing duplicate title/description warnings. These 301s ensure search
@@ -77,5 +98,7 @@
 /about               /about.html               200
 /blog                /blog.html                200
 
-# ─── Catch-all (must be LAST) ───────────────────────────────────────
-/*                   /index.html               200
+# ─── Unknown URLs ───────────────────────────────────────────────────
+# No catch-all: every page here is its own file, so a bad URL must return a real
+# 404 (served from /404.html automatically) instead of the homepage with a 200,
+# which search engines treat as a "soft 404".

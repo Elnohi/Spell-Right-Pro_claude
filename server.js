@@ -96,6 +96,27 @@ const PLANS = {
 };
 const SITE = process.env.SITE_URL || "https://spellrightpro.org";
 
+// ── Premium-by-email doc lookup ───────────────────────────────────────────────
+// New records are keyed by the LOWERCASED email so "John@x.com" at checkout and
+// "john@x.com" on the account resolve to the same record. Older records were keyed
+// with the email exactly as typed, so lookups fall back to that form and keep
+// updating such a record in place instead of creating a duplicate.
+const emailKey       = e => String(e || "").trim().toLowerCase().replace(/[.#$[\]/]/g, "_");
+const legacyEmailKey = e => String(e || "").trim().replace(/[.#$[\]/]/g, "_");
+async function premiumEmailRef(email) {
+  const col   = db.collection("premiumByEmail");
+  const lower = col.doc(emailKey(email));
+  const lowerSnap = await lower.get();
+  if (lowerSnap.exists) return { ref: lower, snap: lowerSnap };
+  if (legacyEmailKey(email) !== emailKey(email)) {
+    const legacy = col.doc(legacyEmailKey(email));
+    const legacySnap = await legacy.get();
+    if (legacySnap.exists) return { ref: legacy, snap: legacySnap };
+  }
+  return { ref: lower, snap: lowerSnap };
+}
+
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // EMAIL HELPERS — Customer receipt & Admin notification
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -205,8 +226,7 @@ async function sendAdminNotification({ email, customerName, plan, planLabel, amo
 async function sessionAlreadyActivated(email, sessionId) {
   if (!db || !email || !sessionId) return false;
   try {
-    const safeEmail = email.replace(/[.#$[\]/]/g, "_");
-    const snap = await db.collection("premiumByEmail").doc(safeEmail).get();
+    const { snap } = await premiumEmailRef(email);
     return !!(snap.exists && snap.data() && snap.data().stripeSessionId === sessionId);
   } catch (e) { return false; }
 }
@@ -238,10 +258,9 @@ async function writePremiumRecord(uid, email, plan, sessionId, source, acquisiti
     await db.collection("premiumUsers").doc(uid).set(record, { merge: true });
     console.log(`✅ Firestore premiumUsers/${uid} [${source}]`);
   }
-  const safeEmail = email.replace(/[.#$[\]/]/g, "_");
-  await db.collection("premiumByEmail").doc(safeEmail)
-    .set({ ...record, firebaseUid: uid || null }, { merge: true });
-  console.log(`✅ Firestore premiumByEmail/${safeEmail} [${source}]`);
+  const { ref: emailRef } = await premiumEmailRef(email);
+  await emailRef.set({ ...record, firebaseUid: uid || null }, { merge: true });
+  console.log(`✅ Firestore premiumByEmail/${emailRef.id} [${source}]`);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -253,9 +272,7 @@ async function writePremiumRecord(uid, email, plan, sessionId, source, acquisiti
 // Stripe successfully charged them.
 async function extendPremiumExpiry(email, plan, invoiceId, amount) {
   if (!db || !email) return null;
-  const safeEmail = email.replace(/[.#$[\]/]/g, "_");
-  const ref = db.collection("premiumByEmail").doc(safeEmail);
-  const snap = await ref.get();
+  const { ref, snap } = await premiumEmailRef(email);
 
   // Extend FROM current expiry (if in the future) or FROM now (if past or missing)
   let baseDate = new Date();
@@ -294,9 +311,7 @@ async function extendPremiumExpiry(email, plan, invoiceId, amount) {
 // We do NOT touch expiryDate — user keeps access until period ends.
 async function deactivatePremium(email, reason) {
   if (!db || !email) return;
-  const safeEmail = email.replace(/[.#$[\]/]/g, "_");
-  const ref = db.collection("premiumByEmail").doc(safeEmail);
-  const snap = await ref.get();
+  const { ref, snap } = await premiumEmailRef(email);
   if (!snap.exists) {
     console.log(`⚠️  deactivatePremium: no record for ${email}`);
     return;
@@ -447,8 +462,20 @@ app.post("/api/stripe-webhook", async (req, res) => {
       return res.status(400).json({ error: "Signature verification failed" });
     }
   } else {
-    try { event = JSON.parse(req.body.toString()); } catch { event = {}; }
-    console.warn("⚠️  Webhook running without signature verification — set STRIPE_WEBHOOK_SECRET");
+    // No signing secret configured. Never trust the posted body: take only the event ID from it
+    // and re-fetch the real event from Stripe, so a forged request cannot grant premium.
+    // Set STRIPE_WEBHOOK_SECRET to switch to proper signature verification.
+    try {
+      const claimed = JSON.parse(req.body.toString());
+      if (!stripe || !claimed || typeof claimed.id !== "string" || !claimed.id.startsWith("evt_")) {
+        throw new Error("missing or invalid event id");
+      }
+      event = await stripe.events.retrieve(claimed.id);
+      console.warn("⚠️  Webhook verified by Stripe lookup, not signature — set STRIPE_WEBHOOK_SECRET");
+    } catch (err) {
+      console.error("❌ Unsigned webhook rejected:", err.message);
+      return res.status(400).json({ error: "Event could not be verified" });
+    }
   }
 
   // ─── EVENT 1: Initial purchase ──────────────────────────────────────────────
@@ -895,7 +922,7 @@ app.post('/api/email/reengage', async (req, res) => {
       // is only written when a Firebase UID was captured at checkout, so relying
       // on it here risked sending "try premium" emails to existing subscribers.
       const safeEmail = user.email.replace(/[.#$[\]/]/g, "_");
-      const premSnap = await db.collection('premiumByEmail').doc(safeEmail).get();
+      const { snap: premSnap } = await premiumEmailRef(user.email);
       if (premSnap.exists && premSnap.data().active) continue;
       if (user.reengageSent) continue;
 
@@ -1052,7 +1079,7 @@ app.post('/api/email/nurture', async (req, res) => {
       // Check if they already converted to premium — skip if so
       const safeEmail = lead.email.replace(/[.#$[\]/]/g, '_');
       try {
-        const premSnap = await db.collection('premiumByEmail').doc(safeEmail).get();
+        const { snap: premSnap } = await premiumEmailRef(lead.email);
         if (premSnap.exists && premSnap.data().active) continue;
       } catch (_) {}
 
