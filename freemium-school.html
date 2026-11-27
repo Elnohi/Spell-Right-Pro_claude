@@ -1007,6 +1007,7 @@ const firebaseConfig = {
     },
     
     initializeAds: function() {
+      return; // Ads disabled on practice screens (AdSense: no ads on screens without substantial publisher content)
       const adContainer = document.getElementById('ad-container');
       if (adContainer) {
         setTimeout(() => {
