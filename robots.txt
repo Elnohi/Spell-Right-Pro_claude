@@ -14,7 +14,7 @@ Disallow: /contact-success.html
 Disallow: /diag.html
 Disallow: /spellrightpro_file_structure.html
 Disallow: /footer.html
-Disallow: /pro
+Disallow: /pro$
 Disallow: /pro.html
 
 Sitemap: https://www.spellrightpro.org/sitemap.xml
